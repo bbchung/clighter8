@@ -52,6 +52,59 @@ func s:do_highlight(matches, priority)
     endfor
 endf
 
+fun Rename()
+    let s:pos = getpos('.')
+    let str = json_encode({"cmd" : "rename", "params" : {"bufname" : expand('%:p'), "row" : s:pos[1], "col": s:pos[2]}})
+    let s:result = ch_evalexpr(s:channel, str)
+
+    if empty(s:result) || empty(s:result['renames'])
+        return
+    endif
+
+    let s:old = s:result['old']
+    echohl WildMenu
+    let s:new = input('Rename ' . s:old . ' : ', s:old)
+    echohl None
+    if (empty(s:new) || s:old == s:new)
+        return
+    endif
+
+    let l:wnr = winnr()
+    let l:bufnr = bufnr('')
+    let l:qflist = []
+    bufdo! call s:do_replace(s:result['renames'], s:old, s:new, l:qflist)
+    exe l:wnr.'wincmd w'
+    exe 'buffer '.l:bufnr
+    call setqflist(l:qflist)
+endf
+
+fun! s:do_replace(renames, old, new, qflist)
+    if (!has_key(a:renames, expand('%:p')) || empty(a:renames[expand('%:p')]))
+        return
+    endif
+    let l:locations = a:renames[expand('%:p')]
+
+    let l:choice = confirm("rename '". a:old ."' to '" .a:new. "' in " .expand('%:p'). "?", "&Yes\n&No", 1)
+    if (l:choice == 2)
+        return
+    endif
+
+    let l:pattern = ''
+    for [l:row, l:col] in l:locations
+        if (!empty(l:pattern))
+            let l:pattern = l:pattern . '\|'
+        endif
+
+        let l:pattern = l:pattern . '\%' . l:row . 'l' . '\%>' . (l:col - 1) . 'c\%<' . (l:col + strlen(a:old)) . 'c' . a:old
+        call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'text':"'".a:old."' was renamed to '".a:new."'"})
+    endfor
+
+    let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
+
+    execute(l:cmd)
+    copen
+endf
+
 
 fun! s:notify_delete_buffer()
     let str = json_encode({"cmd" : "delete_buffer", "params" : {"bufname" : expand('%:p')}})

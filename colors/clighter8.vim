@@ -21,7 +21,7 @@ hi DiffDelete term=bold cterm=bold ctermbg=152 ctermfg=fg gui=bold guibg=#afd7d7
 hi DiffText term=reverse cterm=bold ctermbg=1 ctermfg=fg gui=bold guibg=#800000 guifg=fg
 hi Cursor term=NONE cterm=NONE ctermbg=NONE ctermfg=NONE  guibg=bg 
 hi CursorColumn term=NONE cterm=NONE ctermbg=16 ctermfg=NONE  guibg=#1c1c1c guifg=fg
-hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE  guibg=#000000 guifg=fg
+hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE  guibg=#000000 guifg=NONE
 hi CursorLineNr term=underline cterm=NONE ctermbg=bg ctermfg=130  guibg=bg guifg=#CD9366
 hi LineNr term=underline cterm=NONE ctermbg=NONE ctermfg=241  guibg=bg guifg=#605958
 hi Pmenu term=NONE cterm=NONE ctermbg=237 ctermfg=251  guibg=#292929 

@@ -199,10 +199,47 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname']
             self.server.delete_tu(self.request, bufname)
 
+        elif msg['cmd'] == 'rename':
+            bufname = msg['params']['bufname']
+            row = msg['params']['row']
+            col = msg['params']['col']
+
+            self.server.parse_or_reparse(self.request, bufname)
+
+            if bufname not in self.server.get_all_tu(self.request):
+                self.request.sendall(json.dumps([sn, {}]).encode('utf-8'))
+                return
+
+            tu = self.server.get_all_tu(self.request)[bufname][0]
+            symbol = clighter8_helper.get_semantic_symbol_from_location(tu, bufname, row, col)
+
+            if not symbol:
+                self.request.sendall(json.dumps([sn, {}]).encode('utf-8'))
+                return
+
+            result = {'old': symbol.spelling, 'renames': {}}
+            usr = symbol.get_usr()
+            if not usr:
+                self.request.sendall(json.dumps([sn, {}]).encode('utf-8'))
+                return
+
+            for bufname, [tu, dirty] in self.server.get_all_tu(self.request).iteritems():
+                print(tu)
+                locations = []
+                clighter8_helper.search_referenced_tokens_by_usr(
+                    tu, usr, locations, symbol.spelling)
+
+                if locations:
+                    result['renames'][bufname] = locations
+
+            self.request.sendall(json.dumps([sn, result]).encode('utf-8'))
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     clients = {}
+
+    def get_all_tu(self, cli):
+        return self.clients[cli].translation_units
 
     def delete_tu(self, cli, bufname):
         try:
