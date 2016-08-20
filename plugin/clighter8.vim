@@ -135,11 +135,10 @@ func s:notify_parse(bufname)
     call ch_sendexpr(s:channel, str, {'callback': "HandleParse"})
 endf
 
-fun! StartClighter8()
+fun! s:start_clighter8()
     let s:channel = ch_open('localhost:8787')
     if ch_status(s:channel) == "fail"
         let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py'
-        echo l:cmd
         let s:job = job_start(l:cmd, {"stoponexit": ""})
         let s:channel = ch_open('localhost:8787', {"waittime": 1000})
     endif
@@ -161,11 +160,11 @@ fun! StartClighter8()
         au TextChanged,TextChangedI,BufEnter * call s:notify_change()
         au CursorMoved,CursorMovedI * call s:notify_highlight()
         au BufDelete * call s:notify_delete_buffer()
-        au VimLeave * call StopClighter8()
+        au VimLeave * call s:stop_clighter8()
     augroup END
 endf
 
-fun! StopClighter8()
+fun! s:stop_clighter8()
     augroup Clighter8
         autocmd!
     augroup END
@@ -188,6 +187,9 @@ fun! s:clear_match_by_priorities(priorities)
     endfor
 endf
 
+command! StartClighter8 call s:start_clighter8()
+command! StopClighter8 call s:stop_clighter8()
+
 let g:clighter8_occurrence_priority = get(g:, 'clighter8_occurrence_priority', -1)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
@@ -198,7 +200,7 @@ let g:clighter8_compile_args = get(g:, 'clighter8_compile_args', [])
 let g:clighter8_highlight_mode = get(g:, 'clighter8_highlight_mode', 0)
 
 if g:clighter8_autostart
-    au VimEnter *.c,*.cpp,*.h,*.hpp call StartClighter8()
+    au VimEnter *.c,*.cpp,*.h,*.hpp call s:start_clighter8()
 endif
 
 let g:loaded_clighter8=1
