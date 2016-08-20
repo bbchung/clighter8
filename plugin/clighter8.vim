@@ -53,6 +53,9 @@ func s:do_highlight(matches, priority)
 endf
 
 fun Rename()
+    if !exists('s:channel')
+        return
+    endif
     let l:wnr = winnr()
     let l:bufnr = bufnr('%')
     let l:pos = getpos('.')
