@@ -1,18 +1,18 @@
-# Clamp: NeoVim plugin to highlight C-family code
+# Clighter8: Vim8 plugin to highlight C-family code
 
 ## Intro
 
-Clamp is a neovim plugin to support C-family code powered by libclang.
-Currently it can highlight and rename-refactor code semantically. Clamp takes
-the advantage of new plugin architecture of neovim and it runs very smooth.
+Clighter8 is a vim plugin to support C-family code powered by libclang.
+Currently it can highlight and rename-refactor code semantically. Clighter8
+takes the advantage of vim8's new async plugin architecture, so it runs very
+fast, user will not feel any laggy.
 
 ## Requirements
 
-Clamp requires the following:
+clighter8 requires the following:
 
-* NeoVim
+* Vim8
 * libclang, http://llvm.org/apt/
-* python-client of msg-pack, https://github.com/neovim/python-client
 
 ## Installation
 
@@ -20,81 +20,71 @@ use vim plugin manager, for example
 
 * Vundle Install:
 ```vim
-Bundle 'bbchung/Clamp'
+Bundle 'bbchung/clighter8'
 ```
 
 ## Options
 
-### g:clamp_autostart
+### g:clighter8_autostart
 
-Start Clamp automatically.
+Start Clighter8 automatically.
 
 Default: `1`
 ```vim
-let g:clamp_autostart = 0
+let g:clighter8_autostart = 0
 ```
 
-### g:clamp_libclang_path
+### g:clighter8_libclang_path
 
-Config the libclang path if libclang is not in default path or Clamp can't
+Config the libclang path if libclang is not in default path or Clighter8 can't
 find it.
 
 Default: `''`
 ```vim
-let g:clamp_libclang_file = '/usr/lib/libclang.so'
+let g:clighter8_libclang_file = '/usr/lib/libclang.so'
 ```
 
-### g:clamp_highlight_blacklist
+### g:clighter8_highlight_blacklist
 
 Define the group of syntax NOT to be highlighted.
 
-Default: `['clampInclusionDirective']`
+Default: `['clighter8InclusionDirective']`
 
 The recommend setting to not be dazzled:
 ```vim
-let g:clamp_highlight_blacklist = ['clampNamespaceRef', 'clampFunctionDecl', 'clampFieldDecl', 'clampDeclRefExprCall', 'clampMemberRefExprCall', 'clampMemberRefExprVar', 'clampNamespace', 'clampNamespaceRef', 'cligherInclusionDirective', 'clampVarDecl']
+let g:clighter8_highlight_blacklist = ['clighter8NamespaceRef', 'clighter8FunctionDecl', 'clighter8FieldDecl', 'clighter8DeclRefExprCall', 'clighter8MemberRefExprCall', 'clighter8MemberRefExprVar', 'clighter8Namespace', 'clighter8NamespaceRef', 'cligherInclusionDirective', 'clighter8VarDecl']
 ```
 
-### g:clamp_heuristic_compile_args
+### g:clighter8_heuristic_compile_args
 
-Clamp search the compilation database to compile, but the compilation
-database the CMake generated doesn't include the header files. Clamp can
+Clighter8 search the compilation database to compile, but the compilation
+database the CMake generated doesn't include the header files. Clighter8 can
 heuristic search the compilation database to guess the most possible compile
 args if set this option.
 
 Default: `1`
 ```vim
-let g:clamp_heuristic_compile_args = 1
+let g:clighter8_heuristic_compile_args = 1
 ```
 
-### g:clamp_compile_args
+### g:clighter8_compile_args
 
-The global compile args of Clamp.
+The global compile args of Clighter8.
 
 Default: `[]`
 ```vim
-let g:clamp_compile_args = []
-```
-
-### g:clamp_highlight_mode
-
-Set it to 1 only if you DON'T use autocomplete plugin like
-[YouCompleteMe][ycm].
-
-Default: `0`
-```vim
-let g:clamp_highlight_mode = 1
+let g:clighter8_compile_args = []
 ```
 
 ## Commands and Functions
 
-Clamp provides these commands and functions.
+Clighter8 provides these commands and functions.
 
-### ClampStart
+### StartClighter8
 
-### ClampShutdown
+### StopClighter8
 
-### ClampRename()
+### Rename()
 
 * An experimental function to do rename-refactor.
 * The scope is opened vim buffers.
@@ -102,71 +92,64 @@ Clamp provides these commands and functions.
 * Strongly recommend that backing up all files before calling this function.
 * For convenience, you can add key mapping in your vimrc:
 ```vim
-nmap <silent> <Leader>r :call ClampRename()<CR>
+nmap <silent> <Leader>r :call Rename()<CR>
 ```
 
 ## Compilation Database
 
-Clamp automatically load and parse the compilation database
+Clighter8 automatically load and parse the compilation database
 "compile_commands.json" if it exists in current working directory, then the
 compile options will be passed to libclang. For more information about
 compilation database, please reference [Compilation Database][cdb].
 
 ## Highlight Group
 
-Clamp defines these highlight groups corresponded to libclang.
+Clighter8 defines these highlight groups corresponded to libclang.
 
 ```vim
-hi default link clampPrepro PreProc
-hi default link clampDecl Identifier
-hi default link clampRef Type
-hi default link clampInclusionDirective cIncluded
-hi default link clampMacroInstantiation Constant
-hi default link clampVarDecl Identifier
-hi default link clampStructDecl Identifier
-hi default link clampUnionDecl Identifier
-hi default link clampClassDecl Identifier
-hi default link clampEnumDecl Identifier
-hi default link clampParmDecl Identifier
-hi default link clampFunctionDecl Identifier
-hi default link clampFieldDecl Identifier
-hi default link clampEnumConstantDecl Constant
-hi default link clampDeclRefExprEnum Constant
-hi default link clampDeclRefExprCall Type
-hi default link clampMemberRefExprCall Type
-hi default link clampMemberRefExprVar Type
-hi default link clampTypeRef Type
-hi default link clampNamespace Identifier
-hi default link clampNamespaceRef Type
-hi default link clampTemplateTypeParameter Identifier
-hi default link clampTemplateNoneTypeParameter Identifier
-hi default link clampTemplateRef Type
-hi default link clampOccurrences IncSearch
+hi default link clighter8Prepro PreProc
+hi default link clighter8Decl Identifier
+hi default link clighter8Ref Type
+hi default link clighter8InclusionDirective cIncluded
+hi default link clighter8MacroInstantiation Constant
+hi default link clighter8VarDecl Identifier
+hi default link clighter8StructDecl Identifier
+hi default link clighter8UnionDecl Identifier
+hi default link clighter8ClassDecl Identifier
+hi default link clighter8EnumDecl Identifier
+hi default link clighter8ParmDecl Identifier
+hi default link clighter8FunctionDecl Identifier
+hi default link clighter8FieldDecl Identifier
+hi default link clighter8EnumConstantDecl Constant
+hi default link clighter8DeclRefExprEnum Constant
+hi default link clighter8DeclRefExprCall Type
+hi default link clighter8MemberRefExprCall Type
+hi default link clighter8MemberRefExprVar Type
+hi default link clighter8TypeRef Type
+hi default link clighter8Namespace Identifier
+hi default link clighter8NamespaceRef Type
+hi default link clighter8TemplateTypeParameter Identifier
+hi default link clighter8TemplateNoneTypeParameter Identifier
+hi default link clighter8TemplateRef Type
+hi default link clighter8Occurrences IncSearch
 ```
 
 You can customize these colors in your colorscheme, for example:
 ```vim
-hi clampTypeRef term=NONE cterm=NONE ctermbg=232 ctermfg=255 gui=NONE
+hi clighter8TypeRef term=NONE cterm=NONE ctermbg=232 ctermfg=255 gui=NONE
 ```
 ## FAQ
 
-### The Clamp plugin doesn't work?
+### Clighter8 doesn't work?
 Check the Requirements and Installation.
 
 ### Why rename-refactor function is an experimental function?
 Due to the character of c-family language, it's hard to do rename-refactor.
-Clamp only search the current opened buffer to do rename-refactor and it can't
-guarantee the correctness.
-
-### Crash?
-Clamp may crashes in some cases. Call ClampStart again if it happens.
-
-### Highlighting always are messed up as typing, can fix?
-No, Clamp use matchaddpos() api currently. Once NeoVim provides more powerful
-api, I will use it.
+Clighter8 only search the current opened buffer to do rename-refactor and it
+can't guarantee the correctness.
 
 ### How to set compile args?
-Clamp set the compile args for each file with (g:clamp_compile_args +
+Clighter8 set the compile args for each file with (g:clighter8_compile_args +
 "compilation database"). Compile args will affect the correctness of highlight
 and rename-refactor.
 
