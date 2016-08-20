@@ -70,6 +70,7 @@ fun Rename()
     let l:result = ch_evalexpr(s:channel, str)
 
     if empty(l:result) || empty(l:result['renames'])
+        echo "can\'t rename this"
         return
     endif
 
