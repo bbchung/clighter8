@@ -28,21 +28,21 @@ Bundle 'bbchung/clighter8'
 
 Clighter8 provides following commands and functions:
 
-### StartClighter8
+#### StartClighter8
 
 Start Clighter8 immediatly. Clighter8 will highlight the code after it starts,
 and the refactor-rename function will be enabled.
 
-### StopClighter8
+#### StopClighter8
 
 Stop Clighter8 and cleanup highlight, refactor-rename function will be
 disabled.
 
-### ShowInfo
+#### ShowInfo
 
 Show some Clighter8 runtime informations.
 
-### Rename()
+#### Rename()
 
 * An experimental function to do rename-refactor.
 * Only renaming the opened buffers.
@@ -66,15 +66,15 @@ database, please reference [Compilation Database][cdb].
 
 ## FAQ
 
-### Clighter8 doesn't work?
+#### Clighter8 doesn't work?
 Check the Requirements and Installation, and check if libclang path is given.
 
-### Rename() function is an experimental function?
+#### Rename() function is an experimental function?
 Due to the limitation of c-family language, it's hard to do rename-refactor.
 Clighter8 will only search all opened buffers to do renaming and it can't
 guarantee the correctness.
 
-### How to set compile args?
+#### How to set compile args?
 Clighter8 set the compile args for each file by (g:clighter8_compile_args +
 "compilation database"). Compile args will affect the correctness of highlight
 and rename-refactor.
