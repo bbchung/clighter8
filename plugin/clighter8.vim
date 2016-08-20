@@ -53,12 +53,14 @@ func s:do_highlight(matches, priority)
 endf
 
 fun Rename()
-    let l:bufnr = bufnr('')
+    let l:wnr = winnr()
+    "let l:bufnr = bufnr('')
     let s:pos = getpos('.')
+    let l:bufname = expand('%:p')
     bufdo! call s:req_parse(expand('%:p'))
-    exe 'buffer '.l:bufnr
+    bn!
 
-    let str = json_encode({"cmd" : "rename", "params" : {"bufname" : expand('%:p'), "row" : s:pos[1], "col": s:pos[2]}})
+    let str = json_encode({"cmd" : "rename", "params" : {"bufname" : l:bufname, "row" : s:pos[1], "col": s:pos[2]}})
     let s:result = ch_evalexpr(s:channel, str)
 
     if empty(s:result) || empty(s:result['renames'])
@@ -73,24 +75,25 @@ fun Rename()
         return
     endif
 
-    let l:wnr = winnr()
-    let l:bufnr = bufnr('')
     let l:qflist = []
     bufdo! call s:do_replace(s:result['renames'], s:old, s:new, l:qflist)
+    bn!
+    bufdo! call s:req_parse(expand('%:p'))
+    bn!
     call setqflist(l:qflist)
-    copen
-    exe l:wnr.'wincmd w'
-    exe 'buffer '.l:bufnr
-    call setpos('.', s:pos)
+    "copen
+    "exe l:wnr.'wincmd w'
+    "exe 'buffer! '.l:bufnr
 endf
 
 fun! s:do_replace(renames, old, new, qflist)
-    if (!has_key(a:renames, expand('%:p')) || empty(a:renames[expand('%:p')]))
+    let l:bufname = expand('%:p')
+    if (!has_key(a:renames, l:bufname) || empty(a:renames[l:bufname]))
         return
     endif
-    let l:locations = a:renames[expand('%:p')]
+    let l:locations = a:renames[l:bufname]
 
-    let l:choice = confirm("rename '". a:old ."' to '" .a:new. "' in " .expand('%:p'). "?", "&Yes\n&No", 1)
+    let l:choice = confirm("rename '". a:old ."' to '" .a:new. "' in " .l:bufname. "?", "&Yes\n&No", 1)
     if (l:choice == 2)
         return
     endif
@@ -186,7 +189,7 @@ fun! s:start_clighter8()
 
     augroup Clighter8
         autocmd!
-        au TextChanged,TextChangedI,WinEnter * call s:notify_change()
+        au TextChanged,TextChangedI,WinEnter,BufWinEnter * call s:notify_change()
         au CursorMoved,CursorMovedI * call s:notify_highlight()
         au BufDelete * call s:notify_delete_buffer()
         au VimLeave * call s:stop_clighter8()
