@@ -234,6 +234,20 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             self.request.sendall(json.dumps([sn, result]).encode('utf-8'))
 
+        elif msg['cmd'] == 'info':
+            bufname = msg['params']['bufname']
+            row = msg['params']['row']
+            col = msg['params']['col']
+
+            tu = self.server.get_all_tu(self.request)[bufname][0]
+            cursor = clighter8_helper.get_cursor(tu, bufname, row, col)
+
+            if not cursor:
+                self.request.sendall(json.dumps([sn, None]).encode('utf-8'))
+
+            result = {'cursor':str(cursor), 'cursor.kind': str(cursor.kind), 'cursor.type.kind': str(cursor.type.kind), 'cursor.spelling' : cursor.spelling}
+            self.request.sendall(json.dumps([sn, result]).encode('utf-8'))
+
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     clients = {}

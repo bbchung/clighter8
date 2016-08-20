@@ -121,6 +121,18 @@ fun! s:notify_highlight()
     call ch_sendexpr(s:channel, str, {'callback': "HandleHighlight"})
 endf
 
+func s:req_info()
+    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
+        return
+    endif
+
+    let s:pos = getpos('.')
+    let str = json_encode({"cmd" : "info", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : s:pos[1], "col": s:pos[2]}})
+    let l:result = ch_evalexpr(s:channel, str)
+
+    echo l:result
+endf
+
 func s:notify_change()
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
@@ -189,6 +201,7 @@ endf
 
 command! StartClighter8 call s:start_clighter8()
 command! StopClighter8 call s:stop_clighter8()
+command! ShowInfo call s:req_info()
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
