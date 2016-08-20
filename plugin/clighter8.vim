@@ -53,7 +53,11 @@ func s:do_highlight(matches, priority)
 endf
 
 fun Rename()
+    let l:bufnr = bufnr('')
     let s:pos = getpos('.')
+    bufdo! call s:req_parse(expand('%:p'))
+    exe 'buffer '.l:bufnr
+
     let str = json_encode({"cmd" : "rename", "params" : {"bufname" : expand('%:p'), "row" : s:pos[1], "col": s:pos[2]}})
     let s:result = ch_evalexpr(s:channel, str)
 
@@ -129,7 +133,6 @@ func s:req_info()
     let s:pos = getpos('.')
     let str = json_encode({"cmd" : "info", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : s:pos[1], "col": s:pos[2]}})
     let l:result = ch_evalexpr(s:channel, str)
-
     echo l:result
 endf
 
@@ -143,8 +146,21 @@ func s:notify_change()
 endf
 
 func s:notify_parse(bufname)
+    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
+        return
+    endif
+
     let str = json_encode({"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : getline(1,'$')}})
     call ch_sendexpr(s:channel, str, {'callback': "HandleParse"})
+endf
+
+func s:req_parse(bufname)
+    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
+        return
+    endif
+
+    let str = json_encode({"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : getline(1,'$')}})
+    call ch_evalexpr(s:channel, str)
 endf
 
 fun! s:start_clighter8()
@@ -169,7 +185,7 @@ fun! s:start_clighter8()
 
     augroup Clighter8
         autocmd!
-        au TextChanged,TextChangedI,BufEnter * call s:notify_change()
+        au TextChanged,TextChangedI,WinEnter * call s:notify_change()
         au CursorMoved,CursorMovedI * call s:notify_highlight()
         au BufDelete * call s:notify_delete_buffer()
         au VimLeave * call s:stop_clighter8()

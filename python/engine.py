@@ -167,6 +167,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname']
             content = str("\n".join(msg['params']['content']))
 
+            print('parse ', bufname)
             if not bufname:
                 self.request.sendall(json.dumps([sn, False]).encode('utf-8'))
                 return
@@ -204,7 +205,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             row = msg['params']['row']
             col = msg['params']['col']
 
-            self.server.parse_or_reparse(self.request, bufname)
+            #self.server.parse_or_reparse(self.request, bufname)
 
             if bufname not in self.server.get_all_tu(self.request):
                 self.request.sendall(json.dumps([sn, {}]).encode('utf-8'))
@@ -214,6 +215,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             symbol = clighter8_helper.get_semantic_symbol_from_location(tu, bufname, row, col)
 
             if not symbol:
+                print('not symbol', bufname, row, col)
                 self.request.sendall(json.dumps([sn, {}]).encode('utf-8'))
                 return
 
@@ -224,7 +226,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 return
 
             for bufname, [tu, dirty] in self.server.get_all_tu(self.request).iteritems():
-                print(tu)
                 locations = []
                 clighter8_helper.search_referenced_tokens_by_usr(
                     tu, usr, locations, symbol.spelling)
