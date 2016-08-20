@@ -3,9 +3,9 @@
 ## Intro
 
 Clighter8 is a vim plugin to support C-family code powered by libclang.
-Currently it can highlight and rename-refactor code semantically. Clighter8
-takes the advantage of vim8's new async plugin architecture, so it runs very
-fast, user will not feel any laggy.
+Currently it can highlight and rename-refactor code semantically. Clighter8's
+engine takes the advantage of vim8's new async architecture, and it is highly
+optimized, so it runs very fast, user will not feel any laggy.
 
 ## Requirements
 
