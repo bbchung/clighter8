@@ -88,6 +88,7 @@ fun Rename()
     "copen
     "exe l:wnr.'wincmd w'
     exe 'buffer! '.l:bufnr
+    call setpos('.', l:pos)
 endf
 
 fun! s:do_replace(renames, old, new, qflist)
