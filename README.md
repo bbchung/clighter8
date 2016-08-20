@@ -5,7 +5,7 @@
 Clighter8 is a VIM plugin to support C-family code powered by libclang.
 Currently it can highlight code semantically and do rename-refactor. Clighter8's
 engine is highly optimized for VIM's new channel mechanism, that means Clighter8 
-runs in background totally, and it doesn't slow down the performance of VIM.
+will run in background totally, and it won't slow down the performance of VIM.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ Clighter8 requires the following things:
 
 ## Installation
 
-Use VIM a plugin manager, for example
+Use a VIM plugin manager, for example
 
 * Vundle Install:
 ```vim
@@ -29,11 +29,12 @@ Clighter8 provides following commands and functions:
 
 ### StartClighter8
 
-Start Clighter8 immediatly.
+Start Clighter8 immediatly. Clighter8 will highlight the code after it starts, 
+and the refactor-rename function will be enabled.
 
 ### StopClighter8
 
-Stop Clighter8 and cleanup highlight.
+Stop Clighter8 and cleanup highlight, refactor-rename function will be disabled.
 
 ### ShowInfo
 
@@ -42,7 +43,7 @@ Show some Clighter8 runtime informations.
 ### Rename()
 
 * An experimental function to do rename-refactor.
-* Only renames the opened buffers.
+* Only renaming the opened buffers.
 * There is no one-step undo method.
 
 For convenience, you can add key mapping in your vimrc:
@@ -57,8 +58,8 @@ nmap <silent> <Leader>r :call Rename()<CR>
 ## Compilation Database
 
 Clighter8 automatically loads and parses the compilation database
-"compile_commands.json" if it exists in current working directory, then pass the
-compile options to libclang. For more information about
+"compile_commands.json" if it exists in current working directory,
+then passes the compile options to libclang. For more information about
 compilation database, please reference [Compilation Database][cdb].
 
 ## FAQ
