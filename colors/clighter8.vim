@@ -61,14 +61,14 @@ hi Conceal term=NONE cterm=NONE ctermbg=66 ctermfg=252  guibg=DarkGrey guifg=Lig
 
 " syncolor {
 
-hi Error term=reverse cterm=NONE ctermbg=None ctermfg=231  guibg=#602020 guifg=White
-hi Comment term=NONE cterm=NONE ctermbg=None ctermfg=102  guibg=bg guifg=#888888
-hi Constant term=NONE cterm=NONE ctermbg=None ctermfg=167  guibg=bg guifg=#cf6a4c
-hi Special term=NONE cterm=NONE ctermbg=None ctermfg=107  guibg=bg guifg=#799d6a
-hi Identifier term=NONE cterm=NONE ctermbg=None ctermfg=183  guibg=bg guifg=#c6b6ee
+hi Error term=reverse cterm=NONE ctermbg=None ctermfg=231 guibg=#602020 guifg=White
+hi Comment term=NONE cterm=NONE ctermbg=None ctermfg=102 guifg=#888888
+hi Constant term=NONE cterm=NONE ctermbg=None ctermfg=167 guifg=#cf6a4c
+hi Special term=NONE cterm=NONE ctermbg=None ctermfg=107 guibg=bg guifg=#799d6a
+hi Identifier term=NONE cterm=NONE ctermbg=None ctermfg=183 guifg=#c6b6ee
 hi Statement term=NONE cterm=NONE ctermbg=None ctermfg=103  guibg=bg guifg=#8197bf
 hi PreProc term=NONE cterm=NONE ctermbg=None ctermfg=110  guibg=bg guifg=#8fbfdc
-hi Type term=NONE cterm=NONE ctermbg=None ctermfg=215  guibg=bg guifg=#ffb964
+hi Type term=NONE cterm=NONE ctermbg=None ctermfg=215 guifg=#ffb964
 hi Underlined term=underline cterm=underline ctermbg=None ctermfg=111 gui=underline guibg=bg guifg=#80a0ff
 hi Ignore term=NONE cterm=NONE ctermbg=None ctermfg=233  guibg=bg 
 hi Todo term=bold cterm=bold,italic ctermbg=None ctermfg=251 gui=bold,italic guibg=bg guifg=#c7c7c7
