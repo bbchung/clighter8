@@ -1,0 +1,235 @@
+*Clighter8*	Plugin to improve c-family development environment based on Clang
+
+==============================================================================
+CONTENTS					*clighter8-contents*
+1. Intro			|clighter8-intro|
+2. Requirements			|clighter8-requirements|
+3. Installation			|clighter8-installation|
+4. Options			|clighter8-options|
+5. Usage			|clighter8-usage|
+6. Compilation Database		|clighter8-compilation-database|
+7. Highlight Group		|clighter8-highlight-group|
+8. FAQ				|clighter8-faq|
+9. LICENSE			|clighter8-license|
+
+==============================================================================
+						*clighter8-intro*
+1. Intro~
+
+Clighter8 is a vim plugin to support C-family code powered by libclang.
+Currently it can highlight and rename-refactor code semantically. Clighter8's
+engine takes the advantage of vim8's new async architecture, and it is highly
+optimized, so it runs very fast, user will not feel any laggy.
+
+Github~
+
+https://github.com/bbchung/clighter8
+
+==============================================================================
+						*clighter8-requirements*
+2. Requirements~
+
+Clighter8 requires the following:
+
+* Vim8
+* libclang, http://llvm.org/apt/
+
+==============================================================================
+						*clighter8-installation*
+3. Installation~
+
+Vundle Install~
+>
+	Bundle 'bbchung/clighter8'
+<
+
+==============================================================================
+						*clighter8-options*
+4. Options~
+
+|g:clighter8_autostart|
+|g:clighter8_libclang_path|
+|g:clighter8_occurrence_priority|
+|g:clighter8_syntax_priority|
+|g:clighter8_highlight_blacklist|
+|g:clighter8_heuristic_compile_args|
+|g:clighter8_compile_args|
+
+------------------------------------------------------------------------------
+						*g:clighter8_autostart*
+g:clighter8_autostart~
+
+Start Clighter8 automatically.
+
+Default: `1`
+------------------------------------------------------------------------------
+						*g:clighter8_libclang_path*
+g:clighter8_libclang_path~
+
+Config the libclang path if libclang is not in default path or Clighter8 can't
+find it.
+
+Default: `''`
+------------------------------------------------------------------------------
+						*g:clighter8_occurrence_priority*
+g:clighter8_occurrence_priority~
+
+Set the match priority of occurrence
+
+Default: `-1`
+------------------------------------------------------------------------------
+						*g:clighter8_syntax_priority*
+g:clighter8_syntax_priority~
+
+Set the match priority of syntax
+
+Default: -21`
+------------------------------------------------------------------------------
+						*g:clighter8_highlight_blacklist*
+g:clighter8_highlight_blacklist~
+
+Define the group of syntax NOT to be highlighted.
+
+Default: `['cligher8InclusionDirective']`
+
+The recommend setting to not be dazzled:
+>
+	let g:clighter8_syntax_groups = ['clighter8NamespaceRef', 'clighter8FunctionDecl', 'clighter8FieldDecl', 'clighter8DeclRefExprCall', 'clighter8MemberRefExprCall', 'clighter8MemberRefExprVar', 'clighter8Namespace', 'clighter8NamespaceRef', 'cligherInclusionDirective', 'clighter8VarDecl']
+<
+------------------------------------------------------------------------------
+						*g:clighter8_heuristic_compile_args*
+g:clighter8_heuristic_compile_args~
+
+Clighter8 search the compilation database to compile, but the compilation
+database the CMake generated doesn't include the header files. Clighter8 can
+heuristic search the compilation database to guess the most possible compile
+args if set this option.
+
+Default: `1`
+-------------------------------------------------------------------------------
+						*g:clighter8_compile_args*
+g:clighter8_compile_args~
+
+The global compile args of Clighter8.
+
+Default: `[]`
+>
+	let g:clighter8_compile_args = ['-I/usr/local/include']
+
+------------------------------------------------------------------------------
+
+==============================================================================
+						*clighter8-usage*
+5. Usage ~
+
+Clighter8 provides these commands and functions.
+
+|StartClighter8|
+|StopClighter8|
+|ShowInfo|
+|Rename()|
+
+------------------------------------------------------------------------------
+						*StartClighter8*
+StartClighter8~
+
+Start Clighter8 immediatly.
+
+------------------------------------------------------------------------------
+						*StopClighter8*
+StopClighter8~
+
+Stop Clighter8 and cleanup highlight.
+
+------------------------------------------------------------------------------
+						*ShowInfo*
+ShowInfo~
+
+Show clighter8 runtime informations.
+
+------------------------------------------------------------------------------
+						*Rename()*
+Rename()~
+
+* An experimental function to do rename-refactor.
+* The scope is opened vim buffers.
+* There is no one-step undo/redo method.
+* Strongly recommend that backing up all files before calling this function.
+* For convenience, you can add key mapping in your vimrc:
+>
+	nmap <silent> <Leader>r :call Rename()<CR>
+>
+==============================================================================
+						*clighter8-compilation-database*
+6. Compilation Database~
+
+Clighter8 automatically load and parse the compilation database
+"compile_commands.json" if it exists in current working directory, then the
+compile options will be passed to libclang. For more information about
+compilation database.
+
+==============================================================================
+						*clighter8-highlight-group*
+7. Highlight Group~
+
+Clighter8 defines these highlight groups corresponded to libclang.
+
+hi default link *clighter8Prepro* PreProc
+hi default link *clighter8Decl* Identifier
+hi default link *clighter8Ref* Type
+hi default link *clighter8InclusionDirective* cIncluded
+hi default link *clighter8MacroInstantiation* Constant
+hi default link *clighter8VarDecl* Identifier
+hi default link *clighter8StructDecl* Identifier
+hi default link *clighter8UnionDecl* Identifier
+hi default link *clighter8ClassDecl* Identifier
+hi default link *clighter8EnumDecl* Identifier
+hi default link *clighter8ParmDecl* Identifier
+hi default link *clighter8FunctionDecl* Identifier
+hi default link *clighter8FieldDecl* Identifier
+hi default link *clighter8EnumConstantDecl* Constant
+hi default link *clighter8DeclRefExprEnum* Constant
+hi default link *clighter8DeclRefExprCall* Type
+hi default link *clighter8MemberRefExprCall* Type
+hi default link *clighter8MemberRefExprVar* Type
+hi default link *clighter8TypeRef* Type
+hi default link *clighter8Namespace* Identifier
+hi default link *clighter8NamespaceRef* Type
+hi default link *clighter8TemplateTypeParameter* Identifier
+hi default link *clighter8TemplateRef* Type
+hi default link *clighter8Occurrences* IncSearch
+
+You can customize these colors in your colorscheme, for example:
+>
+    hi clighter8TypeRef term=NONE cterm=NONE ctermbg=232 ctermfg=255 gui=NONE
+    hi clighter8ClassDecl term=NONE cterm=NONE ctermbg=255 ctermfg=232 gui=NONE
+<
+==============================================================================
+						*clighter8-faq*
+8. FAQ~
+
+Q. Clighter8 doesn't work.
+A. Check the Requirements and Installation.
+
+Q. Why rename-refactoring function is an experimental function?
+A. Due to the character of c-family language, it's hard to do rename-refactor.
+Clighter8 only search the current opened buffer to do rename-refactor and it
+can't guarantee the correctness.
+
+Q. How to set compile args?
+A. Clighter8 set the compile args for each file with (g:clighter8_compile_args +
+"compilation database"). Compile args will affect the correctness of highlight
+and rename-refactor.
+
+==============================================================================
+                                                        *clighter8-license*
+9. License ~
+
+This software is licensed under the GPL v3 license.
+
+Note: This license does not cover the files that come from the LLVM project.
+
+==============================================================================
+
+
+vim:tw=78:ts=8:noet:ft=help:

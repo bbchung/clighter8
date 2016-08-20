@@ -190,14 +190,13 @@ endf
 command! StartClighter8 call s:start_clighter8()
 command! StopClighter8 call s:stop_clighter8()
 
-let g:clighter8_occurrence_priority = get(g:, 'clighter8_occurrence_priority', -1)
-let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
+let g:clighter8_occurrence_priority = get(g:, 'clighter8_occurrence_priority', -1)
+let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', ['clighter8InclusionDirective'])
 let g:clighter8_heuristic_compile_args = get(g:, 'clighter8_heuristic_compile_args', 1)
 let g:clighter8_compile_args = get(g:, 'clighter8_compile_args', [])
-let g:clighter8_highlight_mode = get(g:, 'clighter8_highlight_mode', 0)
 
 if g:clighter8_autostart
     au VimEnter *.c,*.cpp,*.h,*.hpp call s:start_clighter8()
