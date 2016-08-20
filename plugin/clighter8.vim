@@ -77,9 +77,11 @@ fun Rename()
     let l:bufnr = bufnr('')
     let l:qflist = []
     bufdo! call s:do_replace(s:result['renames'], s:old, s:new, l:qflist)
+    call setqflist(l:qflist)
+    copen
     exe l:wnr.'wincmd w'
     exe 'buffer '.l:bufnr
-    call setqflist(l:qflist)
+    call setpos('.', s:pos)
 endf
 
 fun! s:do_replace(renames, old, new, qflist)
@@ -106,7 +108,6 @@ fun! s:do_replace(renames, old, new, qflist)
     let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
 
     execute(l:cmd)
-    copen
 endf
 
 
