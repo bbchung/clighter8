@@ -34,56 +34,60 @@ endfunc
 
 func s:do_highlight(matches, priority)
     for [l:group, l:all_pos] in items(a:matches)
-        let s:count = 0
-        let s:match8 = []
+        let l:count = 0
+        let l:match8 = []
 
         for l:pos in l:all_pos
-            call add(s:match8, l:pos)
-            let s:count = s:count + 1
-            if s:count == 8
-                call matchaddpos(l:group, s:match8, a:priority)
+            call add(l:match8, l:pos)
+            let l:count = l:count + 1
+            if l:count == 8
+                call matchaddpos(l:group, l:match8, a:priority)
 
-                let s:count = 0
-                let s:match8 = []
+                let l:count = 0
+                let l:match8 = []
             endif
         endfor
 
-        call matchaddpos(l:group, s:match8, a:priority)
+        call matchaddpos(l:group, l:match8, a:priority)
     endfor
 endf
 
 fun Rename()
     let l:wnr = winnr()
-    "let l:bufnr = bufnr('')
-    let s:pos = getpos('.')
+    let l:bufnr = bufnr('%')
+    let l:pos = getpos('.')
     let l:bufname = expand('%:p')
-    bufdo! call s:req_parse(expand('%:p'))
-    bn!
+    set ei=BufWinEnter,WinEnter
+    echo 'processing...'
+    silent bufdo! call s:req_parse(expand('%:p'))
+    set ei=""
+    exe 'buffer! '.l:bufnr
 
-    let str = json_encode({"cmd" : "rename", "params" : {"bufname" : l:bufname, "row" : s:pos[1], "col": s:pos[2]}})
-    let s:result = ch_evalexpr(s:channel, str)
+    let str = json_encode({"cmd" : "rename", "params" : {"bufname" : l:bufname, "row" : l:pos[1], "col": l:pos[2]}})
+    let l:result = ch_evalexpr(s:channel, str)
 
-    if empty(s:result) || empty(s:result['renames'])
+    if empty(l:result) || empty(l:result['renames'])
         return
     endif
 
-    let s:old = s:result['old']
+    let l:old = l:result['old']
     echohl WildMenu
-    let s:new = input('Rename ' . s:old . ' : ', s:old)
+    let l:new = input('Rename ' . l:old . ' : ', l:old)
     echohl None
-    if (empty(s:new) || s:old == s:new)
+    if (empty(l:new) || l:old == l:new)
         return
     endif
 
     let l:qflist = []
-    bufdo! call s:do_replace(s:result['renames'], s:old, s:new, l:qflist)
-    bn!
-    bufdo! call s:req_parse(expand('%:p'))
-    bn!
+    set ei=BufWinEnter,WinEnter
+    bufdo! call s:do_replace(l:result['renames'], l:old, l:new, l:qflist)
+    echo 'wait...'
+    silent bufdo! call s:req_parse(expand('%:p'))
+    set ei=""
     call setqflist(l:qflist)
     "copen
     "exe l:wnr.'wincmd w'
-    "exe 'buffer! '.l:bufnr
+    exe 'buffer! '.l:bufnr
 endf
 
 fun! s:do_replace(renames, old, new, qflist)
@@ -124,8 +128,8 @@ fun! s:notify_highlight()
         return
     endif
 
-    let s:pos = getpos('.')
-    let str = json_encode({"cmd" : "highlight", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : s:pos[1], "col": s:pos[2]}})
+    let l:pos = getpos('.')
+    let str = json_encode({"cmd" : "highlight", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}})
     call ch_sendexpr(s:channel, str, {'callback': "HandleHighlight"})
 endf
 
@@ -134,8 +138,8 @@ func s:req_info()
         return
     endif
 
-    let s:pos = getpos('.')
-    let str = json_encode({"cmd" : "info", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : s:pos[1], "col": s:pos[2]}})
+    let l:pos = getpos('.')
+    let str = json_encode({"cmd" : "info", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}})
     let l:result = ch_evalexpr(s:channel, str)
     echo l:result
 endf
@@ -189,7 +193,7 @@ fun! s:start_clighter8()
 
     augroup Clighter8
         autocmd!
-        au TextChanged,TextChangedI,WinEnter,BufWinEnter * call s:notify_change()
+        au TextChanged,TextChangedI,BufEnter * call s:notify_change()
         au CursorMoved,CursorMovedI * call s:notify_highlight()
         au BufDelete * call s:notify_delete_buffer()
         au VimLeave * call s:stop_clighter8()
