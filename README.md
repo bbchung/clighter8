@@ -3,9 +3,10 @@
 ## Intro
 
 Clighter8 is a VIM plugin to support C-family code powered by libclang.
-Currently it can highlight code semantically and do rename-refactor. Clighter8's
-engine is highly optimized for VIM's new channel mechanism, that means Clighter8 
-will run in background totally, and it won't slow down the performance of VIM.
+Currently it can highlight code semantically and do rename-refactor.
+Clighter8's engine is highly optimized for VIM's new channel mechanism, that
+means Clighter8 will run in background totally, and it won't slow down the
+performance of VIM.
 
 ## Requirements
 
@@ -29,12 +30,13 @@ Clighter8 provides following commands and functions:
 
 ### StartClighter8
 
-Start Clighter8 immediatly. Clighter8 will highlight the code after it starts, 
+Start Clighter8 immediatly. Clighter8 will highlight the code after it starts,
 and the refactor-rename function will be enabled.
 
 ### StopClighter8
 
-Stop Clighter8 and cleanup highlight, refactor-rename function will be disabled.
+Stop Clighter8 and cleanup highlight, refactor-rename function will be
+disabled.
 
 ### ShowInfo
 
@@ -58,9 +60,9 @@ nmap <silent> <Leader>r :call Rename()<CR>
 ## Compilation Database
 
 Clighter8 automatically loads and parses the compilation database
-"compile_commands.json" if it exists in current working directory,
-then passes the compile options to libclang. For more information about
-compilation database, please reference [Compilation Database][cdb].
+"compile_commands.json" if it exists in current working directory, then passes
+the compile options to libclang. For more information about compilation
+database, please reference [Compilation Database][cdb].
 
 ## FAQ
 
@@ -69,8 +71,8 @@ Check the Requirements and Installation, and check if libclang path is given.
 
 ### Rename() function is an experimental function?
 Due to the limitation of c-family language, it's hard to do rename-refactor.
-Clighter8 will only search all opened buffers to do renaming and it
-can't guarantee the correctness.
+Clighter8 will only search all opened buffers to do renaming and it can't
+guarantee the correctness.
 
 ### How to set compile args?
 Clighter8 set the compile args for each file by (g:clighter8_compile_args +
