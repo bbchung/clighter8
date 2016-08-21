@@ -48,7 +48,7 @@ Show some Clighter8 runtime informations.
 * Only do renaming in opened buffers.
 * There is no one-step undo method.
 
-For convenience, you can add key mapping in your vimrc:
+For convenience, you can add a key mapping in your vimrc:
 ```vim
 nmap <silent> <Leader>r :call Rename()<CR>
 ```
