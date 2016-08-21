@@ -45,7 +45,7 @@ Show some Clighter8 runtime informations.
 #### Rename()
 
 * An experimental function to do rename-refactor.
-* Only renaming the opened buffers.
+* Only do renaming in opened buffers.
 * There is no one-step undo method.
 
 For convenience, you can add key mapping in your vimrc:
