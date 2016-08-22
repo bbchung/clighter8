@@ -12,17 +12,17 @@ hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 guibg=#151515 guifg=#e8e8
 hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg guibg=#262680 guifg=fg
 hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg  guibg=#404080 guifg=fg
 hi SpellLocal term=NONE cterm=bold,undercurl ctermbg=NONE ctermfg=30 gui=undercurl guibg=bg guifg=fg guisp=DarkCyan
-hi SpellBad term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=1 gui=bold,undercurl,italic guibg=bg guifg=#FF0000 guisp=Red
-hi SpellCap term=underline cterm=bold,undercurl ctermbg=NONE ctermfg=3 gui=bold,undercurl,italic guibg=bg guifg=#FFFF00 guisp=Blue
-hi SpellRare term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=201 gui=undercurl guibg=bg guifg=fg guisp=Magenta
+hi SpellBad term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=1 gui=bold,undercurl,italic guibg=bg guifg=#FF0000
+hi SpellCap term=underline cterm=bold,undercurl ctermbg=NONE ctermfg=3 gui=bold,undercurl,italic guibg=bg guifg=#FFFF00
+hi SpellRare term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=201 gui=underline,italic guibg=bg guifg=fg
 hi DiffAdd term=bold cterm=NONE ctermbg=26 ctermfg=fg  guibg=#005fd7 guifg=fg
 hi DiffChange term=bold cterm=NONE ctermbg=95 ctermfg=fg  guibg=#875f5f guifg=fg
 hi DiffDelete term=bold cterm=bold ctermbg=152 ctermfg=fg gui=bold guibg=#afd7d7 guifg=fg
 hi DiffText term=reverse cterm=bold ctermbg=1 ctermfg=fg gui=bold guibg=#800000 guifg=fg
 hi Cursor term=NONE cterm=NONE ctermbg=NONE ctermfg=NONE  guibg=bg 
 hi CursorColumn term=NONE cterm=NONE ctermbg=16 ctermfg=NONE  guibg=#1c1c1c guifg=fg
-hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE  guibg=#000000 guifg=NONE
-hi CursorLineNr term=underline cterm=NONE ctermbg=bg ctermfg=130  guibg=bg guifg=#CD9366
+hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE guibg=#000000 guifg=NONE
+hi CursorLineNr term=underline cterm=italic ctermbg=bg ctermfg=130 gui=NONE guibg=bg guifg=#CD9366
 hi LineNr term=underline cterm=NONE ctermbg=NONE ctermfg=241  guibg=bg guifg=#605958
 hi Pmenu term=NONE cterm=NONE ctermbg=237 ctermfg=251 guibg=#292929 
 hi PmenuSel term=NONE cterm=NONE ctermbg=24 ctermfg=fg guibg=#262680 
@@ -34,7 +34,7 @@ hi VertSplit term=reverse cterm=NONE ctermbg=NONE ctermfg=242 gui=bold guibg=bg 
 hi Folded term=NONE cterm=italic ctermbg=235 ctermfg=109 gui=italic guibg=#272D33 guifg=#9FB7D0
 hi FoldColumn term=NONE cterm=NONE ctermbg=235 ctermfg=145  guibg=#384048 guifg=#a0a8b0
 hi Title term=bold cterm=bold ctermbg=bg ctermfg=71 gui=bold guibg=bg guifg=#70b950
-hi Visual term=reverse cterm=NONE ctermbg=237 ctermfg=NONE  guibg=#3E3E3E guifg=fg
+hi Visual term=reverse cterm=NONE ctermbg=237 ctermfg=NONE  guibg=#303030 guifg=fg
 hi VisualNOS term=bold cterm=bold,underline ctermbg=234 ctermfg=fg gui=bold,underline guibg=bg guifg=fg
 hi SpecialKey term=bold cterm=NONE ctermbg=236 ctermfg=244  guibg=#343434 guifg=#808080
 hi NonText term=bold cterm=bold ctermbg=NONE ctermfg=244 gui=bold guibg=bg guifg=#808080
@@ -84,8 +84,8 @@ hi SyntasticErrorSign guifg=RED guibg=bg
 hi SyntasticWarningSign  guifg=Yellow guibg=bg
 hi SyntasticErrorLine  guibg=bg
 hi SyntasticWarningLine  guibg=bg
-hi SyntasticError term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=1 gui=bold,undercurl,italic guibg=bg guifg=#FF0000 guisp=Red
-hi SyntasticWarning term=underline cterm=bold,undercurl ctermbg=NONE ctermfg=3 gui=bold,undercurl,italic guibg=bg guifg=#FFFF00 guisp=Blue
+hi SyntasticError term=reverse cterm=bold,italic,undercurl ctermbg=NONE ctermfg=1 gui=bold,underline guibg=bg guifg=#FF0000 guisp=Red
+hi SyntasticWarning term=underline cterm=bold,italic,undercurl ctermbg=NONE ctermfg=3 gui=bold,underline guibg=bg guifg=#FFFF00 guisp=Blue
 hi SyntasticStyleErrorSign guifg=#CD0000 guibg=bg
 hi SyntasticStyleWarningSign  guifg=#cdcd00 guibg=bg
 "}
