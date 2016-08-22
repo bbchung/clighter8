@@ -198,6 +198,7 @@ fun! s:start_clighter8()
 
     augroup Clighter8
         autocmd!
+        au BufEnter * call s:clear_match_by_priorities([g:clighter8_occurrence_priority, g:clighter8_syntax_priority]) | call s:notify_change()
         au TextChanged,TextChangedI,BufEnter * call s:notify_change()
         au CursorMoved,CursorMovedI * call s:notify_highlight()
         au BufDelete * call s:notify_delete_buffer()

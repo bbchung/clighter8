@@ -8,9 +8,9 @@ endif
 let g:colors_name = expand('<sfile>:t:r')
 
 " default {
-hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254  guibg=#151515 guifg=#e8e8d3
-hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg  guibg=#4F4F4F guifg=#e8e8d3
-hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg  guibg=#606000 
+hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 guibg=#151515 guifg=#e8e8d3
+hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg guibg=#262680 guifg=fg
+hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg  guibg=#404080 guifg=fg
 hi SpellLocal term=NONE cterm=bold,undercurl ctermbg=NONE ctermfg=30 gui=undercurl guibg=bg guifg=fg guisp=DarkCyan
 hi SpellBad term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=1 gui=bold,undercurl,italic guibg=bg guifg=#FF0000 guisp=Red
 hi SpellCap term=underline cterm=bold,undercurl ctermbg=NONE ctermfg=3 gui=bold,undercurl,italic guibg=bg guifg=#FFFF00 guisp=Blue
@@ -24,13 +24,13 @@ hi CursorColumn term=NONE cterm=NONE ctermbg=16 ctermfg=NONE  guibg=#1c1c1c guif
 hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE  guibg=#000000 guifg=NONE
 hi CursorLineNr term=underline cterm=NONE ctermbg=bg ctermfg=130  guibg=bg guifg=#CD9366
 hi LineNr term=underline cterm=NONE ctermbg=NONE ctermfg=241  guibg=bg guifg=#605958
-hi Pmenu term=NONE cterm=NONE ctermbg=237 ctermfg=251  guibg=#292929 
-hi PmenuSel term=NONE cterm=NONE ctermbg=24 ctermfg=fg  guibg=#588080 
-hi PmenuSbar term=NONE cterm=NONE ctermbg=250 ctermfg=fg  guibg=DarkGrey 
-hi PmenuThumb term=NONE cterm=NONE ctermbg=237 ctermfg=NONE  guibg=#606060 
+hi Pmenu term=NONE cterm=NONE ctermbg=237 ctermfg=251 guibg=#292929 
+hi PmenuSel term=NONE cterm=NONE ctermbg=24 ctermfg=fg guibg=#262680 
+hi PmenuSbar term=NONE cterm=NONE ctermbg=250 ctermfg=fg guibg=#606060
+hi PmenuThumb term=NONE cterm=NONE ctermbg=237 ctermfg=NONE guibg=DarkGrey 
 hi StatusLine term=reverse,bold cterm=NONE ctermbg=235 ctermfg=229 gui=italic guibg=#1c1c1c guifg=#ffffaf
 hi StatusLineNC term=reverse cterm=NONE ctermbg=235 ctermfg=241 gui=italic guibg=#1c1c1c guifg=#626262
-hi VertSplit term=reverse cterm=NONE ctermbg=NONE ctermfg=242 gui=bold guibg=#293329 guifg=#0F330F
+hi VertSplit term=reverse cterm=NONE ctermbg=NONE ctermfg=242 gui=bold guibg=bg guifg=#555555
 hi Folded term=NONE cterm=italic ctermbg=235 ctermfg=109 gui=italic guibg=#272D33 guifg=#9FB7D0
 hi FoldColumn term=NONE cterm=NONE ctermbg=235 ctermfg=145  guibg=#384048 guifg=#a0a8b0
 hi Title term=bold cterm=bold ctermbg=bg ctermfg=71 gui=bold guibg=bg guifg=#70b950
