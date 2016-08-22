@@ -62,7 +62,7 @@ hi Conceal term=NONE cterm=NONE ctermbg=66 ctermfg=252  guibg=DarkGrey guifg=Lig
 " syncolor {
 
 hi Error term=reverse cterm=NONE ctermbg=None ctermfg=231 guibg=#602020 guifg=White
-hi Comment term=NONE cterm=NONE ctermbg=None ctermfg=102 guifg=#888888
+hi Comment term=NONE cterm=NONE ctermbg=None ctermfg=102 guifg=#777777
 hi Constant term=NONE cterm=NONE ctermbg=None ctermfg=167 guifg=#cf6a4c
 hi Special term=NONE cterm=NONE ctermbg=None ctermfg=107 guibg=bg guifg=#799d6a
 hi Identifier term=NONE cterm=NONE ctermbg=None ctermfg=183 guifg=#c6b6ee
