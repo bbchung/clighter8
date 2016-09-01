@@ -9,8 +9,8 @@ let g:colors_name = expand('<sfile>:t:r')
 
 " default {
 hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 guibg=#151515 guifg=#e8e8d3
-hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg guibg=#262680 guifg=fg
-hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg  guibg=#404080 guifg=fg
+hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg guibg=#404080 guifg=fg
+hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg  guibg=#7373E6 guifg=fg
 hi SpellLocal term=NONE cterm=bold,undercurl ctermbg=NONE ctermfg=30 gui=undercurl guibg=bg guifg=fg guisp=DarkCyan
 hi SpellBad term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=1 gui=bold,undercurl,italic guibg=bg guifg=#FF0000
 hi SpellCap term=underline cterm=bold,undercurl ctermbg=NONE ctermfg=3 gui=bold,undercurl,italic guibg=bg guifg=#FFFF00
