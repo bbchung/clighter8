@@ -121,16 +121,16 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         print("=== socket opened ===")
         while True:
             try:
-                data = remain + self.request.recv(8192).decode('utf-8')
+                data = self.request.recv(8192).decode('utf-8')
             except:
                 print("socket error")
                 break
 
+            #print("received: {0}{1}".format(data, len(data)))
             if data == '':
                 break;
 
-            #print("received: {0}".format(data))
-            result, remain = HandleData(data)
+            result, remain = HandleData(remain + data)
 
             for next in result:
                 try:
