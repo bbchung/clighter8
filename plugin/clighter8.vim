@@ -242,7 +242,7 @@ let g:clighter8_heuristic_compile_args = get(g:, 'clighter8_heuristic_compile_ar
 let g:clighter8_compile_args = get(g:, 'clighter8_compile_args', [])
 
 if g:clighter8_autostart
-    au VimEnter *.c,*.cpp,*.h,*.hpp call s:start_clighter8()
+    au VimEnter * call s:start_clighter8()
 endif
 
 let g:loaded_clighter8=1
