@@ -86,7 +86,17 @@ class ClientData:
     idx = None
     global_args = None
 
-def HandleData(data):                                                                                                                                                  
+def ParseLineDelimited(data):
+    result = []
+    i = 0
+    sz = len(data)
+    start = 0
+    while i < sz: 
+        if data[i] == '\n':
+            result.append(data[start:i])
+            start = i + 1
+
+def ParseConcatenated(data):                                                                                                                                                  
     result = []
     quatos = 0
     i = 0
@@ -130,7 +140,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if data == '':
                 break;
 
-            result, remain = HandleData(remain + data)
+            result, remain = ParseLineDelimited(remain + data)
 
             for next in result:
                 try:
