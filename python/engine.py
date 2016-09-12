@@ -96,6 +96,10 @@ def ParseLineDelimited(data):
             result.append(data[start:i])
             start = i + 1
 
+        i += 1
+
+    return result, data[start:]
+
 def ParseConcatenated(data):                                                                                                                                                  
     result = []
     quatos = 0
