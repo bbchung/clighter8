@@ -61,7 +61,7 @@ fun Rename()
     let l:pos = getpos('.')
     let l:bufname = expand('%:p')
     set ei=BufWinEnter,WinEnter
-    echo 'processing...'
+    echo '[cighter8] processing...'
     silent bufdo! call s:req_parse(expand('%:p'))
     set ei=""
     exe 'buffer! '.l:bufnr
@@ -70,7 +70,7 @@ fun Rename()
     let l:result = ch_evalexpr(s:channel, str)
 
     if empty(l:result) || empty(l:result['renames'])
-        echo "can\'t rename this"
+        echo "[clighter8] can\'t rename this"
         return
     endif
 
@@ -85,7 +85,7 @@ fun Rename()
     let l:qflist = []
     set ei=BufWinEnter,WinEnter
     bufdo! call s:do_replace(l:result['renames'], l:old, l:new, l:qflist)
-    echo 'wait...'
+    echo '[clighter8] processing...'
     silent bufdo! call s:req_parse(expand('%:p'))
     set ei=""
     call setqflist(l:qflist)
@@ -188,7 +188,7 @@ fun! s:start_clighter8()
     let l:succ = ch_evalexpr(s:channel, str)
 
     if l:succ == v:false
-        echo 'failed to init libclang'
+        echo '[clighter8] failed to init libclang'
         call ch_close(s:channel)
         unlet s:channel
         return
