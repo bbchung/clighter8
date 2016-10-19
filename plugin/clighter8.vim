@@ -182,13 +182,17 @@ fun! s:start_clighter8()
         let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py'
         let s:job = job_start(l:cmd, {"stoponexit": ""})
         let s:channel = ch_open('localhost:8787', {"waittime": 1000})
+        if ch_status(s:channel) == "fail"
+            echo '[clighter8] failed start engine'
+            return
+        endif
     endif
 
-    let str = json_encode({"cmd" : "init", "params" : {"libclang" : g:clighter8_libclang_path, "cwd" : getcwd(), "hcargs" : g:clighter8_heuristic_compile_args, "gcargs" : g:clighter8_compile_args, "blacklist" : g:clighter8_highlight_blacklist}})
-    let l:succ = ch_evalexpr(s:channel, str)
+    let l:cmd = json_encode({"cmd" : "init_client", "params" : {"libclang" : g:clighter8_libclang_path, "cwd" : getcwd(), "hcargs" : g:clighter8_heuristic_compile_args, "gcargs" : g:clighter8_compile_args, "blacklist" : g:clighter8_highlight_blacklist}})
+    let l:succ = ch_evalexpr(s:channel, l:cmd)
 
     if l:succ == v:false
-        echo '[clighter8] failed to init libclang'
+        echo '[clighter8] failed to init client'
         call ch_close(s:channel)
         unlet s:channel
         return
@@ -229,9 +233,17 @@ fun! s:clear_match_by_priorities(priorities)
     endfor
 endf
 
+fun! s:enable_log(en)
+    let l:cmd = json_encode({"cmd" : "en_log", "params" : {"enable" : a:en}})
+    call ch_sendexpr(s:channel, l:cmd)
+endf
+
+
 command! StartClighter8 call s:start_clighter8()
 command! StopClighter8 call s:stop_clighter8()
-command! ShowInfo call s:req_info()
+command! Clt8ShowInfo call s:req_info()
+command! EnableClt8Logger call s:enable_log(v:true)
+command! DisableClt8Logger call s:enable_log(v:false)
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
@@ -242,7 +254,8 @@ let g:clighter8_heuristic_compile_args = get(g:, 'clighter8_heuristic_compile_ar
 let g:clighter8_compile_args = get(g:, 'clighter8_compile_args', [])
 
 if g:clighter8_autostart
-    au VimEnter * call s:start_clighter8()
+    au VimEnter * if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == 1 | call s:start_clighter8() | endif
+    
 endif
 
 let g:loaded_clighter8=1

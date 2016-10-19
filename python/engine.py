@@ -1,4 +1,4 @@
-from __future__ import print_function
+import logging
 import json
 import sys
 import socket
@@ -132,12 +132,12 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def handle(self):
         remain = ""
         server.clients[self.request] = ClientData()
-        print("=== socket opened ===")
+        logging.info('socket accepted');
         while True:
             try:
                 data = self.request.recv(8192).decode('utf-8')
             except:
-                print("socket error")
+                logging.warn('socket error');
                 break
 
             #print("received: {0}{1}".format(data, len(data)))
@@ -150,38 +150,45 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 try:
                     decoded = json.loads(next)
                 except ValueError:
-                    print(next)
-                    print("json decoding failed")
+                    logging.warn('json decoding failed');
                     continue
 
                 if decoded[0] >= 0:
                     self.handle_msg(decoded[0], json.loads(decoded[1]))
 
-        print("=== socket closed ===")
         del server.clients[self.request]
         self.request = None
-        if len(server.clients) == 0:
-            print("=== server shutdown ===")
+
+        num_client = len(server.clients)
+        logging.info("socket closed(%d clients remains)" % num_client);
+        if num_client == 0:
+            logging.info('server shutdown');
             server.shutdown()
             server.server_close()
 
 
     def handle_msg(self, sn, msg):
-        if msg['cmd'] == 'init':
+        if msg['cmd'] == 'init_client':
             libclang = msg["params"]["libclang"]
             cwd = msg["params"]["cwd"]
             hcargs = msg["params"]["hcargs"]
             gcargs = msg["params"]["gcargs"]
             blacklist = msg["params"]["blacklist"]
 
-            succ = server.init_clang(self.request, libclang, cwd, hcargs, gcargs, blacklist)
+            try:
+                cindex.Config.set_library_file(libclang)
+                logging.info('config libclang path');
+            except:
+                logging.warn('cannot config library path');
+
+            succ = server.init_client(self.request, cwd, hcargs, gcargs, blacklist)
             self.request.sendall(json.dumps([sn, succ]).encode('utf-8'))
 
         elif msg['cmd'] == 'parse':
             bufname = msg['params']['bufname']
             content = str("\n".join(msg['params']['content']))
 
-            print('parse ', bufname)
+            logging.info("parse %s" % bufname);
             if not bufname:
                 self.request.sendall(json.dumps([sn, False]).encode('utf-8'))
                 return
@@ -229,7 +236,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             symbol = clighter8_helper.get_semantic_symbol_from_location(tu, bufname, row, col)
 
             if not symbol:
-                print('not symbol', bufname, row, col)
+                logging.info("not symbol at %s:[%d, %d]" % (bufname, row, col));
                 self.request.sendall(json.dumps([sn, {}]).encode('utf-8'))
                 return
 
@@ -263,6 +270,16 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             result = {'cursor':str(cursor), 'cursor.kind': str(cursor.kind), 'cursor.type.kind': str(cursor.type.kind), 'cursor.spelling' : cursor.spelling}
             self.request.sendall(json.dumps([sn, result]).encode('utf-8'))
 
+        elif msg['cmd'] == 'en_log':
+            enable = msg['params']['enable']
+            if enable:
+                logging.disable(logging.NOTSET)
+                logging.info("enable logger")
+            else:
+                logging.disable(logging.CRITICAL)
+                logging.info("disable logger")
+
+            self.request.sendall(json.dumps([sn, True]).encode('utf-8'))
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     clients = {}
@@ -286,20 +303,15 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         return False
 
-    def init_clang(self, cli, libclang, cwd, hcargs, gcargs, blacklist):
-        self.clients[cli].cdb = compilation_database.CompilationDatabase.from_dir(cwd, hcargs)
-        self.clients[cli].global_args = gcargs
-        self.clients[cli].blacklist = blacklist
-
-        try:
-            cindex.Config.set_library_file(libclang)
-        except:
-            print('cant change path after engine has launched')
-
+    def init_client(self, cli, cwd, hcargs, gcargs, blacklist):
         try:
             self.clients[cli].idx = cindex.Index.create()
         except:
             return False
+
+        self.clients[cli].cdb = compilation_database.CompilationDatabase.from_dir(cwd, hcargs)
+        self.clients[cli].global_args = gcargs
+        self.clients[cli].blacklist = blacklist
 
         return True
 
@@ -335,7 +347,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 self.clients[cli].unsaved,
                 options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
         except:
-            print("libclang failed to parse")
+            logging.warn('libclang failed to parse');
             return None
 
     def highlight(self, cli, bufname, begin_line, end_line, row, col):
@@ -388,10 +400,17 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='/tmp/clighter8.log', filemode='w', level = logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.disable(logging.CRITICAL)
     HOST, PORT = "localhost", 8787
-    server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
-    ip, port = server.server_address
+    try:
+        server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+    except:
+        logging.error("failed to start TCP server")
+        exit()
 
+    ip, port = server.server_address
+    logging.info("server start looping")
     server.serve_forever()
     
     # server_thread = threading.Thread(target=server.serve_forever)
