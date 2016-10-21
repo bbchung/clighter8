@@ -46,8 +46,8 @@ def get_semantic_symbol(cursor):
         return cursor
 
     symbol = cursor.get_definition()
-    # if not symbol:
-        # symbol = cursor.referenced
+    if not symbol:
+        symbol = cursor.referenced
 
     if not symbol:
         return None
