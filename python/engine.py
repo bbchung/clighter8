@@ -249,21 +249,21 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 self.request.sendall(json.dumps([sn, {}]).encode('utf-8'))
                 return
 
-            result = {'old': symbol.spelling, 'renames': {}}
             usr = symbol.get_usr()
             if not usr:
                 self.request.sendall(json.dumps([sn, {}]).encode('utf-8'))
                 return
 
-            for bufname, [
-                    tu, dirty] in self.server.get_all_tu(
+            result = {'old': symbol.spelling, 'renames': {}}
+
+            for next_bufname, next_tu in self.server.get_all_tu(
                     self.request).iteritems():
                 locations = []
                 clighter8_helper.search_referenced_tokens_by_usr(
-                    tu, usr, locations, symbol.spelling)
+                    next_tu[0], usr, locations, symbol.spelling)
 
                 if locations:
-                    result['renames'][bufname] = locations
+                    result['renames'][next_bufname] = locations
 
             self.request.sendall(json.dumps([sn, result]).encode('utf-8'))
 
