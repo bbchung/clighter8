@@ -65,5 +65,5 @@ def search_referenced_tokens_by_usr(tu, usr, result, spelling):
         cursor._tu = tu
 
         symbol = get_semantic_symbol(cursor)
-        if token.spelling == spelling and symbol and symbol.get_usr() == usr:
+        if symbol and symbol.get_usr() == usr:
             result.append((token.location.line, token.location.column))
