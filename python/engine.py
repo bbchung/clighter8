@@ -89,19 +89,18 @@ class ClientData:
     global_args = None
 
 
-def ParseLineDelimited(data):
-    result = []
+def ParseLineDelimited(data, on_parse):
     i = 0
     sz = len(data)
     start = 0
     while i < sz:
         if data[i] == '\n':
-            result.append(data[start:i])
+            on_parse(data[start:i])
             start = i + 1
 
         i += 1
 
-    return result, data[start:]
+    return data[start:]
 
 
 def ParseConcatenated(data):
@@ -153,17 +152,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if remain != '': 
                 data = remain + data;
 
-            result, remain = ParseLineDelimited(data)
-
-            for next in result:
-                try:
-                    decoded = json.loads(next)
-                except ValueError:
-                    logging.warn('json decoding failed')
-                    continue
-
-                if decoded[0] >= 0:
-                    self.handle_msg(decoded[0], json.loads(decoded[1]))
+            remain = ParseLineDelimited(data, self.handle_json)
 
         del server.clients[self.request]
         self.request = None
@@ -174,6 +163,16 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             logging.info('server shutdown')
             server.shutdown()
             server.server_close()
+
+    def handle_json(self, json_str):
+        try:
+            decoded = json.loads(json_str)
+        except ValueError:
+            logging.warn('json decoding failed')
+
+        if decoded[0] >= 0:
+            self.handle_msg(decoded[0], json.loads(decoded[1]))
+
 
     def handle_msg(self, sn, msg):
         if msg['cmd'] == 'init_client':
