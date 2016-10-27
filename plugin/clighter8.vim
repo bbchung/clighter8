@@ -67,7 +67,7 @@ fun Rename()
     exe 'buffer! '.l:bufnr
 
     let str = json_encode({"cmd" : "rename", "params" : {"bufname" : l:bufname, "row" : l:pos[1], "col": l:pos[2]}})
-    let l:result = ch_evalexpr(s:channel, str)
+    let l:result = ch_evalexpr(s:channel, str, {"timeout":10000})
 
     if empty(l:result) || empty(l:result['renames'])
         echo "[clighter8] can\'t rename this"
