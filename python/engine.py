@@ -277,6 +277,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             if not cursor:
                 self.request.sendall(json.dumps([sn, None]).encode('utf-8'))
+                return
+
 
             result = {
                 'cursor': str(cursor), 'cursor.kind': str(
