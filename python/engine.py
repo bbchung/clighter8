@@ -136,7 +136,7 @@ def ParseConcatenated(data):
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
-        remain = ""
+        remain = '' 
         server.clients[self.request] = ClientData()
         logging.info('socket accepted')
         while True:
@@ -150,7 +150,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if data == '':
                 break
 
-            result, remain = ParseLineDelimited(remain + data)
+            if remain != '': 
+                data = remain + data;
+
+            result, remain = ParseLineDelimited(data)
 
             for next in result:
                 try:
