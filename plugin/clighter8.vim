@@ -256,7 +256,7 @@ fun! s:enable_log(en)
 endf
 
 
-command! StartClighter8 call s:start_clighter8()
+command! StartClighter8 call s:stop_clighter8() | call s:start_clighter8()
 command! StopClighter8 call s:stop_clighter8()
 command! Clt8ShowInfo call s:engine_info()
 command! EnableClt8Logger call s:enable_log(v:true)
