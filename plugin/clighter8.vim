@@ -198,7 +198,7 @@ fun! s:start_clighter8()
     if ch_status(s:channel) == "fail"
         let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py'
         let s:job = job_start(l:cmd, {"stoponexit": ""})
-        let s:channel = ch_open('localhost:8787', {"waittime": 1000})
+        let s:channel = ch_open('localhost:8787', {"waittime": 5000})
         if ch_status(s:channel) == "fail"
             echo '[clighter8] failed start engine'
             return
