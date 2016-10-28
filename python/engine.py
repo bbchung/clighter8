@@ -135,7 +135,7 @@ def ParseConcatenated(data):
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
-        remain = '' 
+        remain = ''
         server.clients[self.request] = ClientData()
         logging.info('socket accepted')
         while True:
@@ -149,7 +149,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if data == '':
                 break
 
-            if remain != '': 
+            if remain != '':
                 data = remain + data;
 
             remain = ParseLineDelimited(data, self.handle_json)
@@ -206,7 +206,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             self.request.sendall(json.dumps([sn, True]).encode('utf-8'))
 
-        elif msg['cmd'] == 'change':
+        elif msg['cmd'] == 'notify_parse':
             bufname = msg['params']['bufname']
             if server.is_dirty(self.request, bufname):
                 self.request.sendall(json.dumps([sn, ""]).encode('utf-8'))
@@ -215,12 +215,25 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             server.set_dirty(self.request, bufname)
             self.request.sendall(json.dumps([sn, bufname]).encode('utf-8'))
 
+        elif msg['cmd'] == 'notify_highlight':
+            bufname = msg['params']['bufname']
+
+            if server.is_hl_flag_set(self.request, bufname):
+                self.request.sendall(json.dumps([sn, ""]).encode('utf-8'))
+                return
+
+            server.set_hl_flag(self.request, bufname)
+            self.request.sendall(json.dumps([sn, bufname]).encode('utf-8'))
+
+
         elif msg['cmd'] == 'highlight':
             bufname = msg['params']['bufname']
             begin_line = msg['params']['begin_line']
             end_line = msg['params']['end_line']
             row = msg['params']['row']
             col = msg['params']['col']
+
+            server.clear_hl_flag(self.request, bufname)
 
             result = self.server.highlight(
                 self.request, bufname, begin_line, end_line, row, col)
@@ -322,6 +335,21 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         return False
 
+    def set_hl_flag(self, cli, bufname):
+        if bufname in self.clients[cli].translation_units:
+            self.clients[cli].translation_units[bufname][2] = True
+
+    def clear_hl_flag(self, cli, bufname):
+        if bufname in self.clients[cli].translation_units:
+            self.clients[cli].translation_units[bufname][2] = False
+
+    def is_hl_flag_set(self, cli, bufname):
+        if bufname in self.clients[cli].translation_units:
+            return self.clients[cli].translation_units[bufname][2]
+
+        return False
+
+
     def init_client(self, cli, cwd, hcargs, gcargs, blacklist):
         try:
             self.clients[cli].idx = cindex.Index.create()
@@ -344,7 +372,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
     def parse_or_reparse(self, cli, bufname):
         self.clients[cli].translation_units[
-            bufname] = [self.parse(cli, bufname), False]
+            bufname] = [self.parse(cli, bufname), False, False]
         return
         # if bufname not in self.clients[cli].translation_units:
         # self.clients[cli].translation_units[bufname] = [self.parse(cli, bufname), False]

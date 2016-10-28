@@ -7,15 +7,22 @@ execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
 func HandleParse(channel, msg)
     if a:msg == v:true
-        call s:notify_highlight()
+        call s:engine_notify_highlight()
     endif
 endfunc
 
-func HandleChange(channel, msg)
+func HandleNotifyParse(channel, msg)
     if a:msg != ""
-        call s:notify_parse(a:msg)
+        call s:engine_parse_async(a:msg)
     endif
 endfunc
+
+func HandleNotifyHighlight(channel, msg)
+    if a:msg != ""
+        call s:engine_highlight_async()
+    endif
+endfunc
+
 
 func HandleHighlight(channel, msg)
     if a:msg[0] != expand('%:p')
@@ -62,7 +69,7 @@ fun Rename()
     let l:bufname = expand('%:p')
     set ei=BufWinEnter,WinEnter
     echo '[cighter8] processing...'
-    silent bufdo! call s:req_parse(expand('%:p'))
+    silent bufdo! call s:engine_parse(expand('%:p'))
     set ei=""
     exe 'buffer! '.l:bufnr
 
@@ -86,7 +93,7 @@ fun Rename()
     set ei=BufWinEnter,WinEnter
     bufdo! call s:do_replace(l:result['renames'], l:old, l:new, l:qflist)
     echo '[clighter8] processing...'
-    silent bufdo! call s:req_parse(expand('%:p'))
+    silent bufdo! call s:engine_parse(expand('%:p'))
     set ei=""
     call setqflist(l:qflist)
     "copen
@@ -123,12 +130,12 @@ fun! s:do_replace(renames, old, new, qflist)
 endf
 
 
-fun! s:notify_delete_buffer()
+fun! s:engine_delete_buffer()
     let str = json_encode({"cmd" : "delete_buffer", "params" : {"bufname" : expand('%:p')}})
     call ch_sendexpr(s:channel, str)
 endf
 
-fun! s:notify_highlight()
+fun! s:engine_highlight_async()
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -138,7 +145,7 @@ fun! s:notify_highlight()
     call ch_sendexpr(s:channel, str, {'callback': "HandleHighlight"})
 endf
 
-func s:req_info()
+func s:engine_info()
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -149,16 +156,26 @@ func s:req_info()
     echo l:result
 endf
 
-func s:notify_change()
+func s:engine_notify_parse_async()
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
-    let str = json_encode({"cmd" : "change", "params" : {"bufname" : expand('%:p')}})
-    call ch_sendexpr(s:channel, str, {'callback': "HandleChange"})
+    let str = json_encode({"cmd" : "notify_parse", "params" : {"bufname" : expand('%:p')}})
+    call ch_sendexpr(s:channel, str, {'callback': "HandleNotifyParse"})
 endf
 
-func s:notify_parse(bufname)
+func s:engine_notify_highlight()
+    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
+        return
+    endif
+
+    let str = json_encode({"cmd" : "notify_highlight", "params" : {"bufname" : expand('%:p')}})
+    call ch_sendexpr(s:channel, str, {'callback': "HandleNotifyHighlight"})
+endf
+
+
+func s:engine_parse_async(bufname)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -167,7 +184,7 @@ func s:notify_parse(bufname)
     call ch_sendexpr(s:channel, str, {'callback': "HandleParse"})
 endf
 
-func s:req_parse(bufname)
+func s:engine_parse(bufname)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -198,14 +215,14 @@ fun! s:start_clighter8()
         return
     endif
 
-    call s:notify_change()
+    call s:engine_notify_parse_async()
 
     augroup Clighter8
         autocmd!
-        au BufEnter * call s:clear_match_by_priorities([g:clighter8_occurrence_priority, g:clighter8_syntax_priority]) | call s:notify_change()
-        au CursorHold,CursorHoldI,BufEnter * call s:notify_change()
-        au CursorMoved,CursorMovedI * call s:notify_highlight()
-        au BufDelete * call s:notify_delete_buffer()
+        au BufEnter * call s:clear_match_by_priorities([g:clighter8_occurrence_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async()
+        au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async()
+        au CursorMoved,CursorMovedI * call s:engine_notify_highlight()
+        au BufDelete * call s:engine_delete_buffer()
         au VimLeave * call s:stop_clighter8()
     augroup END
 endf
@@ -241,7 +258,7 @@ endf
 
 command! StartClighter8 call s:start_clighter8()
 command! StopClighter8 call s:stop_clighter8()
-command! Clt8ShowInfo call s:req_info()
+command! Clt8ShowInfo call s:engine_info()
 command! EnableClt8Logger call s:enable_log(v:true)
 command! DisableClt8Logger call s:enable_log(v:false)
 
