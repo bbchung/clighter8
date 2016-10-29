@@ -57,6 +57,8 @@ Vundle Install~
 |g:clighter8_highlight_blacklist|
 |g:clighter8_heuristic_compile_args|
 |g:clighter8_compile_args|
+|g:clighter8_parse_mode|
+
 
 ------------------------------------------------------------------------------
 						*g:clighter8_autostart*
@@ -119,6 +121,17 @@ Default: `[]`
 >
 	let g:clighter8_compile_args = ['-I/usr/local/include']
 
+--------------------------------------------------------------------------------
+						*g:clighter8_parse_mode*
+g:clighter8_parse_mode~
+
+0: slow mode(recommended in slow machine or shared server)
+1: fast mode
+
+Default: `[]`
+>
+	let g:clighter8_parse_mode = 1
+
 ------------------------------------------------------------------------------
 
 ==============================================================================
@@ -127,31 +140,43 @@ Default: `[]`
 
 Clighter8 provides these commands and functions.
 
-|StartClighter8|
-|StopClighter8|
-|ShowInfo|
+|ClStart|
+|ClStop|
+|ClShowCursorInfo|
+|ClEnableLog|
+|ClDisableLog|
 |Rename()|
 
 ------------------------------------------------------------------------------
-						*StartClighter8*
-StartClighter8~
+						*ClStart*
+ClStart~
 
 Start Clighter8 immediatly. Clighter8 will highlight the code after it starts,
 and the refactor-rename function will be enabled.
 
 ------------------------------------------------------------------------------
-						*StopClighter8*
-StopClighter8~
+						*ClStop*
+ClStop~
 
 Stop Clighter8 and cleanup highlight, refactor-rename function will be
 disabled.
 
 ------------------------------------------------------------------------------
 						*ShowInfo*
-ShowInfo~
+ClShowCursorInfo~
 
 Show clighter8 runtime informations.
 
+------------------------------------------------------------------------------
+						*ClEnableLog*
+ClEnableLog~
+
+Enable clighter8 log, the log file is put under /tmp/clighter8.log.
+------------------------------------------------------------------------------
+						*ClDisableLog*
+ClDisableLog~
+
+Disable clighter8 log.
 ------------------------------------------------------------------------------
 						*Rename()*
 Rename()~

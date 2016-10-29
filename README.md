@@ -28,19 +28,27 @@ Bundle 'bbchung/clighter8'
 
 Clighter8 provides following commands and functions:
 
-#### StartClighter8
+#### ClStart
 
 Start Clighter8 immediatly. Clighter8 will highlight the code after it starts,
 and the refactor-rename function will be enabled.
 
-#### StopClighter8
+#### ClStop
 
 Stop Clighter8 and cleanup highlight, refactor-rename function will be
 disabled.
 
-#### ShowInfo
+#### ClShowCursorInfo
 
 Show some Clighter8 runtime informations.
+
+#### ClEnableLog
+
+Enable clighter8 log, the log file is put under /tmp/clighter8.log.
+
+#### ClDisableLog
+
+Disable clighter8 log.
 
 #### Rename()
 

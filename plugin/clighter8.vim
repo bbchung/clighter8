@@ -220,7 +220,12 @@ fun! s:start_clighter8()
     augroup Clighter8
         autocmd!
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_occurrence_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async()
-        au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async()
+        
+        if g:clighter8_parse_mode == 1
+            au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async()
+        else
+            au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async()
+        endif
         au CursorMoved,CursorMovedI * call s:engine_notify_highlight()
         au BufDelete * call s:engine_delete_buffer()
         au VimLeave * call s:stop_clighter8()
@@ -256,11 +261,11 @@ fun! s:enable_log(en)
 endf
 
 
-command! StartClighter8 call s:stop_clighter8() | call s:start_clighter8()
-command! StopClighter8 call s:stop_clighter8()
-command! Clt8ShowInfo call s:engine_info()
-command! EnableClt8Logger call s:enable_log(v:true)
-command! DisableClt8Logger call s:enable_log(v:false)
+command! ClStart call s:stop_clighter8() | call s:start_clighter8()
+command! ClStop call s:stop_clighter8()
+command! ClShowCursorInfo call s:engine_info()
+command! ClEnableLog call s:enable_log(v:true)
+command! ClDisableLog call s:enable_log(v:false)
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
@@ -269,6 +274,7 @@ let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', ['clighter8InclusionDirective'])
 let g:clighter8_heuristic_compile_args = get(g:, 'clighter8_heuristic_compile_args', 1)
 let g:clighter8_compile_args = get(g:, 'clighter8_compile_args', [])
+let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
 
 if g:clighter8_autostart
     au VimEnter * if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == 1 | call s:start_clighter8() | endif
