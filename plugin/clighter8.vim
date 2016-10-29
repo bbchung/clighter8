@@ -221,7 +221,7 @@ fun! s:start_clighter8()
         autocmd!
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_occurrence_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async()
         
-        if g:clighter8_parse_mode == 1
+        if g:clighter8_parse_mode == 0
             au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async()
         else
             au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async()
