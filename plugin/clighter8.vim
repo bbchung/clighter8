@@ -7,7 +7,6 @@ execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
 fun! ClFormat()
     let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
-    echo l:lines
     pyf /usr/share/clang/clang-format-3.9/clang-format.py
 endf
 
