@@ -194,7 +194,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         elif msg['cmd'] == 'parse':
             bufname = msg['params']['bufname']
-            content = str("\n".join(msg['params']['content']))
+            content = msg['params']['content']
 
             logging.info("parse %s" % bufname)
             if not bufname:

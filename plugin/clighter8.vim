@@ -185,7 +185,7 @@ func s:engine_parse_async(bufname)
         return
     endif
 
-    let str = json_encode({"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : getline(1,'$')}})
+    let str = json_encode({"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}})
     call ch_sendexpr(s:channel, str, {'callback': "HandleParse"})
 endf
 
@@ -194,7 +194,7 @@ func s:engine_parse(bufname)
         return
     endif
 
-    let str = json_encode({"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : getline(1,'$')}})
+    let str = json_encode({"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}})
     call ch_evalexpr(s:channel, str)
 endf
 
