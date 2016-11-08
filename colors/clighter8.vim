@@ -34,7 +34,7 @@ hi VertSplit term=reverse cterm=NONE ctermbg=NONE ctermfg=242 gui=bold guibg=bg 
 hi Folded term=NONE cterm=italic ctermbg=235 ctermfg=109 gui=italic guibg=#272D33 guifg=#9FB7D0
 hi FoldColumn term=NONE cterm=NONE ctermbg=235 ctermfg=145  guibg=#384048 guifg=#a0a8b0
 hi Title term=bold cterm=bold ctermbg=bg ctermfg=71 gui=bold guibg=bg guifg=#70b950
-hi Visual term=reverse cterm=NONE ctermbg=237 ctermfg=NONE  guibg=#303030 guifg=fg
+hi Visual term=reverse cterm=NONE ctermbg=237 ctermfg=NONE  guibg=#303030 guifg=NONE
 hi VisualNOS term=bold cterm=bold,underline ctermbg=234 ctermfg=fg gui=bold,underline guibg=bg guifg=fg
 hi SpecialKey term=bold cterm=NONE ctermbg=236 ctermfg=244  guibg=#343434 guifg=#808080
 hi NonText term=bold cterm=bold ctermbg=NONE ctermfg=244 gui=bold guibg=bg guifg=#808080
