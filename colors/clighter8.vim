@@ -71,7 +71,7 @@ hi PreProc term=NONE cterm=NONE ctermbg=None ctermfg=110  guibg=bg guifg=#8fbfdc
 hi Type term=NONE cterm=NONE ctermbg=None ctermfg=215 guifg=#ffb964
 hi Underlined term=underline cterm=underline ctermbg=None ctermfg=111 gui=underline guibg=bg guifg=#80a0ff
 hi Ignore term=NONE cterm=NONE ctermbg=None ctermfg=233  guibg=bg 
-hi Todo term=bold cterm=bold,italic ctermbg=None ctermfg=251 gui=bold,italic guibg=bg guifg=#c7c7c7
+hi Todo term=NONE cterm=NONE ctermbg=None ctermfg=251 gui=bold,italic guibg=#2f5a69 guifg=fg
 hi String term=NONE cterm=NONE ctermbg=None ctermfg=107  guibg=bg guifg=#99ad6a
 hi Function term=NONE cterm=NONE ctermbg=None ctermfg=222  guibg=bg guifg=#fad07a
 hi StorageClass term=NONE cterm=NONE ctermbg=None ctermfg=179  guibg=bg guifg=#c59f6f
