@@ -193,7 +193,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.request.sendall(json.dumps([sn, succ]))
 
         elif msg['cmd'] == 'parse':
-            bufname = msg['params']['bufname']
+            bufname = msg['params']['bufname'].encode("utf-8")
             content = msg['params']['content'].encode("utf-8")
 
             logging.info("parse %s" % bufname)
@@ -207,7 +207,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.request.sendall(json.dumps([sn, True]))
 
         elif msg['cmd'] == 'notify_parse':
-            bufname = msg['params']['bufname']
+            bufname = msg['params']['bufname'].encode("utf-8")
             if server.is_dirty(self.request, bufname):
                 self.request.sendall(json.dumps([sn, ""]))
                 return
@@ -216,7 +216,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.request.sendall(json.dumps([sn, bufname]))
 
         elif msg['cmd'] == 'notify_highlight':
-            bufname = msg['params']['bufname']
+            bufname = msg['params']['bufname'].encode("utf-8")
 
             if server.is_hl_flag_set(self.request, bufname):
                 self.request.sendall(json.dumps([sn, ""]))
@@ -227,7 +227,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
 
         elif msg['cmd'] == 'highlight':
-            bufname = msg['params']['bufname']
+            bufname = msg['params']['bufname'].encode("utf-8")
             begin_line = msg['params']['begin_line']
             end_line = msg['params']['end_line']
             row = msg['params']['row']
@@ -241,11 +241,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 [sn, [bufname, result]]))
 
         elif msg['cmd'] == 'delete_buffer':
-            bufname = msg['params']['bufname']
+            bufname = msg['params']['bufname'].encode("utf-8")
             self.server.delete_tu(self.request, bufname)
 
         elif msg['cmd'] == 'rename':
-            bufname = msg['params']['bufname']
+            bufname = msg['params']['bufname'].encode("utf-8")
             row = msg['params']['row']
             col = msg['params']['col']
 
@@ -283,7 +283,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.request.sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'info':
-            bufname = msg['params']['bufname']
+            bufname = msg['params']['bufname'].encode("utf-8")
             row = msg['params']['row']
             col = msg['params']['col']
 
