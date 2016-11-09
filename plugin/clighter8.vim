@@ -268,9 +268,9 @@ endf
 
 command! ClStart call s:stop_clighter8() | call s:start_clighter8()
 command! ClStop call s:stop_clighter8()
-command! ClShowCursorInfo call s:engine_info()
-command! ClEnableLog call s:enable_log(v:true)
-command! ClDisableLog call s:enable_log(v:false)
+command! ClShowCursorInfo if exists ('s:channel') | call s:engine_info() | endif
+command! ClEnableLog if exists ('s:channel') | call s:enable_log(v:true) | endif
+command! ClDisableLog if exists ('s:channel') | call s:enable_log(v:false) | endif
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
@@ -282,7 +282,7 @@ let g:clighter8_compile_args = get(g:, 'clighter8_compile_args', [])
 let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
 
 if g:clighter8_autostart
-    au VimEnter * if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == 1 | call s:start_clighter8() | endif
+    au VimEnter * if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) >= 0 | call s:start_clighter8() | endif
     
 endif
 
