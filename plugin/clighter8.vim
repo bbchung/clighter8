@@ -78,8 +78,8 @@ fun Rename()
     set ei=""
     exe 'buffer! '.l:bufnr
 
-    let str = json_encode({"cmd" : "rename", "params" : {"bufname" : l:bufname, "row" : l:pos[1], "col": l:pos[2]}})
-    let l:result = ch_evalexpr(s:channel, str, {"timeout":10000})
+    let expr = {"cmd" : "rename", "params" : {"bufname" : l:bufname, "row" : l:pos[1], "col": l:pos[2]}}
+    let l:result = ch_evalexpr(s:channel, expr, {"timeout":10000})
 
     if empty(l:result) || empty(l:result['renames'])
         echo "[clighter8] can\'t rename this"
@@ -136,8 +136,8 @@ endf
 
 
 fun! s:engine_delete_buffer()
-    let str = json_encode({"cmd" : "delete_buffer", "params" : {"bufname" : expand('%:p')}})
-    call ch_sendexpr(s:channel, str)
+    let expr = {"cmd" : "delete_buffer", "params" : {"bufname" : expand('%:p')}}
+    call ch_sendexpr(s:channel, expr)
 endf
 
 fun! s:engine_highlight_async()
@@ -146,8 +146,8 @@ fun! s:engine_highlight_async()
     endif
 
     let l:pos = getpos('.')
-    let str = json_encode({"cmd" : "highlight", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}})
-    call ch_sendexpr(s:channel, str, {'callback': "HandleHighlight"})
+    let expr = {"cmd" : "highlight", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}}
+    call ch_sendexpr(s:channel, expr, {'callback': "HandleHighlight"})
 endf
 
 func s:engine_info()
@@ -156,8 +156,8 @@ func s:engine_info()
     endif
 
     let l:pos = getpos('.')
-    let str = json_encode({"cmd" : "info", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}})
-    let l:result = ch_evalexpr(s:channel, str)
+    let expr = {"cmd" : "info", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}}
+    let l:result = ch_evalexpr(s:channel, expr)
     echo l:result
 endf
 
@@ -166,8 +166,8 @@ func s:engine_notify_parse_async()
         return
     endif
 
-    let str = json_encode({"cmd" : "notify_parse", "params" : {"bufname" : expand('%:p')}})
-    call ch_sendexpr(s:channel, str, {'callback': "HandleNotifyParse"})
+    let expr = {"cmd" : "notify_parse", "params" : {"bufname" : expand('%:p')}}
+    call ch_sendexpr(s:channel, expr, {'callback': "HandleNotifyParse"})
 endf
 
 func s:engine_notify_highlight()
@@ -175,8 +175,8 @@ func s:engine_notify_highlight()
         return
     endif
 
-    let str = json_encode({"cmd" : "notify_highlight", "params" : {"bufname" : expand('%:p')}})
-    call ch_sendexpr(s:channel, str, {'callback': "HandleNotifyHighlight"})
+    let expr = {"cmd" : "notify_highlight", "params" : {"bufname" : expand('%:p')}}
+    call ch_sendexpr(s:channel, expr, {'callback': "HandleNotifyHighlight"})
 endf
 
 
@@ -185,8 +185,8 @@ func s:engine_parse_async(bufname)
         return
     endif
 
-    let str = json_encode({"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}})
-    call ch_sendexpr(s:channel, str, {'callback': "HandleParse"})
+    let expr = {"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}}
+    call ch_sendexpr(s:channel, expr, {'callback': "HandleParse"})
 endf
 
 func s:engine_parse(bufname)
@@ -194,8 +194,8 @@ func s:engine_parse(bufname)
         return
     endif
 
-    let str = json_encode({"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}})
-    call ch_evalexpr(s:channel, str)
+    let expr = {"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}}
+    call ch_evalexpr(s:channel, expr)
 endf
 
 fun! s:start_clighter8()
@@ -210,8 +210,8 @@ fun! s:start_clighter8()
         endif
     endif
 
-    let l:cmd = json_encode({"cmd" : "init_client", "params" : {"libclang" : g:clighter8_libclang_path, "cwd" : getcwd(), "hcargs" : g:clighter8_heuristic_compile_args, "gcargs" : g:clighter8_compile_args, "blacklist" : g:clighter8_highlight_blacklist}})
-    let l:succ = ch_evalexpr(s:channel, l:cmd)
+    let expr = {"cmd" : "init_client", "params" : {"libclang" : g:clighter8_libclang_path, "cwd" : getcwd(), "hcargs" : g:clighter8_heuristic_compile_args, "gcargs" : g:clighter8_compile_args, "blacklist" : g:clighter8_highlight_blacklist}}
+    let l:succ = ch_evalexpr(s:channel, expr)
 
     if l:succ == v:false
         echo '[clighter8] failed to init client'
@@ -261,8 +261,8 @@ fun! s:clear_match_by_priorities(priorities)
 endf
 
 fun! s:enable_log(en)
-    let l:cmd = json_encode({"cmd" : "en_log", "params" : {"enable" : a:en}})
-    call ch_sendexpr(s:channel, l:cmd)
+    let expr = {"cmd" : "en_log", "params" : {"enable" : a:en}}
+    call ch_sendexpr(s:channel, expr)
 endf
 
 
