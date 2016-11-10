@@ -12,19 +12,19 @@ endf
 
 func HandleParse(channel, msg)
     if a:msg == v:true
-        call s:engine_notify_highlight()
+        call s:engine_notify_highlight(a:channel)
     endif
 endfunc
 
 func HandleNotifyParse(channel, msg)
     if a:msg != ""
-        call s:engine_parse_async(a:msg)
+        call s:engine_parse_async(a:channel, a:msg)
     endif
 endfunc
 
 func HandleNotifyHighlight(channel, msg)
     if a:msg != ""
-        call s:engine_highlight_async()
+        call s:engine_highlight_async(a:channel)
     endif
 endfunc
 
@@ -74,12 +74,12 @@ fun Rename()
     let l:bufname = expand('%:p')
     set ei=BufWinEnter,WinEnter
     echo '[cighter8] processing...'
-    silent bufdo! call s:engine_parse(expand('%:p'))
+    silent bufdo! call s:engine_parse(s:channel, expand('%:p'))
     set ei=""
     exe 'buffer! '.l:bufnr
 
-    let expr = {"cmd" : "rename", "params" : {"bufname" : l:bufname, "row" : l:pos[1], "col": l:pos[2]}}
-    let l:result = ch_evalexpr(s:channel, expr, {"timeout":10000})
+    let l:expr = {"cmd" : "rename", "params" : {"bufname" : l:bufname, "row" : l:pos[1], "col": l:pos[2]}}
+    let l:result = ch_evalexpr(s:channel, l:expr, {"timeout":10000})
 
     if empty(l:result) || empty(l:result['renames'])
         echo "[clighter8] can\'t rename this"
@@ -98,7 +98,7 @@ fun Rename()
     set ei=BufWinEnter,WinEnter
     bufdo! call s:do_replace(l:result['renames'], l:old, l:new, l:qflist)
     echo '[clighter8] processing...'
-    silent bufdo! call s:engine_parse(expand('%:p'))
+    silent bufdo! call s:engine_parse(s:channel, expand('%:p'))
     set ei=""
     call setqflist(l:qflist)
     "copen
@@ -135,67 +135,67 @@ fun! s:do_replace(renames, old, new, qflist)
 endf
 
 
-fun! s:engine_delete_buffer()
-    let expr = {"cmd" : "delete_buffer", "params" : {"bufname" : expand('%:p')}}
-    call ch_sendexpr(s:channel, expr)
+fun! s:engine_delete_buffer(channel)
+    let l:expr = {"cmd" : "delete_buffer", "params" : {"bufname" : expand('%:p')}}
+    call ch_sendexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_highlight_async()
+fun! s:engine_highlight_async(channel)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
     let l:pos = getpos('.')
-    let expr = {"cmd" : "highlight", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}}
-    call ch_sendexpr(s:channel, expr, {'callback': "HandleHighlight"})
+    let l:expr = {"cmd" : "highlight", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}}
+    call ch_sendexpr(a:channel, l:expr, {'callback': "HandleHighlight"})
 endf
 
-func s:engine_info()
+func s:engine_info(channel)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
     let l:pos = getpos('.')
-    let expr = {"cmd" : "info", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}}
-    let l:result = ch_evalexpr(s:channel, expr)
+    let l:expr = {"cmd" : "info", "params" : {"bufname" : expand('%:p'), "begin_line" : line('w0'), "end_line" : line('w$'), "row" : l:pos[1], "col": l:pos[2]}}
+    let l:result = ch_evalexpr(a:channel, l:expr)
     echo l:result
 endf
 
-func s:engine_notify_parse_async()
+func s:engine_notify_parse_async(channel)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
-    let expr = {"cmd" : "notify_parse", "params" : {"bufname" : expand('%:p')}}
-    call ch_sendexpr(s:channel, expr, {'callback': "HandleNotifyParse"})
+    let l:expr = {"cmd" : "notify_parse", "params" : {"bufname" : expand('%:p')}}
+    call ch_sendexpr(a:channel, l:expr, {'callback': "HandleNotifyParse"})
 endf
 
-func s:engine_notify_highlight()
+func s:engine_notify_highlight(channel)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
-    let expr = {"cmd" : "notify_highlight", "params" : {"bufname" : expand('%:p')}}
-    call ch_sendexpr(s:channel, expr, {'callback': "HandleNotifyHighlight"})
+    let l:expr = {"cmd" : "notify_highlight", "params" : {"bufname" : expand('%:p')}}
+    call ch_sendexpr(a:channel, l:expr, {'callback': "HandleNotifyHighlight"})
 endf
 
 
-func s:engine_parse_async(bufname)
+func s:engine_parse_async(channel, bufname)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
-    let expr = {"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}}
-    call ch_sendexpr(s:channel, expr, {'callback': "HandleParse"})
+    let l:expr = {"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}}
+    call ch_sendexpr(a:channel, l:expr, {'callback': "HandleParse"})
 endf
 
-func s:engine_parse(bufname)
+func s:engine_parse(channel, bufname)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
-    let expr = {"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}}
-    call ch_evalexpr(s:channel, expr)
+    let l:expr = {"cmd" : "parse", "params" : {"bufname" : a:bufname, "content" : join(getline(1,'$'), "\n")}}
+    call ch_evalexpr(a:channel, l:expr)
 endf
 
 fun! s:start_clighter8()
@@ -210,8 +210,8 @@ fun! s:start_clighter8()
         endif
     endif
 
-    let expr = {"cmd" : "init_client", "params" : {"libclang" : g:clighter8_libclang_path, "cwd" : getcwd(), "hcargs" : g:clighter8_heuristic_compile_args, "gcargs" : g:clighter8_compile_args, "blacklist" : g:clighter8_highlight_blacklist}}
-    let l:succ = ch_evalexpr(s:channel, expr)
+    let l:expr = {"cmd" : "init_client", "params" : {"libclang" : g:clighter8_libclang_path, "cwd" : getcwd(), "hcargs" : g:clighter8_heuristic_compile_args, "gcargs" : g:clighter8_compile_args, "blacklist" : g:clighter8_highlight_blacklist}}
+    let l:succ = ch_evalexpr(s:channel, l:expr)
 
     if l:succ == v:false
         echo '[clighter8] failed to init client'
@@ -220,19 +220,19 @@ fun! s:start_clighter8()
         return
     endif
 
-    call s:engine_notify_parse_async()
+    call s:engine_notify_parse_async(s:channel)
 
     augroup Clighter8
         autocmd!
-        au BufEnter * call s:clear_match_by_priorities([g:clighter8_occurrence_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async()
+        au BufEnter * call s:clear_match_by_priorities([g:clighter8_occurrence_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async(s:channel)
         
         if g:clighter8_parse_mode == 0
-            au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async()
+            au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async(s:channel)
         else
-            au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async()
+            au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async(s:channel)
         endif
-        au CursorMoved,CursorMovedI * call s:engine_notify_highlight()
-        au BufDelete * call s:engine_delete_buffer()
+        au CursorMoved,CursorMovedI * call s:engine_notify_highlight(s:channel)
+        au BufDelete * call s:engine_delete_buffer(s:channel)
         au VimLeave * call s:stop_clighter8()
     augroup END
 endf
@@ -261,14 +261,14 @@ fun! s:clear_match_by_priorities(priorities)
 endf
 
 fun! s:enable_log(en)
-    let expr = {"cmd" : "en_log", "params" : {"enable" : a:en}}
-    call ch_sendexpr(s:channel, expr)
+    let l:expr = {"cmd" : "en_log", "params" : {"enable" : a:en}}
+    call ch_sendexpr(s:channel, l:expr)
 endf
 
 
 command! ClStart call s:stop_clighter8() | call s:start_clighter8()
 command! ClStop call s:stop_clighter8()
-command! ClShowCursorInfo if exists ('s:channel') | call s:engine_info() | endif
+command! ClShowCursorInfo if exists ('s:channel') | call s:engine_info(s:channel) | endif
 command! ClEnableLog if exists ('s:channel') | call s:enable_log(v:true) | endif
 command! ClDisableLog if exists ('s:channel') | call s:enable_log(v:false) | endif
 
