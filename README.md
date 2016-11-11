@@ -21,7 +21,7 @@ Use a VIM plugin manager, for example
 
 * Vundle Install:
 ```vim
-Bundle 'bbchung/clighter8'
+CCㄠBundle 'bbchung/clighter8'
 ```
 
 ## Usage
@@ -50,7 +50,7 @@ Enable clighter8 log, the log file is put under /tmp/clighter8.log.
 
 Disable clighter8 log.
 
-#### Rename()
+#### ClRename()
 
 * An experimental function to do rename-refactor.
 * Only do renaming in opened buffers.
