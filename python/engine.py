@@ -1,7 +1,5 @@
 import logging
 import json
-import sys
-import socket
 import SocketServer as socketserver
 
 from clang import cindex
@@ -89,7 +87,7 @@ class ClientData:
     global_args = None
 
 
-def ParseLineDelimited(data, on_parse):
+def parse_line_delimited(data, on_parse):
     i = 0
     sz = len(data)
     start = 0
@@ -103,7 +101,7 @@ def ParseLineDelimited(data, on_parse):
     return data[start:]
 
 
-def ParseConcatenated(data):
+def parse_concatenated(data):
     result = []
     quatos = 0
     i = 0
@@ -150,9 +148,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 break
 
             if remain != '':
-                data = remain + data;
+                data = remain + data
 
-            remain = ParseLineDelimited(data, self.handle_json)
+            remain = parse_line_delimited(data, self.handle_json)
 
         del server.clients[self.request]
         self.request = None
@@ -408,15 +406,15 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         symbol = clighter8_helper.get_semantic_symbol_from_location(
             tu, bufname, row, col)
-        file = tu.get_file(bufname)
+        tu_file = tu.get_file(bufname)
 
-        if not file:
+        if not tu_file:
             return [{}, {}]
 
         begin = cindex.SourceLocation.from_position(
-            tu, file, line=begin_line, column=1)
+            tu, tu_file, line=begin_line, column=1)
         end = cindex.SourceLocation.from_position(
-            tu, file, line=end_line + 1, column=1)
+            tu, tu_file, line=end_line + 1, column=1)
         tokens = tu.get_tokens(
             extent=cindex.SourceRange.from_locations(begin, end))
 
