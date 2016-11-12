@@ -299,7 +299,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     cursor.type.kind), 'cursor.spelling': cursor.spelling}
             self.request.sendall(json.dumps([sn, result]))
 
-        elif msg['cmd'] == 'en_log':
+        elif msg['cmd'] == 'enable_log':
             enable = msg['params']['enable']
             if enable:
                 logging.disable(logging.NOTSET)

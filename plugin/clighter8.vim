@@ -5,14 +5,14 @@ endif
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
-fun! s:engine_init_client(channel)
-    let l:expr = {'cmd' : 'init_client', 'params' : {'libclang' : g:clighter8_libclang_path, 'cwd' : getcwd(), 'hcargs' : g:clighter8_heuristic_compile_args, 'gcargs' : g:clighter8_compile_args, 'blacklist' : g:clighter8_highlight_blacklist}}
-    return ch_evalexpr(s:channel, l:expr)
+fun! s:engine_init_client(channel, libclang_path, heuristic_compile_args, compile_args, highlight_blacklist)
+    let l:expr = {'cmd' : 'init_client', 'params' : {'libclang' : a:libclang_path, 'cwd' : getcwd(), 'hcargs' : a:heuristic_compile_args, 'gcargs' : a:compile_args, 'blacklist' : a:highlight_blacklist}}
+    return ch_evalexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_rename(channel)
-    let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : l:bufname, 'row' : l:pos[1], 'col': l:pos[2]}}
-    return ch_evalexpr(s:channel, l:expr, {'timeout':10000})
+fun! s:engine_rename(channel, bufname, pos)
+    let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'row' : a:pos[1], 'col': a:pos[2]}}
+    return ch_evalexpr(a:channel, l:expr, {'timeout':10000})
 endf
 
 fun! s:engine_highlight_async(channel)
@@ -78,9 +78,9 @@ fun! s:engine_delete_buffer(channel)
     call ch_sendexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_enable_log(en)
-    let l:expr = {'cmd' : 'en_log', 'params' : {'enable' : a:en}}
-    call ch_sendexpr(s:channel, l:expr)
+fun! s:engine_enable_log(channel, en)
+    let l:expr = {'cmd' : 'enable_log', 'params' : {'enable' : a:en}}
+    call ch_sendexpr(a:channel, l:expr)
 endf
 
 func HandleParse(channel, msg)
@@ -190,7 +190,7 @@ fun ClRename()
     set ei=""
     exe 'buffer! '.l:bufnr
 
-    let l:result = s:engine_rename(s:channel)
+    let l:result = s:engine_rename(s:channel, l:bufname, l:pos)
 
     if empty(l:result) || empty(l:result['renames'])
         echo "[clighter8] can\'t rename this"
@@ -230,7 +230,7 @@ fun! s:start_clighter8()
         endif
     endif
 
-    let l:succ = s:engine_init_client(s:channel)
+    let l:succ = s:engine_init_client(s:channel, g:clighter8_libclang_path, g:clighter8_heuristic_compile_args, g:clighter8_compile_args, g:clighter8_highlight_blacklist)
 
     if l:succ == v:false
         echo '[clighter8] failed to init client'
@@ -274,8 +274,8 @@ endf
 command! ClStart call s:stop_clighter8() | call s:start_clighter8()
 command! ClStop call s:stop_clighter8()
 command! ClShowCursorInfo if exists ('s:channel') | call s:engine_info(s:channel) | endif
-command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(v:true) | endif
-command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(v:false) | endif
+command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:true) | endif
+command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:false) | endif
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
