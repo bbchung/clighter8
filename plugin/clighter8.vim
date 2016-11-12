@@ -5,6 +5,16 @@ endif
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
+fun! s:engine_init_client(channel)
+    let l:expr = {'cmd' : 'init_client', 'params' : {'libclang' : g:clighter8_libclang_path, 'cwd' : getcwd(), 'hcargs' : g:clighter8_heuristic_compile_args, 'gcargs' : g:clighter8_compile_args, 'blacklist' : g:clighter8_highlight_blacklist}}
+    return ch_evalexpr(s:channel, l:expr)
+endf
+
+fun! s:engine_rename(channel)
+    let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : l:bufname, 'row' : l:pos[1], 'col': l:pos[2]}}
+    return ch_evalexpr(s:channel, l:expr, {'timeout':10000})
+endf
+
 fun! s:engine_highlight_async(channel)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
@@ -180,8 +190,7 @@ fun ClRename()
     set ei=""
     exe 'buffer! '.l:bufnr
 
-    let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : l:bufname, 'row' : l:pos[1], 'col': l:pos[2]}}
-    let l:result = ch_evalexpr(s:channel, l:expr, {'timeout':10000})
+    let l:result = s:engine_rename(s:channel)
 
     if empty(l:result) || empty(l:result['renames'])
         echo "[clighter8] can\'t rename this"
@@ -221,8 +230,7 @@ fun! s:start_clighter8()
         endif
     endif
 
-    let l:expr = {'cmd' : 'init_client', 'params' : {'libclang' : g:clighter8_libclang_path, 'cwd' : getcwd(), 'hcargs' : g:clighter8_heuristic_compile_args, 'gcargs' : g:clighter8_compile_args, 'blacklist' : g:clighter8_highlight_blacklist}}
-    let l:succ = ch_evalexpr(s:channel, l:expr)
+    let l:succ = s:engine_init_client(s:channel)
 
     if l:succ == v:false
         echo '[clighter8] failed to init client'
