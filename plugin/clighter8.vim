@@ -70,7 +70,7 @@ func s:engine_parse(channel, bufname)
     endif
 
     let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : join(getline(1,'$'), "\n")}}
-    call ch_evalexpr(a:channel, l:expr)
+    return ch_evalexpr(a:channel, l:expr)
 endf
 
 fun! s:engine_delete_buffer(channel)
