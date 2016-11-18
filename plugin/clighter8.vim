@@ -11,7 +11,12 @@ fun! s:engine_init_client(channel, libclang_path, heuristic_compile_args, compil
 endf
 
 fun! s:engine_rename(channel, bufname, pos)
-    let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'row' : a:pos[1], 'col': a:pos[2]}}
+    let l:buflist = []
+    for buf in getbufinfo()
+        call add(l:buflist, buf.name)
+    endfor
+
+    let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'row' : a:pos[1], 'col': a:pos[2], 'buflist' : l:buflist}}
     return ch_evalexpr(a:channel, l:expr, {'timeout':10000})
 endf
 

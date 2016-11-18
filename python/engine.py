@@ -80,7 +80,7 @@ def _get_syntax_group(cursor, blacklist):
 
 
 class ClientData:
-    translation_units = {}
+    tu_ctx = {}
     unsaved = []
     cdb = None
     idx = None
@@ -244,14 +244,15 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname'].encode("utf-8")
             row = msg['params']['row']
             col = msg['params']['col']
+            buflist = list(msg['params']['buflist'])
 
             self.server.parse_or_reparse(self.request, bufname)
 
-            if bufname not in self.server.get_all_tu(self.request):
-                self.request.sendall(json.dumps([sn, {}]))
+            ctx = self.server.get_tu(self.request, bufname)
+            if not ctx:
                 return
 
-            tu = self.server.get_all_tu(self.request)[bufname][0]
+            tu = ctx[0]
             symbol = clighter8_helper.get_semantic_symbol_from_location(
                 tu, bufname, row, col)
 
@@ -267,15 +268,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             result = {'old': symbol.spelling, 'renames': {}}
 
-            for next_bufname, next_tu in self.server.get_all_tu(
-                    self.request).iteritems():
-                self.server.parse_or_reparse(self.request, next_bufname)
+            for next_buf in buflist:
+                self.server.parse_or_reparse(self.request, next_buf)
                 locations = []
-                clighter8_helper.search_by_usr(
-                    next_tu[0], usr, locations)
+                clighter8_helper.search_by_usr(self.server.get_tu(
+                    self.request, next_buf)[0], usr, locations)
 
                 if locations:
-                    result['renames'][next_bufname] = locations
+                    result['renames'][next_buf] = locations
 
             self.request.sendall(json.dumps([sn, result]))
 
@@ -284,7 +284,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             row = msg['params']['row']
             col = msg['params']['col']
 
-            tu = self.server.get_all_tu(self.request)[bufname][0]
+            tu = self.server.get_all_tu(self.request, bufname)[0]
             cursor = clighter8_helper.get_cursor(tu, bufname, row, col)
 
             if not cursor:
@@ -312,36 +312,39 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     clients = {}
 
-    def get_all_tu(self, cli):
-        return self.clients[cli].translation_units
+    def get_tu(self, cli, bufname):
+        if bufname in self.clients[cli].tu_ctx:
+            return self.clients[cli].tu_ctx[bufname]
+
+        return None
 
     def delete_tu(self, cli, bufname):
         try:
-            del self.clients[cli].translation_units[bufname]
+            del self.clients[cli].tu_ctx[bufname]
         except:
             pass
 
     def set_dirty(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            self.clients[cli].translation_units[bufname][1] = True
+        if bufname in self.clients[cli].tu_ctx:
+            self.clients[cli].tu_ctx[bufname][1] = True
 
     def is_dirty(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            return self.clients[cli].translation_units[bufname][1]
+        if bufname in self.clients[cli].tu_ctx:
+            return self.clients[cli].tu_ctx[bufname][1]
 
         return False
 
     def set_hl_flag(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            self.clients[cli].translation_units[bufname][2] = True
+        if bufname in self.clients[cli].tu_ctx:
+            self.clients[cli].tu_ctx[bufname][2] = True
 
     def clear_hl_flag(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            self.clients[cli].translation_units[bufname][2] = False
+        if bufname in self.clients[cli].tu_ctx:
+            self.clients[cli].tu_ctx[bufname][2] = False
 
     def is_hl_flag_set(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            return self.clients[cli].translation_units[bufname][2]
+        if bufname in self.clients[cli].tu_ctx:
+            return self.clients[cli].tu_ctx[bufname][2]
 
         return False
 
@@ -366,16 +369,16 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self.clients[cli].unsaved.append((bufname, content))
 
     def parse_or_reparse(self, cli, bufname):
-        self.clients[cli].translation_units[
+        self.clients[cli].tu_ctx[
             bufname] = [self.parse(cli, bufname), False, False]
         return
-        # if bufname not in self.clients[cli].translation_units:
-        # self.clients[cli].translation_units[bufname] = [self.parse(cli, bufname), False]
+        # if bufname not in self.clients[cli].tu_ctx:
+        # self.clients[cli].tu_ctx[bufname] = [self.parse(cli, bufname), False]
         # else:
-        # self.clients[cli].translation_units[bufname][0].reparse(
+        # self.clients[cli].tu_ctx[bufname][0].reparse(
         # self.clients[cli].unsaved,
         # options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
-        # self.clients[cli].translation_units[bufname][1] = False
+        # self.clients[cli].tu_ctx[bufname][1] = False
 
     def parse(self, cli, bufname):
         args = None
@@ -394,10 +397,10 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             return None
 
     def highlight(self, cli, bufname, begin_line, end_line, row, col):
-        if bufname not in self.clients[cli].translation_units.keys():
+        if bufname not in self.clients[cli].tu_ctx:
             return [{}, {}]
 
-        tu = self.clients[cli].translation_units[bufname][0]
+        tu = self.clients[cli].tu_ctx[bufname][0]
         if not tu:
             return [{}, {}]
 

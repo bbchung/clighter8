@@ -1,11 +1,15 @@
 from clang import cindex
 
+def get_cursor(tu, filepath, row, col):
+    return cindex.Cursor.from_location(
+        tu,
+        cindex.SourceLocation.from_position(tu,
+                                            tu.get_file(filepath),
+                                            row,
+                                            col))
 
 def get_semantic_symbol_from_location(tu, filepath, row, col):
-    cursor = cindex.Cursor.from_location(
-        tu, cindex.SourceLocation.from_position(
-            tu, tu.get_file(filepath), row, col))
-
+    cursor = get_cursor(tu, filepath, row, col);
     if not cursor:
         return None
 
