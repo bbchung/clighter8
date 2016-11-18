@@ -13,7 +13,7 @@ performance of VIM.
 Clighter8 requires the following things:
 
 * VIM8
-* [libclang][libclang]
+* [libclang 3.9][libclang] (Note: If you are using a different version of clang, you have to replace the Python clang bindings in python/clang with the appropriate version.)
 
 ## Installation
 
