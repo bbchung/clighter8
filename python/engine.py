@@ -171,7 +171,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if decoded[0] >= 0:
             self.handle_msg(decoded[0], decoded[1])
 
-
     def handle_msg(self, sn, msg):
         if msg['cmd'] == 'init_client':
             libclang = msg["params"]["libclang"]
@@ -223,7 +222,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             server.set_hl_flag(self.request, bufname)
             self.request.sendall(json.dumps([sn, bufname]))
 
-
         elif msg['cmd'] == 'highlight':
             bufname = msg['params']['bufname'].encode("utf-8")
             begin_line = msg['params']['begin_line']
@@ -247,7 +245,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             row = msg['params']['row']
             col = msg['params']['col']
 
-            #self.server.parse_or_reparse(self.request, bufname)
+            self.server.parse_or_reparse(self.request, bufname)
 
             if bufname not in self.server.get_all_tu(self.request):
                 self.request.sendall(json.dumps([sn, {}]))
@@ -271,9 +269,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             for next_bufname, next_tu in self.server.get_all_tu(
                     self.request).iteritems():
+                self.server.parse_or_reparse(self.request, next_bufname)
                 locations = []
-                clighter8_helper.search_referenced_tokens_by_usr(
-                    next_tu[0], usr, locations, symbol.spelling)
+                clighter8_helper.search_by_usr(
+                    next_tu[0], usr, locations)
 
                 if locations:
                     result['renames'][next_bufname] = locations
@@ -291,7 +290,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if not cursor:
                 self.request.sendall(json.dumps([sn, None]))
                 return
-
 
             result = {
                 'cursor': str(cursor), 'cursor.kind': str(
@@ -346,7 +344,6 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             return self.clients[cli].translation_units[bufname][2]
 
         return False
-
 
     def init_client(self, cli, cwd, hcargs, gcargs, blacklist):
         try:

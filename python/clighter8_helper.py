@@ -1,44 +1,19 @@
 from clang import cindex
 
-def get_cursor(tu, filepath, row, col):
-    return cindex.Cursor.from_location(
-        tu,
-        cindex.SourceLocation.from_position(tu,
-                                            tu.get_file(filepath),
-                                            row,
-                                            col))
 
 def get_semantic_symbol_from_location(tu, filepath, row, col):
-    cursor = get_cursor(tu, filepath, row, col);
+    cursor = cindex.Cursor.from_location(
+        tu, cindex.SourceLocation.from_position(
+            tu, tu.get_file(filepath), row, col))
+
     if not cursor:
         return None
 
-    tokens = cursor.get_tokens()
-    for token in tokens:
-        if token.kind.value == 2 and row == token.location.line and token.location.column <= col and col < token.location.column + \
-                len(token.spelling):
-            symbol = get_semantic_symbol(cursor)
-            if symbol and symbol.spelling == token.spelling:
-                return symbol
+    if cursor.location.line != row or col < cursor.location.column or col >= cursor.location.column + \
+            len(cursor.spelling):
+        return None
 
-    return None
-
-
-def is_vim_buffer_allowed(buf):
-    return buf.options['filetype'] in ["c", "cpp", "objc", "objcpp"]
-
-
-def is_global_symbol(symbol):
-    return symbol.kind.is_preprocessing(
-    ) or symbol.semantic_parent.kind != cindex.CursorKind.FUNCTION_DECL
-
-
-def search_cursor_by_usr(cursor, usr, result):
-    if cursor.get_usr() == usr and cursor not in result:
-        result.append(cursor)
-
-    for c in cursor.get_children():
-        search_cursor_by_usr(c, usr, result)
+    return get_semantic_symbol(cursor)
 
 
 def get_semantic_symbol(cursor):
@@ -58,7 +33,7 @@ def get_semantic_symbol(cursor):
     return symbol
 
 
-def search_referenced_tokens_by_usr(tu, usr, result, spelling):
+def search_by_usr(tu, usr, result):
     tokens = tu.cursor.get_tokens()
     for token in tokens:
         cursor = token.cursor

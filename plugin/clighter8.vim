@@ -186,9 +186,6 @@ fun ClRename()
     let l:bufname = expand('%:p')
     set ei=BufWinEnter,WinEnter
     echo '[cighter8] processing...'
-    silent bufdo! call s:engine_parse(s:channel, expand('%:p'))
-    set ei=""
-    exe 'buffer! '.l:bufnr
 
     let l:result = s:engine_rename(s:channel, l:bufname, l:pos)
 
@@ -206,7 +203,6 @@ fun ClRename()
     endif
 
     let l:qflist = []
-    set ei=BufWinEnter,WinEnter
     bufdo! call s:cl_replace(l:result['renames'], l:old, l:new, l:qflist)
     echo '[clighter8] processing...'
     silent bufdo! call s:engine_parse(s:channel, expand('%:p'))
