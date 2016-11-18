@@ -351,7 +351,8 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def init_client(self, cli, cwd, hcargs, gcargs, blacklist):
         try:
             self.clients[cli].idx = cindex.Index.create()
-        except:
+        except Exception, e:
+            logging.error(str(e))
             return False
 
         self.clients[cli].cdb = compilation_database.CompilationDatabase.from_dir(
