@@ -1,4 +1,4 @@
-# Clighter8: VIM 8 plugin to do syntax highlight, code format, refactor, based on Clang
+# Clighter8: VIM plugin to do syntax highlight, code format, refactor, based on Clang
 
 ## Intro
 
@@ -12,7 +12,7 @@ performance of VIM.
 
 Clighter8 requires the following things:
 
-* VIM8
+* Vim with +job and +channel features
 * [libclang][libclang]
 
 ## Installation
