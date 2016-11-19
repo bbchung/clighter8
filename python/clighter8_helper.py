@@ -54,6 +54,9 @@ def search_by_usr(tu, usr, result):
             result.append((token.location.line, token.location.column))
 
 def get_compile_args_from_cdb(cdb, bufname):
+    if not cdb:
+        return[]
+
     cmds = cdb.getCompileCommands(bufname) 
     if cmds == None:
         return []

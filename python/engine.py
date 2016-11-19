@@ -369,7 +369,11 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         except:
             return False
 
-        self.clients[cli].cdb = cindex.CompilationDatabase.fromDirectory(cwd)
+        try:
+            self.clients[cli].cdb = cindex.CompilationDatabase.fromDirectory(cwd)
+        except:
+            logging.warn('compilation data not found')
+        
         self.clients[cli].global_compile_args = global_compile_args
         self.clients[cli].blacklist = blacklist
 
