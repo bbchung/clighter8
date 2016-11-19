@@ -40,7 +40,11 @@ disabled.
 
 #### ClShowCursorInfo
 
-Show some Clighter8 runtime informations.
+Show cursor informations.
+
+#### ClShowCompileInfo
+
+Show compiler args.
 
 #### ClEnableLog
 

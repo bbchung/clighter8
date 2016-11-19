@@ -143,6 +143,7 @@ Clighter8 provides these commands and functions.
 |ClStart|
 |ClStop|
 |ClShowCursorInfo|
+|ClShowCompileInfo|
 |ClEnableLog|
 |ClDisableLog|
 |Rename()|
@@ -162,12 +163,18 @@ Stop Clighter8 and cleanup highlight, refactor-rename function will be
 disabled.
 
 ------------------------------------------------------------------------------
-						*ShowInfo*
+						*ShowCursorInfo*
 ClShowCursorInfo~
 
-Show clighter8 runtime informations.
+Show cursor informations.
 
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+						*ShowCompileInfo*
+ClShowCompileInfo~
+
+Show compiler args.
+
+-----------------------------------------------------------------------------
 						*ClEnableLog*
 ClEnableLog~
 

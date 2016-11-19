@@ -46,3 +46,14 @@ def search_by_usr(tu, usr, result):
         symbol = get_semantic_symbol(cursor)
         if symbol and symbol.get_usr() == usr:
             result.append((token.location.line, token.location.column))
+
+def get_compile_args_from_cdb(cdb, bufname):
+    cmds = cdb.getCompileCommands(bufname) 
+    if cmds == None:
+        return None
+
+    result = list(cmds[0].arguments)
+    result.pop()
+    result.pop(0)
+
+    return result

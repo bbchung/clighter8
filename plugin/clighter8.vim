@@ -30,16 +30,26 @@ fun! s:engine_highlight_async(channel)
     call ch_sendexpr(a:channel, l:expr, {'callback': 'HandleHighlight'})
 endf
 
-func s:engine_info(channel)
+func s:engine_cursor_info(channel)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
     let l:pos = getpos('.')
-    let l:expr = {'cmd' : 'info', 'params' : {'bufname' : expand('%:p'), 'begin_line' : line('w0'), 'end_line' : line('w$'), 'row' : l:pos[1], 'col': l:pos[2]}}
+    let l:expr = {'cmd' : 'cursor_info', 'params' : {'bufname' : expand('%:p'), 'begin_line' : line('w0'), 'end_line' : line('w$'), 'row' : l:pos[1], 'col': l:pos[2]}}
     let l:result = ch_evalexpr(a:channel, l:expr)
     echo l:result
 endf
+
+func s:engine_compile_info(channel)
+    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
+        return
+    endif
+    let l:expr = {'cmd' : 'compile_info', 'params' : {'bufname' : expand('%:p')}}
+    let l:result = ch_evalexpr(a:channel, l:expr)
+    echo l:result
+endf
+
 
 func s:engine_notify_parse_async(channel)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
@@ -274,7 +284,8 @@ endf
 
 command! ClStart call s:stop_clighter8() | call s:start_clighter8()
 command! ClStop call s:stop_clighter8()
-command! ClShowCursorInfo if exists ('s:channel') | call s:engine_info(s:channel) | endif
+command! ClShowCursorInfo if exists ('s:channel') | call s:engine_cursor_info(s:channel) | endif
+command! ClShowCompileInfo if exists ('s:channel') | call s:engine_compile_info(s:channel) | endif
 command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:true) | endif
 command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:false) | endif
 

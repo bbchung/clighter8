@@ -3,7 +3,6 @@ import json
 import SocketServer as socketserver
 
 from clang import cindex
-import compilation_database
 import clighter8_helper
 
 CUSTOM_SYNTAX_GROUP = {
@@ -79,8 +78,15 @@ def _get_syntax_group(cursor, blacklist):
     return group
 
 
+class BufferData:
+    tu = None
+    compile_args = None
+    dirty_flag = False
+    highlight_flag = False
+
+
 class ClientData:
-    tu_ctx = {}
+    buffer_data = {}
     unsaved = []
     cdb = None
     idx = None
@@ -199,7 +205,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 return
 
             self.server.update_unsaved(self.request, bufname, content)
-            self.server.parse_or_reparse(self.request, bufname)
+            self.server.parse(self.request, bufname)
 
             self.request.sendall(json.dumps([sn, True]))
 
@@ -238,7 +244,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         elif msg['cmd'] == 'delete_buffer':
             bufname = msg['params']['bufname'].encode("utf-8")
-            self.server.delete_tu(self.request, bufname)
+            self.server.delete_buffer_data(self.request, bufname)
 
         elif msg['cmd'] == 'rename':
             bufname = msg['params']['bufname'].encode("utf-8")
@@ -246,15 +252,15 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             col = msg['params']['col']
             buflist = list(msg['params']['buflist'])
 
-            self.server.parse_or_reparse(self.request, bufname)
+            self.server.parse(self.request, bufname)
 
-            ctx = self.server.get_tu(self.request, bufname)
-            if not ctx:
+            ctx = self.server.get_buffer_data(self.request, bufname)
+            if not ctx or not ctx.tu:
+                self.request.sendall(json.dumps([sn, {}]))
                 return
 
-            tu = ctx[0]
             symbol = clighter8_helper.get_semantic_symbol_from_location(
-                tu, bufname, row, col)
+                ctx.tu, bufname, row, col)
 
             if not symbol:
                 logging.info("not symbol at %s:[%d, %d]" % (bufname, row, col))
@@ -269,9 +275,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             result = {'old': symbol.spelling, 'renames': {}}
 
             for next_buf in buflist:
-                self.server.parse_or_reparse(self.request, next_buf)
+                self.server.parse(self.request, next_buf)
                 locations = []
-                clighter8_helper.search_by_usr(self.server.get_tu(
+                clighter8_helper.search_by_usr(self.server.get_buffer_data(
                     self.request, next_buf)[0], usr, locations)
 
                 if locations:
@@ -279,12 +285,12 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             self.request.sendall(json.dumps([sn, result]))
 
-        elif msg['cmd'] == 'info':
+        elif msg['cmd'] == 'cursor_info':
             bufname = msg['params']['bufname'].encode("utf-8")
             row = msg['params']['row']
             col = msg['params']['col']
 
-            tu = self.server.get_all_tu(self.request, bufname)[0]
+            tu = self.server.get_buffer_data(self.request, bufname).tu
             cursor = clighter8_helper.get_cursor(tu, bufname, row, col)
 
             if not cursor:
@@ -296,6 +302,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     cursor.kind), 'cursor.type.kind': str(
                     cursor.type.kind), 'cursor.spelling': cursor.spelling}
             self.request.sendall(json.dumps([sn, result]))
+
+        elif msg['cmd'] == 'compile_info':
+            bufname = msg['params']['bufname'].encode("utf-8")
+
+            result = self.server.get_buffer_data(self.request, bufname).compile_args
+            self.request.sendall(json.dumps([sn, result]))
+            
 
         elif msg['cmd'] == 'enable_log':
             enable = msg['params']['enable']
@@ -312,39 +325,39 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     clients = {}
 
-    def get_tu(self, cli, bufname):
-        if bufname in self.clients[cli].tu_ctx:
-            return self.clients[cli].tu_ctx[bufname]
+    def get_buffer_data(self, cli, bufname):
+        if bufname in self.clients[cli].buffer_data:
+            return self.clients[cli].buffer_data[bufname]
 
         return None
 
-    def delete_tu(self, cli, bufname):
+    def delete_buffer_data(self, cli, bufname):
         try:
-            del self.clients[cli].tu_ctx[bufname]
+            del self.clients[cli].buffer_data[bufname]
         except:
             pass
 
     def set_dirty(self, cli, bufname):
-        if bufname in self.clients[cli].tu_ctx:
-            self.clients[cli].tu_ctx[bufname][1] = True
+        if bufname in self.clients[cli].buffer_data:
+            self.clients[cli].buffer_data[bufname].dirty_flag = True
 
     def is_dirty(self, cli, bufname):
-        if bufname in self.clients[cli].tu_ctx:
-            return self.clients[cli].tu_ctx[bufname][1]
+        if bufname in self.clients[cli].buffer_data:
+            return self.clients[cli].buffer_data[bufname].dirty_flag
 
         return False
 
     def set_hl_flag(self, cli, bufname):
-        if bufname in self.clients[cli].tu_ctx:
-            self.clients[cli].tu_ctx[bufname][2] = True
+        if bufname in self.clients[cli].buffer_data:
+            self.clients[cli].buffer_data[bufname].highlight_flag = True
 
     def clear_hl_flag(self, cli, bufname):
-        if bufname in self.clients[cli].tu_ctx:
-            self.clients[cli].tu_ctx[bufname][2] = False
+        if bufname in self.clients[cli].buffer_data:
+            self.clients[cli].buffer_data[bufname].highlight_flag = False
 
     def is_hl_flag_set(self, cli, bufname):
-        if bufname in self.clients[cli].tu_ctx:
-            return self.clients[cli].tu_ctx[bufname][2]
+        if bufname in self.clients[cli].buffer_data:
+            return self.clients[cli].buffer_data[bufname].highlight_flag
 
         return False
 
@@ -354,8 +367,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         except:
             return False
 
-        self.clients[cli].cdb = compilation_database.CompilationDatabase.from_dir(
-            cwd, hcargs)
+        self.clients[cli].cdb = cindex.CompilationDatabase.fromDirectory(cwd)
         self.clients[cli].global_args = gcargs
         self.clients[cli].blacklist = blacklist
 
@@ -368,39 +380,41 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         self.clients[cli].unsaved.append((bufname, content))
 
-    def parse_or_reparse(self, cli, bufname):
-        self.clients[cli].tu_ctx[
-            bufname] = [self.parse(cli, bufname), False, False]
-        return
-        # if bufname not in self.clients[cli].tu_ctx:
-        # self.clients[cli].tu_ctx[bufname] = [self.parse(cli, bufname), False]
-        # else:
-        # self.clients[cli].tu_ctx[bufname][0].reparse(
-        # self.clients[cli].unsaved,
-        # options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
-        # self.clients[cli].tu_ctx[bufname][1] = False
-
     def parse(self, cli, bufname):
-        args = None
-        if self.clients[cli].cdb:
-            args = self.clients[cli].cdb.get_useful_args(
-                bufname) + self.clients[cli].global_args
+        if bufname not in self.clients[cli].buffer_data:
+            self.clients[cli].buffer_data[bufname] = BufferData()
+            self.clients[cli].buffer_data[bufname].compile_args = clighter8_helper.get_compile_args_from_cdb(
+                self.clients[cli].cdb, bufname)
+
 
         try:
-            return self.clients[cli].idx.parse(
+            self.clients[cli].buffer_data[bufname].tu = self.clients[cli].idx.parse(
                 bufname,
-                args,
+                self.clients[cli].buffer_data[bufname].compile_args,
                 self.clients[cli].unsaved,
                 options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+
+            for i in self.clients[cli].buffer_data[bufname].tu.get_includes():
+                if i.is_input_file:
+                    continue
+
+                if i.include not in self.clients[cli].buffer_data:
+                    self.clients[cli].buffer_data[
+                        i.include.name] = BufferData()
+
+                self.clients[cli].buffer_data[i.include.name].compile_args = self.clients[
+                    cli].buffer_data[bufname].compile_args
+
         except:
             logging.warn('libclang failed to parse')
-            return None
+
+        self.clients[cli].buffer_data[bufname].dirty_flag = False
 
     def highlight(self, cli, bufname, begin_line, end_line, row, col):
-        if bufname not in self.clients[cli].tu_ctx:
+        if bufname not in self.clients[cli].buffer_data:
             return [{}, {}]
 
-        tu = self.clients[cli].tu_ctx[bufname][0]
+        tu = self.clients[cli].buffer_data[bufname].tu
         if not tu:
             return [{}, {}]
 
