@@ -62,7 +62,7 @@ Disable clighter8 log.
 
 For convenience, you can add the key mapping in your vimrc:
 ```vim
-nmap <silent> <Leader>r :call Rename()<CR>
+nmap <silent> <Leader>r :call ClRename()<CR>
 ```
 
 ## Options
@@ -79,17 +79,18 @@ database, please reference [Compilation Database][cdb].
 ## FAQ
 
 #### Clighter8 doesn't work?
-Check the Requirements and Installation, and check if a valid libclang path is given.
+Check the Requirements and Installation, and check if a valid libclang path is
+given.
 
-#### Rename() function is an experimental function?
-Due to the many restrictions, it's hard to do rename-refactor.
-Clighter8 only searches opened buffers in Vim to do renaming and it can't
-guarantee the correctness.
+#### ClRename() function is an experimental function?
+Due to the many restrictions, it's hard to do rename-refactor. Clighter8 only
+searches opened buffers in Vim to do renaming and it can't guarantee the
+correctness.
 
 #### How to set compile args?
-Clighter8 sets the compile args for each file with (g:clighter8_global_compile_args +
-"compilation database"). Compile args will affect the correctness of highlight
-and rename-refactor.
+Clighter8 sets the compile args for each file with
+(g:clighter8_global_compile_args + "compilation database"). Compile args will
+affect the correctness of highlight and rename-refactor.
 
 ## LICENSE
 

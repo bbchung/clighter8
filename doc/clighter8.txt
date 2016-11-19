@@ -16,11 +16,11 @@ CONTENTS					*clighter8-contents*
 						*clighter8-intro*
 1. Intro~
 
-Clighter8 is a VIM plugin to support C-family code powered by libclang.
+Clighter8 is a Vim plugin to support C-family code powered by libclang.
 Currently it can highlight code semantically and do rename-refactor.
-Clighter8's engine is highly optimized for VIM's new channel mechanism, that
-means Clighter8 will run in background totally, and it won't slow down the
-performance of VIM.
+Clighter8's engine is highly optimized for Vim's new async io mechanism, that
+means Clighter8 runs in background totally, and it won't slow down the
+performance of Vim.
 
 Github~
 
@@ -161,7 +161,7 @@ Show cursor informations.
 						*ShowCompileInfo*
 ClShowCompileInfo~
 
-Show compiler args.
+Show compiler args of current buffer.
 
 -----------------------------------------------------------------------------
 						*ClEnableLog*
@@ -174,16 +174,16 @@ ClDisableLog~
 
 Disable clighter8 log.
 ------------------------------------------------------------------------------
-						*Rename()*
-Rename()~
+						*ClRename()*
+ClRename()~
 
 * An experimental function to do rename-refactor.
-* Only renaming the opened buffers.
-* There is no one-step undo method.
+* Only do renaming in opened buffers.
+* There is no one-step undo function.
 
 For convenience, you can add key mapping in your vimrc:
 >
-	nmap <silent> <Leader>r :call Rename()<CR>
+	nmap <silent> <Leader>r :call ClRename()<CR>
 >
 ==============================================================================
 						*clighter8-compilation-database*
@@ -235,18 +235,20 @@ You can customize these colors in your colorscheme, for example:
 8. FAQ~
 
 Q. Clighter8 doesn't work.
-A. Check the Requirements and Installation, and check if libclang path is given.
+A. Check the Requirements and Installation, and check if a valid libclang path
+is given.
 
 
-Q. Rename() function is an experimental function?
-A. Due to the limitation of c-family language, it's hard to do
-rename-refactor. Clighter8 will only search all opened buffers to do renaming
-and it can't guarantee the correctness.
+Q. ClRename() is an experimental function?
+A. Due to the many restrictions, it's hard to do rename-refactor. Clighter8
+only searches opened buffers in Vim to do renaming and it can't guarantee the
+correctness.
 
 Q. How to set compile args?
-A. Clighter8 set the compile args for each file by (g:clighter8_global_compile_args +
-"compilation database"). Compile args will affect the correctness of highlight
-and rename-refactor.
+A. Clighter8 sets the compile args for each file with
+(g:clighter8_global_compile_args + "compilation database"). Compile args will
+affect the correctness of highlight and rename-refactor.
+
 
 ==============================================================================
                                                         *clighter8-license*
