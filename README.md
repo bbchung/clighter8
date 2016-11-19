@@ -1,4 +1,4 @@
-# Clighter8: VIM8 plugin to highlight C-family code
+# Clighter8: VIM 8 plugin to do syntax highlight, code format, refactor, based on Clang
 
 ## Intro
 
