@@ -17,7 +17,7 @@ fun! s:engine_rename(channel, bufname, pos)
     endfor
 
     let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'row' : a:pos[1], 'col': a:pos[2], 'buflist' : l:buflist}}
-    return ch_evalexpr(a:channel, l:expr, {'timeout':10000})
+    return ch_evalexpr(a:channel, l:expr, {'timeout':120000})
 endf
 
 fun! s:engine_highlight_async(channel)
@@ -211,21 +211,21 @@ fun ClRename()
     let l:pos = getpos('.')
     let l:bufname = expand('%:p')
     echohl MoreMsg
-    echo '[cighter8] processing...'
+    echo '[cighter8] processing... this may take a few minutes'
     echohl None
 
     let l:result = s:engine_rename(s:channel, l:bufname, l:pos)
 
     if empty(l:result) || empty(l:result['renames'])
         echohl WarningMsg
-        echo "[clighter8] can\'t rename this"
+        echo '[clighter8] unable to rename'
         echohl None
         return
     endif
 
     let l:old = l:result['old']
     echohl Question
-    let l:new = input('Rename ' . l:old . ' : ', l:old)
+    let l:new = input('Rename ' . l:old . ' to : ', l:old)
     echohl None
     if (empty(l:new) || l:old == l:new)
         return

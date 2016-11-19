@@ -50,7 +50,7 @@ hi MatchParen term=reverse cterm=bold ctermbg=108 ctermfg=231 gui=bold guibg=#80
 hi helpNormal term=NONE cterm=NONE ctermbg=bg ctermfg=fg  guibg=bg guifg=fg
 hi helpGraphic term=NONE cterm=NONE ctermbg=bg ctermfg=fg  guibg=bg guifg=fg
 hi helpLeadBlank term=NONE cterm=NONE ctermbg=bg ctermfg=fg  guibg=bg guifg=fg
-hi Question term=NONE cterm=bold ctermbg=bg ctermfg=29 gui=bold guibg=#1F4566 guifg=fg
+hi Question term=NONE cterm=bold ctermbg=bg ctermfg=29 gui=bold guibg=bg guifg=#4DACFF
 hi StringDelimiter term=NONE cterm=NONE ctermbg=bg ctermfg=59  guibg=bg guifg=#556633
 hi NONE term=NONE cterm=NONE ctermbg=None ctermfg=None  guibg=bg 
 hi WarningMsg term=NONE cterm=NONE ctermbg=bg ctermfg=220  guibg=bg guifg=Red
