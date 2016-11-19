@@ -1,6 +1,9 @@
 from clang import cindex
 
 def get_cursor(tu, filepath, row, col):
+    if not tu:
+        return None
+
     return cindex.Cursor.from_location(
         tu,
         cindex.SourceLocation.from_position(tu,
