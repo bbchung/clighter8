@@ -21,7 +21,7 @@ Use a VIM plugin manager, for example
 
 * Vundle Install:
 ```vim
-CCㄠBundle 'bbchung/clighter8'
+Bundle 'bbchung/clighter8'
 ```
 
 ## Usage

@@ -90,7 +90,7 @@ class ClientData:
     unsaved = []
     cdb = None
     idx = None
-    global_args = None
+    global_compile_args = None
 
 
 def parse_line_delimited(data, on_parse):
@@ -181,8 +181,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if msg['cmd'] == 'init_client':
             libclang = msg["params"]["libclang"]
             cwd = msg["params"]["cwd"]
-            hcargs = msg["params"]["hcargs"]
-            gcargs = msg["params"]["gcargs"]
+            global_compile_args = msg["params"]["global_compile_args"]
             blacklist = msg["params"]["blacklist"]
 
             try:
@@ -192,7 +191,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 logging.warn('cannot config library path')
 
             succ = server.init_client(
-                self.request, cwd, hcargs, gcargs, blacklist)
+                self.request, cwd, global_compile_args, blacklist)
             self.request.sendall(json.dumps([sn, succ]))
 
         elif msg['cmd'] == 'parse':
@@ -278,7 +277,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 self.server.parse(self.request, next_buf)
                 locations = []
                 clighter8_helper.search_by_usr(self.server.get_buffer_data(
-                    self.request, next_buf)[0], usr, locations)
+                    self.request, next_buf).tu, usr, locations)
 
                 if locations:
                     result['renames'][next_buf] = locations
@@ -306,7 +305,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         elif msg['cmd'] == 'compile_info':
             bufname = msg['params']['bufname'].encode("utf-8")
 
-            result = self.server.get_buffer_data(self.request, bufname).compile_args
+            result = self.server.get_buffer_data(self.request, bufname).compile_args + self.server.get_global_compile_args(self.request)
             self.request.sendall(json.dumps([sn, result]))
             
 
@@ -324,6 +323,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     clients = {}
+
+    def get_global_compile_args(self, cli):
+        return self.clients[cli].global_compile_args
 
     def get_buffer_data(self, cli, bufname):
         if bufname in self.clients[cli].buffer_data:
@@ -361,14 +363,14 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         return False
 
-    def init_client(self, cli, cwd, hcargs, gcargs, blacklist):
+    def init_client(self, cli, cwd, global_compile_args, blacklist):
         try:
             self.clients[cli].idx = cindex.Index.create()
         except:
             return False
 
         self.clients[cli].cdb = cindex.CompilationDatabase.fromDirectory(cwd)
-        self.clients[cli].global_args = gcargs
+        self.clients[cli].global_compile_args = global_compile_args
         self.clients[cli].blacklist = blacklist
 
         return True
@@ -386,11 +388,12 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             self.clients[cli].buffer_data[bufname].compile_args = clighter8_helper.get_compile_args_from_cdb(
                 self.clients[cli].cdb, bufname)
 
+        compile_args = self.clients[cli].buffer_data[bufname].compile_args + self.clients[cli].global_compile_args
 
         try:
             self.clients[cli].buffer_data[bufname].tu = self.clients[cli].idx.parse(
                 bufname,
-                self.clients[cli].buffer_data[bufname].compile_args,
+                compile_args if compile_args else None,
                 self.clients[cli].unsaved,
                 options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
 

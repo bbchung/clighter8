@@ -5,8 +5,8 @@ endif
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
-fun! s:engine_init_client(channel, libclang_path, heuristic_compile_args, compile_args, highlight_blacklist)
-    let l:expr = {'cmd' : 'init_client', 'params' : {'libclang' : a:libclang_path, 'cwd' : getcwd(), 'hcargs' : a:heuristic_compile_args, 'gcargs' : a:compile_args, 'blacklist' : a:highlight_blacklist}}
+fun! s:engine_init_client(channel, libclang_path, compile_args, highlight_blacklist)
+    let l:expr = {'cmd' : 'init_client', 'params' : {'libclang' : a:libclang_path, 'cwd' : getcwd(), 'global_compile_args' : a:compile_args, 'blacklist' : a:highlight_blacklist}}
     return ch_evalexpr(a:channel, l:expr)
 endf
 
@@ -241,7 +241,7 @@ fun! s:start_clighter8()
         endif
     endif
 
-    let l:succ = s:engine_init_client(s:channel, g:clighter8_libclang_path, g:clighter8_heuristic_compile_args, g:clighter8_compile_args, g:clighter8_highlight_blacklist)
+    let l:succ = s:engine_init_client(s:channel, g:clighter8_libclang_path, g:clighter8_global_compile_args, g:clighter8_highlight_blacklist)
 
     if l:succ == v:false
         echo '[clighter8] failed to init client'
@@ -294,8 +294,7 @@ let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
 let g:clighter8_occurrence_priority = get(g:, 'clighter8_occurrence_priority', -1)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', ['clighter8InclusionDirective'])
-let g:clighter8_heuristic_compile_args = get(g:, 'clighter8_heuristic_compile_args', 1)
-let g:clighter8_compile_args = get(g:, 'clighter8_compile_args', [])
+let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [])
 let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
 
 if g:clighter8_autostart

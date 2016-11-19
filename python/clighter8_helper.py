@@ -41,6 +41,9 @@ def get_semantic_symbol(cursor):
 
 
 def search_by_usr(tu, usr, result):
+    if not tu:
+        return None
+
     tokens = tu.cursor.get_tokens()
     for token in tokens:
         cursor = token.cursor
@@ -53,7 +56,7 @@ def search_by_usr(tu, usr, result):
 def get_compile_args_from_cdb(cdb, bufname):
     cmds = cdb.getCompileCommands(bufname) 
     if cmds == None:
-        return None
+        return []
 
     result = list(cmds[0].arguments)
     result.pop()
