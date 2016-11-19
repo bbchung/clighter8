@@ -152,15 +152,27 @@ func s:cl_highlight(matches, priority)
 endf
 
 fun! s:cl_replace(renames, old, new, qflist)
+    let l:choice = confirm("rename '". a:old ."' to '" .a:new.'?', "&Yes\n&All\n&No", 1)
+
+    if (l:choice == 1)
+        bufdo! call s:do_replace(a:renames, a:old, a:new, a:qflist, v:true)
+    elseif (l:choice == 2)
+        bufdo! call s:do_replace(a:renames, a:old, a:new, a:qflist, v:false)
+    endif
+endf
+
+fun! s:do_replace(renames, old, new, qflist, prompt)
     let l:bufname = expand('%:p')
     if (!has_key(a:renames, l:bufname) || empty(a:renames[l:bufname]))
         return
     endif
     let l:locations = a:renames[l:bufname]
 
-    let l:choice = confirm("rename '". a:old ."' to '" .a:new. "' in " .l:bufname. '?', "&Yes\n&No", 1)
-    if (l:choice == 2)
-        return
+    if (a:prompt == v:true)
+        let l:choice = confirm("rename '". a:old ."' to '" .a:new. "' in " .l:bufname. '?', "&Yes\n&No", 1)
+        if (l:choice == 2)
+            return
+        endif
     endif
 
     let l:pattern = ''
@@ -176,6 +188,7 @@ fun! s:cl_replace(renames, old, new, qflist)
     let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
 
     execute(l:cmd)
+    call s:engine_parse(s:channel, expand('%:p'))
 endf
 
 fun! s:clear_match_by_priorities(priorities)
@@ -221,7 +234,7 @@ fun ClRename()
     let l:qflist = []
     let l:wnr = winnr()
     let l:bufnr = bufnr('%')
-    bufdo! call s:cl_replace(l:result['renames'], l:old, l:new, l:qflist) | call s:engine_parse(s:channel, expand('%:p'))
+    call s:cl_replace(l:result['renames'], l:old, l:new, l:qflist)
     call setqflist(l:qflist)
     exe 'buffer! '.l:bufnr
     call setpos('.', l:pos)
