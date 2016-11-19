@@ -1,23 +1,23 @@
-# Clighter8: VIM plugin to do syntax highlight, code format, refactor, based on Clang
+# Clighter8: Vim plugin to do syntax highlight, code format, refactor, based on Clang
 
 ## Intro
 
-Clighter8 is a VIM plugin to support C-family code powered by libclang.
+Clighter8 is a Vim plugin to support C-family code powered by libclang.
 Currently it can highlight code semantically and do rename-refactor.
-Clighter8's engine is highly optimized for VIM's new async io mechanism, that
-means Clighter8 will run in background totally, and it won't slow down the
-performance of VIM.
+Clighter8's engine is highly optimized for Vim's new async io mechanism, that
+means Clighter8 runs in background totally, and it won't slow down the
+performance of Vim.
 
 ## Requirements
 
 Clighter8 requires the following things:
 
 * Vim with +job and +channel features
-* [libclang][libclang]
+* [libclang][libclang], (3.9 is recommended)
 
 ## Installation
 
-Use a VIM plugin manager, for example
+Use a plugin manager, for example
 
 * Vundle Install:
 ```vim
@@ -44,7 +44,7 @@ Show cursor informations.
 
 #### ClShowCompileInfo
 
-Show compiler args.
+Show compiler args of current buffer.
 
 #### ClEnableLog
 
@@ -58,9 +58,9 @@ Disable clighter8 log.
 
 * An experimental function to do rename-refactor.
 * Only do renaming in opened buffers.
-* There is no one-step undo method.
+* There is no one-step undo function.
 
-For convenience, you can add a key mapping in your vimrc:
+For convenience, you can add the key mapping in your vimrc:
 ```vim
 nmap <silent> <Leader>r :call Rename()<CR>
 ```
@@ -71,23 +71,23 @@ nmap <silent> <Leader>r :call Rename()<CR>
 
 ## Compilation Database
 
-Clighter8 automatically loads and parses the compilation database
-"compile_commands.json" if it exists in current working directory, then passes
-the compile options to libclang. For more information about compilation
+Clighter8 supports compilation database
+"compile_commands.json" if it exists in current directory.
+For more information about compilation
 database, please reference [Compilation Database][cdb].
 
 ## FAQ
 
 #### Clighter8 doesn't work?
-Check the Requirements and Installation, and check if libclang path is given.
+Check the Requirements and Installation, and check if a valid libclang path is given.
 
 #### Rename() function is an experimental function?
-Due to the limitation of c-family language, it's hard to do rename-refactor.
-Clighter8 will only search all opened buffers to do renaming and it can't
+Due to the many restrictions, it's hard to do rename-refactor.
+Clighter8 only searches opened buffers in Vim to do renaming and it can't
 guarantee the correctness.
 
 #### How to set compile args?
-Clighter8 set the compile args for each file by (g:clighter8_compile_args +
+Clighter8 sets the compile args for each file with (g:clighter8_global_compile_args +
 "compilation database"). Compile args will affect the correctness of highlight
 and rename-refactor.
 
