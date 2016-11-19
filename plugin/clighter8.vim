@@ -195,22 +195,23 @@ fun ClRename()
     if !exists('s:channel')
         return
     endif
-    let l:wnr = winnr()
-    let l:bufnr = bufnr('%')
     let l:pos = getpos('.')
     let l:bufname = expand('%:p')
-    set ei=BufWinEnter,WinEnter
+    echohl MoreMsg
     echo '[cighter8] processing...'
+    echohl None
 
     let l:result = s:engine_rename(s:channel, l:bufname, l:pos)
 
     if empty(l:result) || empty(l:result['renames'])
+        echohl WarningMsg
         echo "[clighter8] can\'t rename this"
+        echohl None
         return
     endif
 
     let l:old = l:result['old']
-    echohl WildMenu
+    echohl Question
     let l:new = input('Rename ' . l:old . ' : ', l:old)
     echohl None
     if (empty(l:new) || l:old == l:new)
@@ -218,15 +219,14 @@ fun ClRename()
     endif
 
     let l:qflist = []
-    bufdo! call s:cl_replace(l:result['renames'], l:old, l:new, l:qflist)
-    echo '[clighter8] processing...'
-    silent bufdo! call s:engine_parse(s:channel, expand('%:p'))
-    set ei=""
+    let l:wnr = winnr()
+    let l:bufnr = bufnr('%')
+    bufdo! call s:cl_replace(l:result['renames'], l:old, l:new, l:qflist) | call s:engine_parse(s:channel, expand('%:p'))
     call setqflist(l:qflist)
-    "copen
-    "exe l:wnr.'wincmd w'
     exe 'buffer! '.l:bufnr
     call setpos('.', l:pos)
+    copen
+    exe l:wnr.'wincmd w'
 endf
 
 fun! s:start_clighter8()
@@ -236,7 +236,9 @@ fun! s:start_clighter8()
         let s:job = job_start(l:cmd, {'stoponexit': ''})
         let s:channel = ch_open('localhost:8787', {'waittime': 5000})
         if ch_status(s:channel) == 'fail'
+            echohl ErrorMsg
             echo '[clighter8] failed start engine'
+            echohl None
             return
         endif
     endif
@@ -244,7 +246,9 @@ fun! s:start_clighter8()
     let l:succ = s:engine_init_client(s:channel, g:clighter8_libclang_path, g:clighter8_global_compile_args, g:clighter8_highlight_blacklist)
 
     if l:succ == v:false
+        echohl ErrorMsg
         echo '[clighter8] failed to init client'
+        echohl None
         call ch_close(s:channel)
         unlet s:channel
         return
