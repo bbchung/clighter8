@@ -1,5 +1,6 @@
 from clang import cindex
 
+
 def get_cursor(tu, filepath, row, col):
     if not tu:
         return None
@@ -11,8 +12,9 @@ def get_cursor(tu, filepath, row, col):
                                             row,
                                             col))
 
+
 def get_semantic_symbol_from_location(tu, filepath, row, col):
-    cursor = get_cursor(tu, filepath, row, col);
+    cursor = get_cursor(tu, filepath, row, col)
     if not cursor:
         return None
 
@@ -58,12 +60,13 @@ def search_by_usr(tu, usr, result):
         if symbol and symbol.get_usr() == usr:
             result.append((token.location.line, token.location.column))
 
+
 def get_compile_args_from_cdb(cdb, bufname):
     if not cdb:
         return[]
 
-    cmds = cdb.getCompileCommands(bufname) 
-    if cmds == None:
+    cmds = cdb.getCompileCommands(bufname)
+    if cmds is None:
         return []
 
     result = list(cmds[0].arguments)

@@ -311,9 +311,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         elif msg['cmd'] == 'compile_info':
             bufname = msg['params']['bufname'].encode("utf-8")
 
-            result = self.server.get_buffer_data(self.request, bufname).compile_args + self.server.get_global_compile_args(self.request)
+            result = self.server.get_buffer_data(
+                self.request, bufname).compile_args + self.server.get_global_compile_args(self.request)
             self.safe_sendall(json.dumps([sn, result]))
-            
 
         elif msg['cmd'] == 'enable_log':
             enable = msg['params']['enable']
@@ -376,10 +376,11 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             return False
 
         try:
-            self.clients[cli].cdb = cindex.CompilationDatabase.fromDirectory(cwd)
+            self.clients[
+                cli].cdb = cindex.CompilationDatabase.fromDirectory(cwd)
         except:
             logging.warn('compilation data not found')
-        
+
         self.clients[cli].global_compile_args = global_compile_args
         self.clients[cli].blacklist = blacklist
 
@@ -398,11 +399,14 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             self.clients[cli].buffer_data[bufname].compile_args = clighter8_helper.get_compile_args_from_cdb(
                 self.clients[cli].cdb, bufname)
 
-        compile_args = self.clients[cli].buffer_data[bufname].compile_args + self.clients[cli].global_compile_args
+        compile_args = self.clients[cli].buffer_data[
+            bufname].compile_args + self.clients[cli].global_compile_args
 
         try:
             if self.clients[cli].buffer_data[bufname].tu:
-                self.clients[cli].buffer_data[bufname].tu.reparse(self.clients[cli].unsaved, cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+                self.clients[cli].buffer_data[bufname].tu.reparse(
+                    self.clients[cli].unsaved,
+                    cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
             else:
                 self.clients[cli].buffer_data[bufname].tu = self.clients[cli].idx.parse(
                     bufname,

@@ -106,20 +106,20 @@ endf
 func HandleParse(channel, msg)
     let b:last_changedtick = b:changedtick
 
-    if a:msg != ''
+    if !empty(a:msg)
         call s:engine_notify_highlight_async(a:channel, a:msg)
     endif
 endfunc
 
 func HandleNotifyParse(channel, msg)
 
-    if a:msg != ''
+    if !empty(a:msg)
         call s:engine_parse_async(a:channel, a:msg)
     endif
 endfunc
 
 func HandleNotifyHighlight(channel, msg)
-    if a:msg != ''
+    if !empty(a:msg)
         call s:engine_highlight_async(a:channel, a:msg)
     endif
 endfunc
@@ -276,7 +276,7 @@ fun! s:start_clighter8()
     augroup Clighter8
         autocmd!
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async(s:channel, expand('%:p'))
-        
+
         if g:clighter8_parse_mode == 0
             au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'))
         else
@@ -297,7 +297,7 @@ fun! s:stop_clighter8()
         call ch_close(s:channel)
         unlet s:channel
     endif
-    
+
     let a:wnr = winnr()
     windo call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority])
     exe a:wnr.'wincmd w'
