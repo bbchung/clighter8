@@ -61,8 +61,6 @@ func s:engine_notify_parse_async(channel)
 endf
 
 func s:engine_notify_highlight(channel)
-    call s:clear_match_by_priorities([g:clighter8_refs_priority])
-
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
