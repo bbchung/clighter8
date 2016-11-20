@@ -60,7 +60,7 @@ func s:engine_notify_parse_async(channel)
     call ch_sendexpr(a:channel, l:expr, {'callback': 'HandleNotifyParse'})
 endf
 
-func s:engine_notify_highlight(channel)
+func s:engine_notify_highlight_async(channel)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -90,7 +90,7 @@ endf
 
 fun! s:engine_delete_buffer(channel)
     let l:expr = {'cmd' : 'delete_buffer', 'params' : {'bufname' : expand('%:p')}}
-    call ch_sendexpr(a:channel, l:expr)
+    call ch_evalexpr(a:channel, l:expr)
 endf
 
 fun! s:engine_enable_log(channel, en)
@@ -100,7 +100,7 @@ endf
 
 func HandleParse(channel, msg)
     if a:msg == v:true
-        call s:engine_notify_highlight(a:channel)
+        call s:engine_notify_highlight_async(a:channel)
     endif
 endfunc
 
@@ -274,7 +274,7 @@ fun! s:start_clighter8()
         else
             au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async(s:channel)
         endif
-        au CursorMoved,CursorMovedI * call s:engine_notify_highlight(s:channel)
+        au CursorMoved,CursorMovedI * call s:engine_notify_highlight_async(s:channel)
         au BufDelete * call s:engine_delete_buffer(s:channel)
         au VimLeave * call s:stop_clighter8()
     augroup END
