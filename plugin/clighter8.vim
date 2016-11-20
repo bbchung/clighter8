@@ -316,7 +316,7 @@ let g:clighter8_refs_priority = get(g:, 'clighter8_refs_priority', -1)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', ['clighter8InclusionDirective'])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [])
-let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 1)
+let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
 
 if g:clighter8_autostart
     au VimEnter * if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) >= 0 | call s:start_clighter8() | endif
