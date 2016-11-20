@@ -71,10 +71,11 @@ nmap <silent> <Leader>r :call ClRename()<CR>
 
 ## Compilation Database
 
-Clighter8 supports compilation database
-"compile_commands.json" if it exists in current directory.
-For more information about compilation
-database, please reference [Compilation Database][cdb].
+Clighter8 supports compilation database if the compilation database exists in
+current directory. It's strongly recommended to provide a compilation database
+in your project to get the better result of highlight and refactor-rename. For
+more information about compilation database, please reference [Compilation
+Database][cdb].
 
 ## FAQ
 
