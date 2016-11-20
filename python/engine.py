@@ -245,7 +245,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.safe_sendall(json.dumps(
                 [sn, [bufname, result]]))
 
-            server.clear_highlight_busy(self.request, bufname)
+            server.unset_highlight_busy(self.request, bufname)
 
         elif msg['cmd'] == 'delete_buffer':
             bufname = msg['params']['bufname'].encode("utf-8")
@@ -359,7 +359,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         if bufname in self.clients[cli].buffer_data:
             self.clients[cli].buffer_data[bufname].highlight_busy = True
 
-    def clear_highlight_busy(self, cli, bufname):
+    def unset_highlight_busy(self, cli, bufname):
         if bufname in self.clients[cli].buffer_data:
             self.clients[cli].buffer_data[bufname].highlight_busy = False
 
