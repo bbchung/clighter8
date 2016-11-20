@@ -206,13 +206,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             logging.info("parse %s" % bufname)
             if not bufname:
-                self.safe_sendall(json.dumps([sn, False]))
+                self.safe_sendall(json.dumps([sn, '']))
                 return
 
             self.server.update_unsaved(self.request, bufname, content)
             self.server.parse(self.request, bufname)
 
-            self.safe_sendall(json.dumps([sn, True]))
+            self.safe_sendall(json.dumps([sn, bufname]))
 
         elif msg['cmd'] == 'notify_parse':
             bufname = msg['params']['bufname'].encode("utf-8")
