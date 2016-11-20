@@ -16,11 +16,16 @@ def get_semantic_symbol_from_location(tu, filepath, row, col):
     if not cursor:
         return None
 
-    if cursor.location.line != row or col < cursor.location.column or col >= cursor.location.column + \
-            len(cursor.spelling):
+    symbol = get_semantic_symbol(cursor)
+
+    if not symbol:
         return None
 
-    return get_semantic_symbol(cursor)
+    if cursor.location.line != row or col < cursor.location.column or col >= cursor.location.column + \
+            len(symbol.spelling):
+        return None
+
+    return symbol
 
 
 def get_semantic_symbol(cursor):
