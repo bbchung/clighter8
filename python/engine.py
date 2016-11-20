@@ -449,7 +449,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             extent=cindex.SourceRange.from_locations(begin, end))
 
         syntax = {}
-        occurrence = {'clighter8Occurrences': []}
+        refs = {'clighter8Refs': []}
 
         for token in tokens:
             if token.kind.value != 2:  # no keyword, comment
@@ -474,9 +474,9 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             t_symbol = clighter8_helper.get_semantic_symbol(cursor)
 
             if symbol and t_symbol and symbol == t_symbol and t_symbol.spelling == token.spelling:
-                occurrence['clighter8Occurrences'].append(pos)
+                refs['clighter8Refs'].append(pos)
 
-        return [syntax, occurrence]
+        return [syntax, refs]
 
 
 if __name__ == "__main__":

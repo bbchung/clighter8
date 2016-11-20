@@ -52,7 +52,7 @@ Vundle Install~
 
 |g:clighter8_autostart|
 |g:clighter8_libclang_path|
-|g:clighter8_occurrence_priority|
+|g:clighter8_refs_priority|
 |g:clighter8_syntax_priority|
 |g:clighter8_highlight_blacklist|
 |g:clighter8_global_compile_args|
@@ -75,10 +75,10 @@ find it.
 
 Default: `''`
 ------------------------------------------------------------------------------
-						*g:clighter8_occurrence_priority*
-g:clighter8_occurrence_priority~
+						*g:clighter8_refs_priority*
+g:clighter8_refs_priority~
 
-Set the match priority of occurrence.
+Set the match priority of references.
 
 Default: `-1`
 ------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ hi default link clighter8Namespace Identifier
 hi default link clighter8NamespaceRef Type
 hi default link clighter8TemplateTypeParameter Identifier
 hi default link clighter8TemplateRef Type
-hi default link clighter8Occurrences IncSearch
+hi default link clighter8Refs IncSearch
 
 You can customize these colors in your colorscheme, for example:
 >

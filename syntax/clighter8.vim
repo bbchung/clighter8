@@ -24,4 +24,4 @@ hi default link clighter8TemplateTypeParameter Identifier
 hi default link clighter8TemplateNoneTypeParameter Identifier
 hi default link clighter8TemplateRef Type
 
-hi default link clighter8Occurrences IncSearch
+hi default link clighter8Refs IncSearch

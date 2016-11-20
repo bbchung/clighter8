@@ -61,6 +61,8 @@ func s:engine_notify_parse_async(channel)
 endf
 
 func s:engine_notify_highlight(channel)
+    call s:clear_match_by_priorities([g:clighter8_refs_priority])
+
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -121,14 +123,10 @@ func HandleHighlight(channel, msg)
         return
     endif
 
-    for l:m in getmatches()
-        if g:clighter8_syntax_priority == l:m['priority'] || g:clighter8_occurrence_priority == l:m['priority']
-            call matchdelete(l:m['id'])
-        endif
-    endfor
+    call s:clear_match_by_priorities([g:clighter8_syntax_priority, g:clighter8_refs_priority])
 
     call s:cl_highlight(a:msg[1][0], g:clighter8_syntax_priority)
-    call s:cl_highlight(a:msg[1][1], g:clighter8_occurrence_priority)
+    call s:cl_highlight(a:msg[1][1], g:clighter8_refs_priority)
 endfunc
 
 func s:cl_highlight(matches, priority)
@@ -247,7 +245,7 @@ fun! s:start_clighter8()
     if ch_status(s:channel) == 'fail'
         let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py'
         let s:job = job_start(l:cmd, {'stoponexit': ''})
-        let s:channel = ch_open('localhost:8787', {'waittime': 5000})
+        let s:channel = ch_open('localhost:8787', {'waittime': 1000})
         if ch_status(s:channel) == 'fail'
             echohl ErrorMsg
             echo '[clighter8] failed start engine'
@@ -271,7 +269,7 @@ fun! s:start_clighter8()
 
     augroup Clighter8
         autocmd!
-        au BufEnter * call s:clear_match_by_priorities([g:clighter8_occurrence_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async(s:channel)
+        au BufEnter * call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async(s:channel)
         
         if g:clighter8_parse_mode == 0
             au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async(s:channel)
@@ -295,7 +293,7 @@ fun! s:stop_clighter8()
     endif
     
     let a:wnr = winnr()
-    windo call s:clear_match_by_priorities([g:clighter8_occurrence_priority, g:clighter8_syntax_priority])
+    windo call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority])
     exe a:wnr.'wincmd w'
 endf
 
@@ -308,7 +306,7 @@ command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:chann
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
-let g:clighter8_occurrence_priority = get(g:, 'clighter8_occurrence_priority', -1)
+let g:clighter8_refs_priority = get(g:, 'clighter8_refs_priority', -1)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', ['clighter8InclusionDirective'])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [])
