@@ -60,6 +60,8 @@ func s:engine_notify_parse_async(channel, bufname)
 endf
 
 func s:engine_notify_highlight_async(channel, bufname)
+    call s:clear_match_by_priorities([g:clighter8_refs_priority])
+
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -98,12 +100,18 @@ fun! s:engine_enable_log(channel, en)
 endf
 
 func HandleParse(channel, msg)
+    let b:last_changedtick = b:changedtick
+
     if a:msg != ''
         call s:engine_notify_highlight_async(a:channel, a:msg)
     endif
 endfunc
 
 func HandleNotifyParse(channel, msg)
+    if exists('b:last_changedtick') && b:last_changedtick == b:changedtick
+        return
+    endif
+
     if a:msg != ''
         call s:engine_parse_async(a:channel, a:msg)
     endif
@@ -307,7 +315,7 @@ let g:clighter8_refs_priority = get(g:, 'clighter8_refs_priority', -1)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', ['clighter8InclusionDirective'])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [])
-let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
+let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 1)
 
 if g:clighter8_autostart
     au VimEnter * if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) >= 0 | call s:start_clighter8() | endif
