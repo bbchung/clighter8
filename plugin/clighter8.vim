@@ -100,18 +100,12 @@ fun! s:engine_enable_log(channel, en)
 endf
 
 func HandleParse(channel, msg)
-    let b:last_changedtick = b:changedtick
-
     if a:msg != ''
         call s:engine_notify_highlight_async(a:channel, a:msg)
     endif
 endfunc
 
 func HandleNotifyParse(channel, msg)
-    if exists('b:last_changedtick') && b:last_changedtick == b:changedtick
-        return
-    endif
-
     if a:msg != ''
         call s:engine_parse_async(a:channel, a:msg)
     endif
