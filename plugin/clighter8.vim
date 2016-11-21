@@ -20,14 +20,14 @@ fun! s:engine_rename(channel, bufname, pos)
     return ch_evalexpr(a:channel, l:expr, {'timeout':120000})
 endf
 
-fun! s:engine_highlight_async(channel, bufname)
+fun! s:engine_highlight_async(channel, bufname, callback)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
     let l:pos = getpos('.')
     let l:expr = {'cmd' : 'highlight', 'params' : {'bufname' : a:bufname, 'begin_line' : line('w0'), 'end_line' : line('w$'), 'row' : l:pos[1], 'col': l:pos[2]}}
-    call ch_sendexpr(a:channel, l:expr, {'callback': 'HandleHighlight'})
+    call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
 func s:engine_cursor_info(channel, bufname, row, col)
@@ -44,13 +44,14 @@ func s:engine_compile_info(channel, bufname)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
+
     let l:expr = {'cmd' : 'compile_info', 'params' : {'bufname' : a:bufname}}
     let l:result = ch_evalexpr(a:channel, l:expr)
     echo l:result
 endf
 
 
-func s:engine_notify_parse_async(channel, bufname)
+func s:engine_notify_parse_async(channel, bufname, callback)
     if exists('b:last_changedtick') && b:last_changedtick == b:changedtick
         return
     endif
@@ -60,10 +61,10 @@ func s:engine_notify_parse_async(channel, bufname)
     endif
 
     let l:expr = {'cmd' : 'notify_parse', 'params' : {'bufname' : a:bufname}}
-    call ch_sendexpr(a:channel, l:expr, {'callback': 'HandleNotifyParse'})
+    call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
-func s:engine_notify_highlight_async(channel, bufname)
+func s:engine_notify_highlight_async(channel, bufname, callback)
     call s:clear_match_by_priorities([g:clighter8_refs_priority])
 
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
@@ -71,17 +72,17 @@ func s:engine_notify_highlight_async(channel, bufname)
     endif
 
     let l:expr = {'cmd' : 'notify_highlight', 'params' : {'bufname' : a:bufname}}
-    call ch_sendexpr(a:channel, l:expr, {'callback': 'HandleNotifyHighlight'})
+    call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
 
-func s:engine_parse_async(channel, bufname)
+func s:engine_parse_async(channel, bufname, callback)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
     let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : join(getline(1,'$'), "\n")}}
-    call ch_sendexpr(a:channel, l:expr, {'callback': 'HandleParse'})
+    call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
 func s:engine_parse(channel, bufname)
@@ -107,20 +108,19 @@ func HandleParse(channel, msg)
     let b:last_changedtick = b:changedtick
 
     if !empty(a:msg)
-        call s:engine_notify_highlight_async(a:channel, a:msg)
+        call s:engine_notify_highlight_async(a:channel, a:msg, 'HandleNotifyHighlight')
     endif
 endfunc
 
 func HandleNotifyParse(channel, msg)
-
     if !empty(a:msg)
-        call s:engine_parse_async(a:channel, a:msg)
+        call s:engine_parse_async(a:channel, a:msg, 'HandleParse')
     endif
 endfunc
 
 func HandleNotifyHighlight(channel, msg)
     if !empty(a:msg)
-        call s:engine_highlight_async(a:channel, a:msg)
+        call s:engine_highlight_async(a:channel, a:msg, 'HandleHighlight')
     endif
 endfunc
 
@@ -271,18 +271,18 @@ fun! s:start_clighter8()
         return
     endif
 
-    call s:engine_notify_parse_async(s:channel, expand('%:p'))
+    call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
 
     augroup Clighter8
         autocmd!
-        au BufEnter * call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async(s:channel, expand('%:p'))
+        au BufEnter * call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
 
         if g:clighter8_parse_mode == 0
-            au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'))
+            au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
         else
-            au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'))
+            au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
         endif
-        au CursorMoved,CursorMovedI * call s:engine_notify_highlight_async(s:channel, expand('%:p'))
+        au CursorMoved,CursorMovedI * call s:engine_notify_highlight_async(s:channel, expand('%:p'), 'HandleNotifyHighlight')
         au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
         au VimLeave * call s:stop_clighter8()
     augroup END
