@@ -275,8 +275,6 @@ fun! s:start_clighter8()
 
     augroup Clighter8
         autocmd!
-        au BufEnter * call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority]) | call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
-
         if g:clighter8_parse_mode == 0
             au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
         else

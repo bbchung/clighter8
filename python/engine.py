@@ -340,10 +340,8 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         return None
 
     def delete_buffer_data(self, cli, bufname):
-        try:
+        if bufname in self.clients[cli].buffer_data:
             del self.clients[cli].buffer_data[bufname]
-        except:
-            pass
 
     def set_parse_busy(self, cli, bufname):
         if bufname in self.clients[cli].buffer_data:
@@ -372,14 +370,12 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def init_client(self, cli, cwd, global_compile_args, blacklist):
         try:
             self.clients[cli].idx = cindex.Index.create()
-        except:
-            return False
-
-        try:
             self.clients[
                 cli].cdb = cindex.CompilationDatabase.fromDirectory(cwd)
-        except:
+        except cindex.CompilationDatabaseError:
             logging.warn('compilation data not found')
+        except:
+            return False
 
         self.clients[cli].global_compile_args = global_compile_args
         self.clients[cli].blacklist = blacklist
@@ -402,6 +398,8 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         compile_args = self.clients[cli].buffer_data[
             bufname].compile_args + self.clients[cli].global_compile_args
 
+        self.clients[cli].buffer_data[bufname].parse_busy = False
+
         try:
             if self.clients[cli].buffer_data[bufname].tu:
                 self.clients[cli].buffer_data[bufname].tu.reparse(
@@ -413,22 +411,22 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
                     compile_args if compile_args else None,
                     self.clients[cli].unsaved,
                     options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
-
-            for i in self.clients[cli].buffer_data[bufname].tu.get_includes():
-                if i.is_input_file:
-                    continue
-
-                if i.include not in self.clients[cli].buffer_data:
-                    self.clients[cli].buffer_data[
-                        i.include.name] = BufferData()
-
-                self.clients[cli].buffer_data[i.include.name].compile_args = self.clients[
-                    cli].buffer_data[bufname].compile_args
-
         except:
             logging.warn('libclang failed to parse')
+            return
 
-        self.clients[cli].buffer_data[bufname].parse_busy = False
+        for i in self.clients[cli].buffer_data[bufname].tu.get_includes():
+            if i.is_input_file:
+                continue
+
+            if i.include not in self.clients[cli].buffer_data:
+                self.clients[cli].buffer_data[
+                    i.include.name] = BufferData()
+
+            self.clients[cli].buffer_data[i.include.name].compile_args = self.clients[
+                cli].buffer_data[bufname].compile_args
+
+
 
     def highlight(self, cli, bufname, begin_line, end_line, row, col):
         if bufname not in self.clients[cli].buffer_data:
