@@ -251,44 +251,38 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname'].encode("utf-8")
             self.server.delete_buffer_data(self.request, bufname)
 
-        elif msg['cmd'] == 'rename':
+        elif msg['cmd'] == 'get_usr_info':
             bufname = msg['params']['bufname'].encode("utf-8")
             row = msg['params']['row']
             col = msg['params']['col']
-            buflist = list(msg['params']['buflist'])
 
             self.server.parse(self.request, bufname)
 
             ctx = self.server.get_buffer_data(self.request, bufname)
             if not ctx or not ctx.tu:
-                self.safe_sendall(json.dumps([sn, {}]))
+                self.safe_sendall(json.dumps([sn, '']))
                 return
 
             symbol = clighter8_helper.get_semantic_symbol_from_location(
                 ctx.tu, bufname, row, col)
 
             if not symbol:
-                logging.info("not symbol at %s:[%d, %d]" % (bufname, row, col))
-                self.safe_sendall(json.dumps([sn, {}]))
+                self.safe_sendall(json.dumps([sn, '']))
                 return
 
-            usr = symbol.get_usr()
-            if not usr:
-                self.safe_sendall(json.dumps([sn, {}]))
-                return
+            self.safe_sendall(json.dumps(
+                [sn, [symbol.spelling, symbol.get_usr()]]))
 
-            result = {'old': symbol.spelling, 'renames': {}}
+        elif msg['cmd'] == 'rename':
+            bufname = msg['params']['bufname'].encode("utf-8")
+            usr = msg['params']['usr']
 
-            for next_buf in buflist:
-                self.server.parse(self.request, next_buf)
-                locations = []
-                clighter8_helper.search_by_usr(self.server.get_buffer_data(
-                    self.request, next_buf).tu, usr, locations)
+            self.server.parse(self.request, bufname)
+            refs = []
+            clighter8_helper.search_by_usr(self.server.get_buffer_data(
+                self.request, bufname).tu, usr, refs)
 
-                if locations:
-                    result['renames'][next_buf] = locations
-
-            self.safe_sendall(json.dumps([sn, result]))
+            self.safe_sendall(json.dumps([sn, refs]))
 
         elif msg['cmd'] == 'cursor_info':
             bufname = msg['params']['bufname'].encode("utf-8")
@@ -305,7 +299,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             result = {
                 'cursor': str(cursor), 'cursor.kind': str(
                     cursor.kind), 'cursor.type.kind': str(
-                    cursor.type.kind), 'cursor.spelling': cursor.spelling}
+                        cursor.type.kind), 'cursor.spelling': cursor.spelling, 'location' : [cursor.location.line, cursor.location.column]}
             self.safe_sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'compile_info':
@@ -425,8 +419,6 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
             self.clients[cli].buffer_data[i.include.name].compile_args = self.clients[
                 cli].buffer_data[bufname].compile_args
-
-
 
     def highlight(self, cli, bufname, begin_line, end_line, row, col):
         if bufname not in self.clients[cli].buffer_data:

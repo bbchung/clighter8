@@ -10,16 +10,6 @@ fun! s:engine_init_client(channel, libclang_path, compile_args, highlight_blackl
     return ch_evalexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_rename(channel, bufname, pos)
-    let l:buflist = []
-    for buf in getbufinfo()
-        call add(l:buflist, buf.name)
-    endfor
-
-    let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'row' : a:pos[1], 'col': a:pos[2], 'buflist' : l:buflist}}
-    return ch_evalexpr(a:channel, l:expr, {'timeout':120000})
-endf
-
 fun! s:engine_highlight_async(channel, bufname, callback)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
@@ -104,6 +94,17 @@ fun! s:engine_enable_log(channel, en)
     call ch_sendexpr(a:channel, l:expr)
 endf
 
+fun! s:engine_get_usr_info(channel, bufname, pos)
+    let l:expr = {'cmd' : 'get_usr_info', 'params' : {'bufname' : a:bufname, 'row' : a:pos[1], 'col': a:pos[2]}}
+    let l:result = ch_evalexpr(a:channel, l:expr)
+    return l:result
+endf
+
+fun! s:engine_rename(channel, bufname, usr)
+    let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'usr' : a:usr}}
+    return ch_evalexpr(a:channel, l:expr)
+endf
+
 func HandleParse(channel, msg)
     let b:last_changedtick = b:changedtick
 
@@ -155,32 +156,9 @@ func s:cl_highlight(matches, priority)
     endfor
 endf
 
-fun! s:cl_replace(renames, old, new, qflist)
-    let l:choice = confirm("rename '". a:old ."' to '" .a:new.'?', "&Yes\n&All\n&No", 1)
-
-    if (l:choice == 1)
-        bufdo! call s:do_replace(a:renames, a:old, a:new, a:qflist, v:true)
-    elseif (l:choice == 2)
-        bufdo! call s:do_replace(a:renames, a:old, a:new, a:qflist, v:false)
-    endif
-endf
-
-fun! s:do_replace(renames, old, new, qflist, prompt)
-    let l:bufname = expand('%:p')
-    if (!has_key(a:renames, l:bufname) || empty(a:renames[l:bufname]))
-        return
-    endif
-    let l:locations = a:renames[l:bufname]
-
-    if (a:prompt == v:true)
-        let l:choice = confirm("rename '". a:old ."' to '" .a:new. "' in " .l:bufname. '?', "&Yes\n&No", 1)
-        if (l:choice == 2)
-            return
-        endif
-    endif
-
+fun! s:do_replace(refs, old, new, qflist)
     let l:pattern = ''
-    for [l:row, l:col] in l:locations
+    for [l:row, l:col] in a:refs
         if (!empty(l:pattern))
             let l:pattern = l:pattern . '\|'
         endif
@@ -189,10 +167,9 @@ fun! s:do_replace(renames, old, new, qflist, prompt)
         call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'text':"'".a:old."' was renamed to '".a:new."'"})
     endfor
 
-    let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
+    let l:cmd = 'silent! %s/' . l:pattern . '/' . a:new . '/gIe'
 
     execute(l:cmd)
-    call s:engine_parse(s:channel, expand('%:p'))
 endf
 
 fun! s:clear_match_by_priorities(priorities)
@@ -209,25 +186,16 @@ fun! ClFormat()
 endf
 
 fun ClRename()
-    if !exists('s:channel')
-        return
-    endif
-    let l:pos = getpos('.')
-    let l:bufname = expand('%:p')
-    echohl MoreMsg
-    echo '[cighter8] processing... this may take a few minutes'
-    echohl None
-
-    let l:result = s:engine_rename(s:channel, l:bufname, l:pos)
-
-    if empty(l:result) || empty(l:result['renames'])
+    let l:usr_info = s:engine_get_usr_info(s:channel, expand('%:p'), getpos('.'))
+    
+    if empty(l:usr_info)
         echohl WarningMsg
         echo '[clighter8] unable to rename'
         echohl None
         return
     endif
 
-    let l:old = l:result['old']
+    let [l:old, l:usr] = l:usr_info
     echohl Question
     let l:new = input('Rename ' . l:old . ' to : ', l:old)
     echohl None
@@ -238,7 +206,33 @@ fun ClRename()
     let l:qflist = []
     let l:wnr = winnr()
     let l:bufnr = bufnr('%')
-    call s:cl_replace(l:result['renames'], l:old, l:new, l:qflist)
+    let l:pos = getpos('.')
+
+    let l:prompt = confirm("rename '". l:old ."' to '" .l:new.'?', "&Yes\n&All\n&No", 1)
+    if (l:prompt == 3)
+        return
+    endif
+
+    for info in getbufinfo()
+        let l:refs = s:engine_rename(s:channel, info.name, l:usr)
+
+        if empty(l:refs) 
+            continue
+        endif
+
+        if (l:prompt == 1)
+            let l:yn = confirm("rename '". l:old ."' to '" .l:new. "' in " .info.name. '?', "&Yes\n&No", 1)
+            if (l:yn == 2)
+                continue
+            endif
+        endif
+
+        execute('buffer! '. info.bufnr)
+        call s:do_replace(l:refs, l:old, l:new, l:qflist)
+
+        call s:engine_parse(s:channel, info.name)
+    endfor
+
     call setqflist(l:qflist)
     exe 'buffer! '.l:bufnr
     call setpos('.', l:pos)

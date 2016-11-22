@@ -53,12 +53,16 @@ def search_by_usr(tu, usr, result):
 
     tokens = tu.cursor.get_tokens()
     for token in tokens:
+        print(token.spelling, token.location)
         cursor = token.cursor
         cursor._tu = tu
 
         symbol = get_semantic_symbol(cursor)
-        if symbol and symbol.get_usr() == usr:
-            result.append((token.location.line, token.location.column))
+
+        if not symbol or symbol.get_usr() != usr or token.spelling != symbol.spelling:
+            continue
+
+        result.append((token.location.line, token.location.column))
 
 
 def get_compile_args_from_cdb(cdb, bufname):
