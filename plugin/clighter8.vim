@@ -94,9 +94,9 @@ func s:engine_parse(channel, bufname)
     return ch_evalexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_delete_buffer(channel, bufname)
+fun! s:engine_delete_buffer_async(channel, bufname, callback)
     let l:expr = {'cmd' : 'delete_buffer', 'params' : {'bufname' : a:bufname}}
-    call ch_evalexpr(a:channel, l:expr)
+    call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
 fun! s:engine_enable_log(channel, en)
@@ -281,7 +281,7 @@ fun! s:start_clighter8()
             au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
         endif
         au CursorMoved,CursorMovedI * call s:engine_notify_highlight_async(s:channel, expand('%:p'), 'HandleNotifyHighlight')
-        au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
+        au BufDelete * call s:engine_delete_buffer_async(s:channel, expand('%:p'), '')
         au VimLeave * call s:stop_clighter8()
     augroup END
 endf
