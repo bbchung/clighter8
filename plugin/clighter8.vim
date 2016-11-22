@@ -102,7 +102,7 @@ endf
 
 fun! s:engine_rename(channel, bufname, usr)
     let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'usr' : a:usr}}
-    return ch_evalexpr(a:channel, l:expr)
+    return ch_evalexpr(a:channel, l:expr, {'timeout' : 10000})
 endf
 
 func HandleParse(channel, msg)
@@ -167,7 +167,7 @@ fun! s:do_replace(refs, old, new, qflist)
         call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'text':"'".a:old."' was renamed to '".a:new."'"})
     endfor
 
-    let l:cmd = 'silent! %s/' . l:pattern . '/' . a:new . '/gIe'
+    let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
 
     execute(l:cmd)
 endf

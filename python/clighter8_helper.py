@@ -53,7 +53,6 @@ def search_by_usr(tu, usr, result):
 
     tokens = tu.cursor.get_tokens()
     for token in tokens:
-        print(token.spelling, token.location)
         cursor = token.cursor
         cursor._tu = tu
 
