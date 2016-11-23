@@ -42,10 +42,6 @@ endf
 
 
 func s:engine_notify_parse_async(channel, bufname, callback)
-    if exists('b:last_changedtick') && b:last_changedtick == b:changedtick
-        return
-    endif
-
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -244,6 +240,14 @@ fun ClRename()
     exe l:wnr.'wincmd w'
 endf
 
+fun! s:check_and_parse()
+    if exists('b:last_changedtick') && b:last_changedtick == b:changedtick
+        return
+    endif
+
+    call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
+endf
+
 fun! s:start_clighter8()
     let s:channel = ch_open('localhost:8787')
     if ch_status(s:channel) == 'fail'
@@ -274,9 +278,9 @@ fun! s:start_clighter8()
     augroup Clighter8
         autocmd!
         if g:clighter8_parse_mode == 0
-            au CursorHold,CursorHoldI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
+            au CursorHold,CursorHoldI,BufEnter * call s:check_and_parse()
         else
-            au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
+            au TextChanged,TextChangedI,BufEnter * call s:check_and_parse()
         endif
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority])
         au CursorMoved,CursorMovedI * call s:engine_notify_highlight_async(s:channel, expand('%:p'), 'HandleNotifyHighlight')
