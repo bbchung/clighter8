@@ -186,6 +186,10 @@ fun! ClFormat()
 endf
 
 fun ClRename()
+    if !exists('s:channel')
+        return
+    endif
+
     let l:usr_info = s:engine_get_usr_info(s:channel, expand('%:p'), getpos('.'))
     
     if empty(l:usr_info)
