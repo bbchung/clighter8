@@ -127,10 +127,10 @@ func HandleHlt(channel, msg)
     endif
 
     call s:clear_match_by_priorities([g:clighter8_syntax_priority, g:clighter8_refs_priority])
-    call s:cl_get_hlt(a:msg['hlt'])
+    call s:do_hlt(a:msg['hlt'])
 endfunc
 
-func s:cl_get_hlt(matches)
+func s:do_hlt(matches)
     for [l:group, l:all_pos] in items(a:matches)
         let l:count = 0
         let l:match8 = []
