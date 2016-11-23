@@ -249,6 +249,10 @@ fun! s:check_and_parse()
 endf
 
 fun! s:start_clighter8()
+    if exists('s:channel')
+        return
+    endif
+
     let s:channel = ch_open('localhost:8787')
     if ch_status(s:channel) == 'fail'
         let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py'
@@ -304,8 +308,9 @@ fun! s:stop_clighter8()
     exe a:wnr.'wincmd w'
 endf
 
-command! ClStart call s:stop_clighter8() | call s:start_clighter8()
+command! ClStart call s:start_clighter8()
 command! ClStop call s:stop_clighter8()
+command! ClRestart call s:stop_clighter8() | call s:start_clighter8()
 command! ClShowCursorInfo if exists ('s:channel') | call s:engine_cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif
 command! ClShowCompileInfo if exists ('s:channel') | call s:engine_compile_info(s:channel, expand('%:p')) | endif
 command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:true) | endif
@@ -320,7 +325,7 @@ let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [
 let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
 
 if g:clighter8_autostart
-    au VimEnter * if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) >= 0 | call s:start_clighter8() | endif
+    au Filetype c,cpp call s:start_clighter8()
 endif
 
 let g:loaded_clighter8=1

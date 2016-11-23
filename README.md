@@ -38,6 +38,10 @@ and the refactor-rename function will be enabled.
 Stop Clighter8 and cleanup highlight, refactor-rename function will be
 disabled.
 
+#### ClRestart
+
+Restart clighter8.
+
 #### ClShowCursorInfo
 
 Show cursor informations.
