@@ -5,18 +5,18 @@ endif
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
-fun! s:engine_init_client(channel, libclang_path, compile_args, highlight_blacklist)
-    let l:expr = {'cmd' : 'init_client', 'params' : {'libclang' : a:libclang_path, 'cwd' : getcwd(), 'global_compile_args' : a:compile_args, 'blacklist' : a:highlight_blacklist}}
+fun! s:engine_init(channel, libclang_path, compile_args, hlt_blacklist)
+    let l:expr = {'cmd' : 'init', 'params' : {'libclang' : a:libclang_path, 'cwd' : getcwd(), 'global_compile_args' : a:compile_args, 'blacklist' : a:hlt_blacklist}}
     return ch_evalexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_highlight_async(channel, bufname, callback)
+fun! s:engine_get_hlt_async(channel, bufname, callback)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
     let l:pos = getpos('.')
-    let l:expr = {'cmd' : 'highlight', 'params' : {'bufname' : a:bufname, 'begin_line' : line('w0'), 'end_line' : line('w$'), 'row' : l:pos[1], 'col': l:pos[2]}}
+    let l:expr = {'cmd' : 'get_hlt', 'params' : {'bufname' : a:bufname, 'begin_line' : line('w0'), 'end_line' : line('w$'), 'row' : l:pos[1], 'col': l:pos[2]}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
@@ -41,23 +41,23 @@ func s:engine_compile_info(channel, bufname)
 endf
 
 
-func s:engine_notify_parse_async(channel, bufname, callback)
+func s:engine_req_parse_async(channel, bufname, callback)
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
-    let l:expr = {'cmd' : 'notify_parse', 'params' : {'bufname' : a:bufname}}
+    let l:expr = {'cmd' : 'req_parse', 'params' : {'bufname' : a:bufname}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
-func s:engine_notify_highlight_async(channel, bufname, callback)
+func s:engine_req_get_hlt_async(channel, bufname, callback)
     call s:clear_match_by_priorities([g:clighter8_refs_priority])
 
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
-    let l:expr = {'cmd' : 'notify_highlight', 'params' : {'bufname' : a:bufname}}
+    let l:expr = {'cmd' : 'req_get_hlt', 'params' : {'bufname' : a:bufname}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
@@ -105,50 +105,49 @@ func HandleParse(channel, msg)
     let b:last_changedtick = b:changedtick
 
     if !empty(a:msg)
-        call s:engine_notify_highlight_async(a:channel, a:msg, 'HandleNotifyHighlight')
+        call s:engine_req_get_hlt_async(a:channel, a:msg, 'HandleReqGetHlt')
     endif
 endfunc
 
-func HandleNotifyParse(channel, msg)
+func HandleReqParse(channel, msg)
     if !empty(a:msg)
         call s:engine_parse_async(a:channel, a:msg, 'HandleParse')
     endif
 endfunc
 
-func HandleNotifyHighlight(channel, msg)
+func HandleReqGetHlt(channel, msg)
     if !empty(a:msg)
-        call s:engine_highlight_async(a:channel, a:msg, 'HandleHighlight')
+        call s:engine_get_hlt_async(a:channel, a:msg, 'HandleHlt')
     endif
 endfunc
 
-func HandleHighlight(channel, msg)
-    if a:msg[0] != expand('%:p')
+func HandleHlt(channel, msg)
+    if a:msg['bufname'] != expand('%:p')
         return
     endif
 
     call s:clear_match_by_priorities([g:clighter8_syntax_priority, g:clighter8_refs_priority])
-
-    call s:cl_highlight(a:msg[1][0], g:clighter8_syntax_priority)
-    call s:cl_highlight(a:msg[1][1], g:clighter8_refs_priority)
+    call s:cl_get_hlt(a:msg['hlt'])
 endfunc
 
-func s:cl_highlight(matches, priority)
+func s:cl_get_hlt(matches)
     for [l:group, l:all_pos] in items(a:matches)
         let l:count = 0
         let l:match8 = []
+        let l:priority = (l:group == 'clighter8Refs') ? g:clighter8_refs_priority : g:clighter8_syntax_priority 
 
         for l:pos in l:all_pos
             call add(l:match8, l:pos)
             let l:count = l:count + 1
             if l:count == 8
-                call matchaddpos(l:group, l:match8, a:priority)
+                call matchaddpos(l:group, l:match8, l:priority)
 
                 let l:count = 0
                 let l:match8 = []
             endif
         endfor
 
-        call matchaddpos(l:group, l:match8, a:priority)
+        call matchaddpos(l:group, l:match8, l:priority)
     endfor
 endf
 
@@ -245,7 +244,7 @@ fun! s:check_and_parse()
         return
     endif
 
-    call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
+    call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
 endf
 
 fun! s:start_clighter8()
@@ -266,7 +265,7 @@ fun! s:start_clighter8()
         endif
     endif
 
-    let l:succ = s:engine_init_client(s:channel, g:clighter8_libclang_path, g:clighter8_global_compile_args, g:clighter8_highlight_blacklist)
+    let l:succ = s:engine_init(s:channel, g:clighter8_libclang_path, g:clighter8_global_compile_args, g:clighter8_highlight_blacklist)
 
     if l:succ == v:false
         echohl ErrorMsg
@@ -277,7 +276,7 @@ fun! s:start_clighter8()
         return
     endif
 
-    call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
+    call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
 
     augroup Clighter8
         autocmd!
@@ -287,7 +286,7 @@ fun! s:start_clighter8()
             au TextChanged,TextChangedI,BufEnter * call s:check_and_parse()
         endif
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority])
-        au CursorMoved,CursorMovedI * call s:engine_notify_highlight_async(s:channel, expand('%:p'), 'HandleNotifyHighlight')
+        au CursorMoved,CursorMovedI * call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
         au BufDelete * call s:engine_delete_buffer_async(s:channel, expand('%:p'), '')
         au VimLeave * call s:stop_clighter8()
     augroup END
