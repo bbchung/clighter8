@@ -258,8 +258,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             row = msg['params']['row']
             col = msg['params']['col']
 
-            self.server.parse(self.request, bufname)
-
             ctx = self.server.get_buffer_data(self.request, bufname)
             if not ctx or not ctx.tu:
                 self.safe_sendall(json.dumps([sn, '']))

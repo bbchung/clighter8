@@ -159,7 +159,7 @@ fun! s:do_replace(refs, old, new, qflist)
         endif
 
         let l:pattern = l:pattern . '\%' . l:row . 'l' . '\%>' . (l:col - 1) . 'c\%<' . (l:col + strlen(a:old)) . 'c' . a:old
-        call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'text':"'".a:old."' was renamed to '".a:new."'"})
+        call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'col':l:col, 'type' : 'I', 'text':"'".a:old."' was renamed to '".a:new."'"})
     endfor
 
     let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
@@ -185,7 +185,9 @@ fun ClRename()
         return
     endif
 
-    let l:usr_info = s:engine_get_usr_info(s:channel, expand('%:p'), getpos('.'))
+    let l:bufname = expand('%:p')
+    call s:engine_parse(s:channel, l:bufname)
+    let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, getpos('.'))
     
     if empty(l:usr_info)
         echohl WarningMsg
@@ -208,11 +210,20 @@ fun ClRename()
     let l:pos = getpos('.')
 
     let l:prompt = confirm("rename '". l:old ."' to '" .l:new.'?', "&Yes\n&All\n&No", 1)
-    if (l:prompt == 3)
+    if (l:prompt == 3 || l:prompt == 0)
         return
     endif
 
-    for info in getbufinfo()
+    let l:buffers = getbufinfo()
+    let l:all = len(l:buffers)
+
+    let l:count = 0
+    for info in l:buffers
+        let l:count = l:count + 1
+        let l:percent = 100.0 * l:count / l:all
+        echohl MoreMsg
+        echo 'process... ' . float2nr(l:percent) . '%'
+        echohl None
         let l:refs = s:engine_rename(s:channel, info.name, l:usr)
 
         if empty(l:refs) 
@@ -226,8 +237,8 @@ fun ClRename()
             endif
         endif
 
-        execute('buffer! '. info.bufnr)
-        call s:do_replace(l:refs, l:old, l:new, l:qflist)
+        execute('silent! buffer! '. info.bufnr)
+        silent! call s:do_replace(l:refs, l:old, l:new, l:qflist)
 
         call s:engine_parse(s:channel, info.name)
     endfor
