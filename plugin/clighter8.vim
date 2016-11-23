@@ -274,6 +274,7 @@ fun! s:start_clighter8()
         else
             au TextChanged,TextChangedI,BufEnter * call s:engine_notify_parse_async(s:channel, expand('%:p'), 'HandleNotifyParse')
         endif
+        au BufEnter * call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority])
         au CursorMoved,CursorMovedI * call s:engine_notify_highlight_async(s:channel, expand('%:p'), 'HandleNotifyHighlight')
         au BufDelete * call s:engine_delete_buffer_async(s:channel, expand('%:p'), '')
         au VimLeave * call s:stop_clighter8()
