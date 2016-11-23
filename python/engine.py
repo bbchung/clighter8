@@ -277,7 +277,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname'].encode("utf-8")
             usr = msg['params']['usr']
 
-            self.server.parse(self.request, bufname)
             refs = []
             clighter8_helper.search_by_usr(self.server.get_buffer_data(
                 self.request, bufname).tu, usr, refs)

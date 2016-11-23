@@ -218,12 +218,21 @@ fun ClRename()
     let l:all = len(l:buffers)
 
     let l:count = 0
+    let l:chk = 10
     for info in l:buffers
         let l:count = l:count + 1
         let l:percent = 100.0 * l:count / l:all
-        echohl MoreMsg
-        echo 'process... ' . float2nr(l:percent) . '%'
-        echohl None
+
+        if l:percent >= l:chk
+            echohl MoreMsg
+            echo 'process... ' . float2nr(l:percent) . '%'
+            echohl None
+            let l:chk = l:chk + 10
+        endif
+
+        execute('silent! buffer! '. info.bufnr)
+
+        call s:engine_parse(s:channel, info.name)
         let l:refs = s:engine_rename(s:channel, info.name, l:usr)
 
         if empty(l:refs) 
@@ -237,7 +246,6 @@ fun ClRename()
             endif
         endif
 
-        execute('silent! buffer! '. info.bufnr)
         silent! call s:do_replace(l:refs, l:old, l:new, l:qflist)
 
         call s:engine_parse(s:channel, info.name)
