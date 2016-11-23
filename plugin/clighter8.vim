@@ -219,14 +219,14 @@ fun ClRename()
 
     let l:count = 0
     let l:chk = 10
+    echohl MoreMsg
+    echo 'process... 0%'
     for info in l:buffers
         let l:count = l:count + 1
         let l:percent = 100.0 * l:count / l:all
 
         if l:percent >= l:chk
-            echohl MoreMsg
             echo 'process... ' . float2nr(l:percent) . '%'
-            echohl None
             let l:chk = l:chk + 10
         endif
 
@@ -250,6 +250,7 @@ fun ClRename()
 
         call s:engine_parse(s:channel, info.name)
     endfor
+    echohl None
 
     call setqflist(l:qflist)
     exe 'buffer! '.l:bufnr

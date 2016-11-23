@@ -158,9 +158,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             remain = parse_line_delimited(data, self.handle_json)
 
-        del server.clients[self.request]
-        self.request = None
+        self.request.close()
 
+        del server.clients[self.request]
         num_client = len(server.clients)
         logging.info("socket closed(%d clients remains)" % num_client)
         if num_client == 0:
