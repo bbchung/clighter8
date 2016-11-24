@@ -60,6 +60,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             decoded = json.loads(json_str)
         except ValueError:
             logging.warn('json decoding failed')
+            return
 
         if decoded[0] >= 0:
             self.handle_msg(decoded[0], decoded[1])

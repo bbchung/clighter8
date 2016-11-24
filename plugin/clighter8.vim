@@ -214,6 +214,9 @@ fun ClRename()
         return
     endif
 
+    let start = reltime()
+
+
     let l:buffers = getbufinfo()
     let l:all = len(l:buffers)
 
@@ -257,6 +260,11 @@ fun ClRename()
     call setpos('.', l:pos)
     copen
     exe l:wnr.'wincmd w'
+    
+    if l:prompt == 2
+        let l:seconds = reltimefloat(reltime(start))
+        echo printf('time usage: %f seconds', l:seconds)
+    endif
 endf
 
 fun! s:check_and_parse()
