@@ -8,7 +8,7 @@ endif
 let g:colors_name = expand('<sfile>:t:r')
 
 " default {
-hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 guibg=#151515 guifg=#e8e8d3
+hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 guibg=#151515 guifg=#DADAC4
 hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg guibg=#404080 guifg=fg
 hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg  guibg=#7373E6 guifg=fg
 hi SpellLocal term=NONE cterm=bold,undercurl ctermbg=NONE ctermfg=30 gui=undercurl guibg=bg guifg=fg guisp=DarkCyan
@@ -25,7 +25,7 @@ hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE guibg=#000000 guifg=N
 hi CursorLineNr term=underline cterm=NONE ctermbg=bg ctermfg=130 gui=NONE guibg=bg guifg=#CD9366
 hi LineNr term=underline cterm=NONE ctermbg=NONE ctermfg=241  guibg=bg guifg=#605958
 hi Pmenu term=NONE cterm=NONE ctermbg=237 ctermfg=251 guibg=#292929 
-hi PmenuSel term=NONE cterm=NONE ctermbg=24 ctermfg=fg guibg=#262680 
+hi PmenuSel term=NONE cterm=NONE ctermbg=24 ctermfg=fg guibg=#404080 
 hi PmenuSbar term=NONE cterm=NONE ctermbg=250 ctermfg=fg guibg=#606060
 hi PmenuThumb term=NONE cterm=NONE ctermbg=237 ctermfg=NONE guibg=DarkGrey 
 hi StatusLine term=reverse,bold cterm=NONE ctermbg=235 ctermfg=229 gui=italic guibg=#1c1c1c guifg=#ffffaf
