@@ -274,6 +274,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname'].encode("utf-8")
             usr = msg['params']['usr']
 
+            buffer_data = self.get_buffer_data(bufname)
+            if not buffer_data:
+                return
+
             refs = []
             clighter8_helper.search_by_usr(self.get_buffer_data(
                 bufname).tu, usr, refs)
@@ -395,6 +399,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     self.unsaved,
                     options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
         except:
+            del self.buffer_data[bufname]
             logging.warn('libclang failed to parse')
             return
 
