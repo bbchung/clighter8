@@ -8,7 +8,7 @@ endif
 let g:colors_name = expand('<sfile>:t:r')
 
 " default {
-hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 guibg=#151515 guifg=#DADAC4
+hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 guibg=#151515 guifg=#DADAC8
 hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg guibg=#404080 guifg=fg
 hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg  guibg=#7373E6 guifg=fg
 hi SpellLocal term=NONE cterm=bold,undercurl ctermbg=NONE ctermfg=30 gui=undercurl guibg=bg guifg=fg guisp=DarkCyan
