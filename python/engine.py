@@ -1,6 +1,7 @@
 import logging
 import json
 import SocketServer as socketserver
+import threading
 
 from clang import cindex
 import clighter8_helper
@@ -79,18 +80,11 @@ def _get_syntax_group(cursor, blacklist):
 
 
 class BufferData:
-    tu = None
-    compile_args = None
-    parse_busy = False
-    hlt_busy = False
-
-
-class ClientData:
-    buffer_data = {}
-    unsaved = []
-    cdb = None
-    idx = None
-    global_compile_args = None
+    def __init__(self):
+        self.tu = None
+        self.compile_args = None
+        self.parse_busy = False
+        self.hlt_busy = False
 
 
 def parse_line_delimited(data, on_parse):
@@ -138,9 +132,19 @@ def parse_concatenated(data):
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
+    def __init__(self, request, client_addres, server):
+        self.buffer_data = {}
+        self.unsaved = []
+        self.cdb = None
+        self.idx = None
+        self.global_compile_args = None
+
+        socketserver.BaseRequestHandler.__init__(self, request, client_addres, server)
+    
+
     def handle(self):
         remain = ''
-        server.clients[self.request] = ClientData()
+        server.add_client(self.request)
         logging.info('socket accepted')
         while True:
             try:
@@ -160,13 +164,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         self.request.close()
 
-        del server.clients[self.request]
-        num_client = len(server.clients)
-        logging.info("socket closed(%d clients remains)" % num_client)
-        if num_client == 0:
-            logging.info('server shutdown')
-            server.shutdown()
-            server.server_close()
+        server.remove_client(self.request)
 
     def handle_json(self, json_str):
         try:
@@ -196,8 +194,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             except:
                 logging.warn('cannot config library path')
 
-            succ = server.init(
-                self.request, cwd, global_compile_args, blacklist)
+            succ = self.init(cwd, global_compile_args, blacklist)
             self.safe_sendall(json.dumps([sn, succ]))
 
         elif msg['cmd'] == 'parse':
@@ -209,28 +206,28 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 self.safe_sendall(json.dumps([sn, '']))
                 return
 
-            self.server.update_unsaved(self.request, bufname, content)
-            self.server.parse(self.request, bufname)
+            self.update_unsaved(bufname, content)
+            self.parse(bufname)
 
             self.safe_sendall(json.dumps([sn, bufname]))
 
         elif msg['cmd'] == 'req_parse':
             bufname = msg['params']['bufname'].encode("utf-8")
-            if server.is_parse_busy(self.request, bufname):
+            if self.is_parse_busy(bufname):
                 self.safe_sendall(json.dumps([sn, ""]))
                 return
 
-            server.set_parse_busy(self.request, bufname)
+            self.set_parse_busy(bufname)
             self.safe_sendall(json.dumps([sn, bufname]))
 
         elif msg['cmd'] == 'req_get_hlt':
             bufname = msg['params']['bufname'].encode("utf-8")
 
-            if server.is_hlt_busy(self.request, bufname):
+            if self.is_hlt_busy(bufname):
                 self.safe_sendall(json.dumps([sn, ""]))
                 return
 
-            server.set_hlt_busy(self.request, bufname)
+            self.set_hlt_busy(bufname)
             self.safe_sendall(json.dumps([sn, bufname]))
 
         elif msg['cmd'] == 'get_hlt':
@@ -240,9 +237,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             row = msg['params']['row']
             col = msg['params']['col']
 
-            server.unset_hlt_busy(self.request, bufname)
-            hlt = self.server.get_hlt(
-                self.request, bufname, begin_line, end_line, row, col)
+            self.unset_hlt_busy(bufname)
+            hlt = self.get_hlt(
+                bufname, begin_line, end_line, row, col)
 
             result = {'bufname': bufname, 'hlt': hlt}
             self.safe_sendall(json.dumps(
@@ -251,14 +248,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         elif msg['cmd'] == 'delete_buffer':
             bufname = msg['params']['bufname'].encode("utf-8")
-            self.server.delete_buffer_data(self.request, bufname)
+            self.delete_buffer_data(bufname)
 
         elif msg['cmd'] == 'get_usr_info':
             bufname = msg['params']['bufname'].encode("utf-8")
             row = msg['params']['row']
             col = msg['params']['col']
 
-            ctx = self.server.get_buffer_data(self.request, bufname)
+            ctx = self.get_buffer_data(bufname)
             if not ctx or not ctx.tu:
                 self.safe_sendall(json.dumps([sn, '']))
                 return
@@ -278,8 +275,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             usr = msg['params']['usr']
 
             refs = []
-            clighter8_helper.search_by_usr(self.server.get_buffer_data(
-                self.request, bufname).tu, usr, refs)
+            clighter8_helper.search_by_usr(self.get_buffer_data(
+                bufname).tu, usr, refs)
 
             self.safe_sendall(json.dumps([sn, refs]))
 
@@ -288,7 +285,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             row = msg['params']['row']
             col = msg['params']['col']
 
-            tu = self.server.get_buffer_data(self.request, bufname).tu
+            tu = self.get_buffer_data(bufname).tu
             cursor = clighter8_helper.get_cursor(tu, bufname, row, col)
 
             if not cursor:
@@ -305,8 +302,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         elif msg['cmd'] == 'compile_info':
             bufname = msg['params']['bufname'].encode("utf-8")
 
-            result = self.server.get_buffer_data(
-                self.request, bufname).compile_args + self.server.get_global_compile_args(self.request)
+            result = self.get_buffer_data(
+                bufname).compile_args + self.get_global_compile_args()
             self.safe_sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'enable_log':
@@ -320,111 +317,102 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             self.safe_sendall(json.dumps([sn, True]))
 
-
-class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    clients = {}
-
-    def get_global_compile_args(self, cli):
-        return self.clients[cli].global_compile_args
-
-    def get_buffer_data(self, cli, bufname):
-        if bufname in self.clients[cli].buffer_data:
-            return self.clients[cli].buffer_data[bufname]
+    def get_buffer_data(self, bufname):
+        if bufname in self.buffer_data:
+            return self.buffer_data[bufname]
 
         return None
 
-    def delete_buffer_data(self, cli, bufname):
-        if bufname in self.clients[cli].buffer_data:
-            del self.clients[cli].buffer_data[bufname]
+    def delete_buffer_data(self, bufname):
+        if bufname in self.buffer_data:
+            del self.buffer_data[bufname]
 
-    def set_parse_busy(self, cli, bufname):
-        if bufname in self.clients[cli].buffer_data:
-            self.clients[cli].buffer_data[bufname].parse_busy = True
+    def set_parse_busy(self, bufname):
+        if bufname in self.buffer_data:
+            self.buffer_data[bufname].parse_busy = True
 
-    def is_parse_busy(self, cli, bufname):
-        if bufname in self.clients[cli].buffer_data:
-            return self.clients[cli].buffer_data[bufname].parse_busy
-
-        return False
-
-    def set_hlt_busy(self, cli, bufname):
-        if bufname in self.clients[cli].buffer_data:
-            self.clients[cli].buffer_data[bufname].hlt_busy = True
-
-    def unset_hlt_busy(self, cli, bufname):
-        if bufname in self.clients[cli].buffer_data:
-            self.clients[cli].buffer_data[bufname].hlt_busy = False
-
-    def is_hlt_busy(self, cli, bufname):
-        if bufname in self.clients[cli].buffer_data:
-            return self.clients[cli].buffer_data[bufname].hlt_busy
+    def is_parse_busy(self, bufname):
+        if bufname in self.buffer_data:
+            return self.buffer_data[bufname].parse_busy
 
         return False
 
-    def init(self, cli, cwd, global_compile_args, blacklist):
+    def set_hlt_busy(self, bufname):
+        if bufname in self.buffer_data:
+            self.buffer_data[bufname].hlt_busy = True
+
+    def unset_hlt_busy(self, bufname):
+        if bufname in self.buffer_data:
+            self.buffer_data[bufname].hlt_busy = False
+
+    def is_hlt_busy(self, bufname):
+        if bufname in self.buffer_data:
+            return self.buffer_data[bufname].hlt_busy
+
+        return False
+
+    def init(self, cwd, global_compile_args, blacklist):
         try:
-            self.clients[cli].idx = cindex.Index.create()
-            self.clients[
-                cli].cdb = cindex.CompilationDatabase.fromDirectory(cwd)
+            self.idx = cindex.Index.create()
+            self.cdb = cindex.CompilationDatabase.fromDirectory(cwd)
         except cindex.CompilationDatabaseError:
             logging.warn('compilation data not found')
         except:
             return False
 
-        self.clients[cli].global_compile_args = global_compile_args
-        self.clients[cli].blacklist = blacklist
+        self.global_compile_args = global_compile_args
+        self.blacklist = blacklist
 
         return True
 
-    def update_unsaved(self, cli, bufname, content):
-        for item in self.clients[cli].unsaved:
+    def update_unsaved(self, bufname, content):
+        for item in self.unsaved:
             if item[0] == bufname:
-                self.clients[cli].unsaved.remove(item)
+                self.unsaved.remove(item)
 
-        self.clients[cli].unsaved.append((bufname, content))
+        self.unsaved.append((bufname, content))
 
-    def parse(self, cli, bufname):
-        if bufname not in self.clients[cli].buffer_data:
-            self.clients[cli].buffer_data[bufname] = BufferData()
-            self.clients[cli].buffer_data[bufname].compile_args = clighter8_helper.get_compile_args_from_cdb(
-                self.clients[cli].cdb, bufname)
+    def parse(self, bufname):
+        if bufname not in self.buffer_data:
+            self.buffer_data[bufname] = BufferData()
+            self.buffer_data[bufname].compile_args = clighter8_helper.get_compile_args_from_cdb(
+                self.cdb, bufname)
 
-        compile_args = self.clients[cli].buffer_data[
-            bufname].compile_args + self.clients[cli].global_compile_args
+        compile_args = self.buffer_data[
+            bufname].compile_args + self.global_compile_args
 
-        self.clients[cli].buffer_data[bufname].parse_busy = False
+        self.buffer_data[bufname].parse_busy = False
 
         try:
-            if self.clients[cli].buffer_data[bufname].tu:
-                self.clients[cli].buffer_data[bufname].tu.reparse(
-                    self.clients[cli].unsaved,
+            if self.buffer_data[bufname].tu:
+                self.buffer_data[bufname].tu.reparse(
+                    self.unsaved,
                     cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
             else:
-                self.clients[cli].buffer_data[bufname].tu = self.clients[cli].idx.parse(
+                self.buffer_data[bufname].tu = self.idx.parse(
                     bufname,
                     compile_args if compile_args else None,
-                    self.clients[cli].unsaved,
+                    self.unsaved,
                     options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
         except:
             logging.warn('libclang failed to parse')
             return
 
-        for i in self.clients[cli].buffer_data[bufname].tu.get_includes():
+        for i in self.buffer_data[bufname].tu.get_includes():
             if i.is_input_file:
                 continue
 
-            if i.include not in self.clients[cli].buffer_data:
-                self.clients[cli].buffer_data[
+            if i.include not in self.buffer_data:
+                self.buffer_data[
                     i.include.name] = BufferData()
 
-            self.clients[cli].buffer_data[i.include.name].compile_args = self.clients[
-                cli].buffer_data[bufname].compile_args
+            self.buffer_data[i.include.name].compile_args = self.buffer_data[bufname].compile_args
 
-    def get_hlt(self, cli, bufname, begin_line, end_line, row, col):
-        if bufname not in self.clients[cli].buffer_data:
+    def get_hlt(self, bufname, begin_line, end_line, row, col):
+        if bufname not in self.buffer_data:
             return {}
 
-        tu = self.clients[cli].buffer_data[bufname].tu
+        tu = self.buffer_data[bufname].tu
         if not tu:
             return {}
 
@@ -459,7 +447,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 token.location.line, token.location.column, len(
                     token.spelling)]
             group = _get_syntax_group(
-                cursor, self.clients[cli].blacklist)  # blacklist
+                cursor, self.blacklist)  # blacklist
 
             if group:
                 if group not in result:
@@ -474,6 +462,32 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
                 result['clighter8Refs'].append(pos)
 
         return result
+
+
+
+
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+
+    def __init__(self, addr, handler):
+        self.__clients = set()
+        self.__lock = threading.Lock()
+
+        socketserver.TCPServer.__init__(self, addr, handler)
+
+    def add_client(self, cli):
+        with self.__lock:
+            self.__clients.add(cli)
+
+    def remove_client(self, cli):
+        with self.__lock:
+            self.__clients.remove(cli)
+            num_client = len(self.__clients)
+            logging.info("socket closed(%d clients remains)" % num_client)
+            if num_client == 0:
+                logging.info('server shutdown')
+                print('server shutdown')
+                server.shutdown()
+                server.server_close()
 
 
 if __name__ == "__main__":
@@ -491,5 +505,5 @@ if __name__ == "__main__":
         exit()
 
     ip, port = server.server_address
-    logging.info("server start looping")
+    logging.info("server start at %s:%d" % (ip, port))
     server.serve_forever()
