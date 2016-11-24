@@ -84,8 +84,8 @@ hi SyntasticErrorSign guifg=RED guibg=bg
 hi SyntasticWarningSign  guifg=Yellow guibg=bg
 hi SyntasticErrorLine  guibg=bg
 hi SyntasticWarningLine  guibg=bg
-hi SyntasticError term=reverse cterm=bold,italic,undercurl ctermbg=NONE ctermfg=1 gui=bold,undercurl guibg=bg guifg=#FF0000 guisp=Red
-hi SyntasticWarning term=underline cterm=bold,italic,undercurl ctermbg=NONE ctermfg=3 gui=bold,undercurl guibg=bg guifg=#FFFF00 guisp=Blue
+hi SyntasticError term=reverse cterm=bold,italic,undercurl ctermbg=NONE ctermfg=1 gui=bold,italic,undercurl guibg=bg guifg=#FF0000 guisp=Red
+hi SyntasticWarning term=underline cterm=bold,italic,undercurl ctermbg=NONE ctermfg=3 gui=bold,italic,undercurl guibg=bg guifg=#FFFF00 guisp=Blue
 hi SyntasticStyleErrorSign guifg=#CD0000 guibg=bg
 hi SyntasticStyleWarningSign  guifg=#cdcd00 guibg=bg
 "}
