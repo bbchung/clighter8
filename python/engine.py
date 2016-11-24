@@ -6,128 +6,14 @@ import threading
 from clang import cindex
 import clighter8_helper
 
-CUSTOM_SYNTAX_GROUP = {
-    cindex.CursorKind.INCLUSION_DIRECTIVE: 'clighter8InclusionDirective',
-    cindex.CursorKind.MACRO_INSTANTIATION: 'clighter8MacroInstantiation',
-    cindex.CursorKind.VAR_DECL: 'clighter8VarDecl',
-    cindex.CursorKind.STRUCT_DECL: 'clighter8StructDecl',
-    cindex.CursorKind.UNION_DECL: 'clighter8UnionDecl',
-    cindex.CursorKind.CLASS_DECL: 'clighter8ClassDecl',
-    cindex.CursorKind.ENUM_DECL: 'clighter8EnumDecl',
-    cindex.CursorKind.PARM_DECL: 'clighter8ParmDecl',
-    cindex.CursorKind.FUNCTION_DECL: 'clighter8FunctionDecl',
-    cindex.CursorKind.FUNCTION_TEMPLATE: 'clighter8FunctionDecl',
-    cindex.CursorKind.CXX_METHOD: 'clighter8FunctionDecl',
-    cindex.CursorKind.CONSTRUCTOR: 'clighter8FunctionDecl',
-    cindex.CursorKind.DESTRUCTOR: 'clighter8FunctionDecl',
-    cindex.CursorKind.FIELD_DECL: 'clighter8FieldDecl',
-    cindex.CursorKind.ENUM_CONSTANT_DECL: 'clighter8EnumConstantDecl',
-    cindex.CursorKind.NAMESPACE: 'clighter8Namespace',
-    cindex.CursorKind.CLASS_TEMPLATE: 'clighter8ClassDecl',
-    cindex.CursorKind.TEMPLATE_TYPE_PARAMETER: 'clighter8TemplateTypeParameter',
-    cindex.CursorKind.TEMPLATE_NON_TYPE_PARAMETER: 'clighter8TemplateNoneTypeParameter',
-    cindex.CursorKind.TYPE_REF: 'clighter8TypeRef',  # class ref
-    cindex.CursorKind.NAMESPACE_REF: 'clighter8NamespaceRef',  # namespace ref
-    cindex.CursorKind.TEMPLATE_REF: 'clighter8TemplateRef',  # template class ref
-    cindex.CursorKind.DECL_REF_EXPR:
-    {
-        cindex.TypeKind.FUNCTIONPROTO: 'clighter8DeclRefExprCall',  # function call
-        cindex.TypeKind.ENUM: 'clighter8DeclRefExprEnum',  # enum ref
-        cindex.TypeKind.TYPEDEF: 'clighter8TypeRef',  # ex: cout
-    },
-    # ex: designated initializer
-    cindex.CursorKind.MEMBER_REF: 'clighter8DeclRefExprCall',
-    cindex.CursorKind.MEMBER_REF_EXPR:
-    {
-        cindex.TypeKind.UNEXPOSED: 'clighter8MemberRefExprCall',  # member function call
-    },
-}
-
-
-def _get_default_syn(cursor_kind):
-    if cursor_kind.is_preprocessing():
-        return 'clighter8Prepro'
-    elif cursor_kind.is_declaration():
-        return 'clighter8Decl'
-    elif cursor_kind.is_reference():
-        return 'clighter8Ref'
-    else:
-        return None
-
-
-def _get_syntax_group(cursor, blacklist):
-    group = _get_default_syn(cursor.kind)
-
-    custom = CUSTOM_SYNTAX_GROUP.get(cursor.kind)
-    if custom:
-        if cursor.kind == cindex.CursorKind.DECL_REF_EXPR:
-            custom = custom.get(cursor.type.kind)
-            if custom:
-                group = custom
-        elif cursor.kind == cursor.kind == cindex.CursorKind.MEMBER_REF_EXPR:
-            custom = custom.get(cursor.type.kind)
-            if custom:
-                group = custom
-            else:
-                group = 'clighter8MemberRefExprVar'
-        else:
-            group = custom
-
-    if group in blacklist:
-        return None
-
-    return group
-
 
 class BufferData:
+
     def __init__(self):
         self.tu = None
         self.compile_args = None
         self.parse_busy = False
         self.hlt_busy = False
-
-
-def parse_line_delimited(data, on_parse):
-    i = 0
-    sz = len(data)
-    start = 0
-    while i < sz:
-        if data[i] == '\n':
-            on_parse(data[start:i])
-            start = i + 1
-
-        i += 1
-
-    return data[start:]
-
-
-def parse_concatenated(data):
-    result = []
-    quatos = 0
-    i = 0
-    sz = len(data)
-    depth = 0
-    start = 0
-    used = -1
-    while i < sz:
-        if i > 0 and data[i - 1] == "\\":
-            i += 1
-            continue
-
-        if data[i] == '"':
-            quatos += 1
-        elif data[i] == '[' and quatos % 2 == 0:
-            depth += 1
-        elif data[i] == ']' and quatos % 2 == 0:
-            depth -= 1
-            if depth == 0:
-                used = i
-                result.append(data[start:i + 1])
-                start = i + 1
-
-        i += 1
-
-    return result, data[used + 1:]
 
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
@@ -139,8 +25,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.idx = None
         self.global_compile_args = None
 
-        socketserver.BaseRequestHandler.__init__(self, request, client_addres, server)
-    
+        socketserver.BaseRequestHandler.__init__(
+            self, request, client_addres, server)
 
     def handle(self):
         remain = ''
@@ -160,7 +46,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if remain != '':
                 data = remain + data
 
-            remain = parse_line_delimited(data, self.handle_json)
+            remain = clighter8_helper.parse_line_delimited(
+                data, self.handle_json)
 
         self.request.close()
 
@@ -245,7 +132,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.safe_sendall(json.dumps(
                 [sn, result]))
 
-
         elif msg['cmd'] == 'delete_buffer':
             bufname = msg['params']['bufname'].encode("utf-8")
             self.delete_buffer_data(bufname)
@@ -278,11 +164,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if not buffer_data:
                 return
 
-            refs = []
+            usage = []
             clighter8_helper.search_by_usr(self.get_buffer_data(
-                bufname).tu, usr, refs)
+                bufname).tu, usr, usage)
 
-            self.safe_sendall(json.dumps([sn, refs]))
+            self.safe_sendall(json.dumps([sn, usage]))
 
         elif msg['cmd'] == 'cursor_info':
             bufname = msg['params']['bufname'].encode("utf-8")
@@ -307,7 +193,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname'].encode("utf-8")
 
             result = self.get_buffer_data(
-                bufname).compile_args + self.get_global_compile_args()
+                bufname).compile_args + self.global_compile_args
             self.safe_sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'enable_log':
@@ -411,7 +297,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 self.buffer_data[
                     i.include.name] = BufferData()
 
-            self.buffer_data[i.include.name].compile_args = self.buffer_data[bufname].compile_args
+            self.buffer_data[i.include.name].compile_args = self.buffer_data[
+                bufname].compile_args
 
     def get_hlt(self, bufname, begin_line, end_line, row, col):
         if bufname not in self.buffer_data:
@@ -423,7 +310,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         symbol = clighter8_helper.get_semantic_symbol_from_location(
             tu, bufname, row, col)
-        
+
         tu_file = tu.get_file(bufname)
 
         if not tu_file:
@@ -439,7 +326,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         result = {}
 
         if symbol:
-            result['clighter8Refs'] = []
+            result['clighter8Usage'] = []
 
         for token in tokens:
             if token.kind.value != 2:  # no keyword, comment
@@ -451,7 +338,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             pos = [
                 token.location.line, token.location.column, len(
                     token.spelling)]
-            group = _get_syntax_group(
+            group = clighter8_helper.get_hlt_group(
                 cursor, self.blacklist)  # blacklist
 
             if group:
@@ -464,11 +351,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             t_symbol = clighter8_helper.get_semantic_symbol(cursor)
 
             if symbol and t_symbol and symbol == t_symbol and t_symbol.spelling == token.spelling:
-                result['clighter8Refs'].append(pos)
+                result['clighter8Usage'].append(pos)
 
         return result
-
-
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):

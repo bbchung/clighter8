@@ -51,7 +51,7 @@ func s:engine_req_parse_async(channel, bufname, callback)
 endf
 
 func s:engine_req_get_hlt_async(channel, bufname, callback)
-    call s:clear_match_by_priorities([g:clighter8_refs_priority])
+    call s:clear_match_by_priorities([g:clighter8_usage_priority])
 
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
@@ -126,7 +126,7 @@ func HandleHlt(channel, msg)
         return
     endif
 
-    call s:clear_match_by_priorities([g:clighter8_syntax_priority, g:clighter8_refs_priority])
+    call s:clear_match_by_priorities([g:clighter8_syntax_priority, g:clighter8_usage_priority])
     call s:do_hlt(a:msg['hlt'])
 endfunc
 
@@ -134,7 +134,7 @@ func s:do_hlt(matches)
     for [l:group, l:all_pos] in items(a:matches)
         let l:count = 0
         let l:match8 = []
-        let l:priority = (l:group == 'clighter8Refs') ? g:clighter8_refs_priority : g:clighter8_syntax_priority 
+        let l:priority = (l:group == 'clighter8Usage') ? g:clighter8_usage_priority : g:clighter8_syntax_priority 
 
         for l:pos in l:all_pos
             call add(l:match8, l:pos)
@@ -151,9 +151,9 @@ func s:do_hlt(matches)
     endfor
 endf
 
-fun! s:do_replace(refs, old, new, qflist)
+fun! s:do_replace(usage, old, new, qflist)
     let l:pattern = ''
-    for [l:row, l:col] in a:refs
+    for [l:row, l:col] in a:usage
         if (!empty(l:pattern))
             let l:pattern = l:pattern . '\|'
         endif
@@ -233,9 +233,9 @@ fun ClRename()
         execute('silent! buffer! '. info.bufnr)
 
         call s:engine_parse(s:channel, info.name)
-        let l:refs = s:engine_rename(s:channel, info.name, l:usr)
+        let l:usage = s:engine_rename(s:channel, info.name, l:usr)
 
-        if empty(l:refs) 
+        if empty(l:usage) 
             continue
         endif
 
@@ -246,7 +246,7 @@ fun ClRename()
             endif
         endif
 
-        silent! call s:do_replace(l:refs, l:old, l:new, l:qflist)
+        silent! call s:do_replace(l:usage, l:old, l:new, l:qflist)
 
         call s:engine_parse(s:channel, info.name)
     endfor
@@ -305,7 +305,7 @@ fun! s:start_clighter8()
         else
             au TextChanged,TextChangedI,BufEnter * call s:check_and_parse()
         endif
-        au BufEnter * call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority])
+        au BufEnter * call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
         au CursorMoved,CursorMovedI * call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
         au BufDelete * call s:engine_delete_buffer_async(s:channel, expand('%:p'), '')
         au VimLeave * call s:stop_clighter8()
@@ -323,7 +323,7 @@ fun! s:stop_clighter8()
     endif
 
     let a:wnr = winnr()
-    windo call s:clear_match_by_priorities([g:clighter8_refs_priority, g:clighter8_syntax_priority])
+    windo call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
     exe a:wnr.'wincmd w'
 endf
 
@@ -337,10 +337,10 @@ command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:chann
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
-let g:clighter8_refs_priority = get(g:, 'clighter8_refs_priority', -1)
+let g:clighter8_usage_priority = get(g:, 'clighter8_usage_priority', -1)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', ['clighter8InclusionDirective'])
-let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [])
+let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
 let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
 
 if g:clighter8_autostart
