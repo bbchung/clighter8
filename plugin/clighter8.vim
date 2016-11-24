@@ -5,8 +5,8 @@ endif
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
-fun! s:engine_init(channel, libclang_path, compile_args, hlt_blacklist)
-    let l:expr = {'cmd' : 'init', 'params' : {'libclang' : a:libclang_path, 'cwd' : getcwd(), 'global_compile_args' : a:compile_args, 'blacklist' : a:hlt_blacklist}}
+fun! s:engine_init(channel, libclang_path, compile_args, hlt_whitelist, hlt_blacklist)
+    let l:expr = {'cmd' : 'init', 'params' : {'libclang' : a:libclang_path, 'cwd' : getcwd(), 'global_compile_args' : a:compile_args, 'whitelist' : a:hlt_whitelist, 'blacklist' : a:hlt_blacklist}}
     return ch_evalexpr(a:channel, l:expr)
 endf
 
@@ -285,7 +285,7 @@ fun! s:start_clighter8()
         endif
     endif
 
-    let l:succ = s:engine_init(s:channel, g:clighter8_libclang_path, g:clighter8_global_compile_args, g:clighter8_highlight_blacklist)
+    let l:succ = s:engine_init(s:channel, g:clighter8_libclang_path, g:clighter8_global_compile_args, g:clighter8_highlight_whitelist, g:clighter8_highlight_blacklist)
 
     if l:succ == v:false
         echohl ErrorMsg
@@ -339,7 +339,8 @@ let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
 let g:clighter8_usage_priority = get(g:, 'clighter8_usage_priority', -1)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
-let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', ['clighter8InclusionDirective'])
+let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [])
+let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
 let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
 

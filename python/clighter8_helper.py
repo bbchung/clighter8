@@ -32,7 +32,7 @@ KindToGroup = {
 }
 
 
-def get_hlt_group(cursor, blacklist):
+def get_hlt_group(cursor, whitelist, blacklist):
     group = KindToGroup.get(cursor.kind)
 
     if not group:
@@ -47,8 +47,15 @@ def get_hlt_group(cursor, blacklist):
         elif cursor.kind.is_preprocessing():
             group = 'clighter8Prepro'
 
-    if group in blacklist:
-        return None
+    if whitelist:
+        if group not in whitelist:
+            return None
+
+        return group
+
+    if blacklist:
+        if group in blacklist:
+            return None
 
     return group
 

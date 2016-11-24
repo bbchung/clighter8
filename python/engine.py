@@ -24,6 +24,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.cdb = None
         self.idx = None
         self.global_compile_args = None
+        self.whitelist = []
+        self.blacklist = []
 
         socketserver.BaseRequestHandler.__init__(
             self, request, client_addres, server)
@@ -73,6 +75,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             libclang = msg["params"]["libclang"]
             cwd = msg["params"]["cwd"]
             global_compile_args = msg["params"]["global_compile_args"]
+            whitelist = msg["params"]["whitelist"]
             blacklist = msg["params"]["blacklist"]
 
             try:
@@ -81,7 +84,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             except:
                 logging.warn('cannot config library path')
 
-            succ = self.init(cwd, global_compile_args, blacklist)
+            succ = self.init(cwd, global_compile_args, whitelist, blacklist)
             self.safe_sendall(json.dumps([sn, succ]))
 
         elif msg['cmd'] == 'parse':
@@ -241,7 +244,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         return False
 
-    def init(self, cwd, global_compile_args, blacklist):
+    def init(self, cwd, global_compile_args, whitelist, blacklist):
         try:
             self.idx = cindex.Index.create()
             self.cdb = cindex.CompilationDatabase.fromDirectory(cwd)
@@ -251,6 +254,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             return False
 
         self.global_compile_args = global_compile_args
+        self.whitelist = whitelist
         self.blacklist = blacklist
 
         return True
@@ -339,7 +343,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 token.location.line, token.location.column, len(
                     token.spelling)]
             group = clighter8_helper.get_hlt_group(
-                cursor, self.blacklist)  # blacklist
+                cursor, self.whitelist, self.blacklist)
 
             if group:
                 if group not in result:

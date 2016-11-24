@@ -54,6 +54,7 @@ Vundle Install~
 |g:clighter8_libclang_path|
 |g:clighter8_usage_priority|
 |g:clighter8_syntax_priority|
+|g:clighter8_highlight_whitelist|
 |g:clighter8_highlight_blacklist|
 |g:clighter8_global_compile_args|
 |g:clighter8_parse_mode|
@@ -89,12 +90,27 @@ Set the syntex priority of syntax
 
 Default: `-2`
 ------------------------------------------------------------------------------
+						*g:clighter8_highlight_whitelist*
+g:clighter8_highlight_whitelist~
+
+Define the group of syntax to highligh.
+
+Default: `[]`
+
+This is the recommend setting to avoid code being dazzled:
+>
+	let g:clighter8_syntax_groups = ['clighter8NamespaceRef', 'clighter8FunctionDecl', 'clighter8FieldDecl', 'clighter8DeclRefExprCall', 'clighter8MemberRefExprCall', 'clighter8MemberRefExprVar', 'clighter8Namespace', 'clighter8NamespaceRef', 'cligherInclusionDirective', 'clighter8VarDecl']
+<
+------------------------------------------------------------------------------
 						*g:clighter8_highlight_blacklist*
 g:clighter8_highlight_blacklist~
 
-Define the group of syntax NOT to highlight.
+Define the group of syntax NOT to highlight. Notice that this option will be
+ignored if g:clighter8_highlight_whitelist is set and if both
+g:clighter8_highlight_whitelist and g:clighter8_highlight_blacklist are not
+set, all groups will be highlighted.
 
-Default: `['cligher8InclusionDirective']`
+Default: `[]`
 
 This is the recommend setting to avoid code being dazzled:
 >
