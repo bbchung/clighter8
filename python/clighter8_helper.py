@@ -1,20 +1,20 @@
 from clang import cindex
 
 
-def get_cursor(tu, filepath, row, col):
+def get_cursor(tu, bufname, row, col):
     if not tu:
         return None
 
     return cindex.Cursor.from_location(
         tu,
         cindex.SourceLocation.from_position(tu,
-                                            tu.get_file(filepath),
+                                            tu.get_file(bufname),
                                             row,
                                             col))
 
 
-def get_semantic_symbol_from_location(tu, filepath, row, col):
-    cursor = get_cursor(tu, filepath, row, col)
+def get_semantic_symbol_from_location(tu, bufname, row, col):
+    cursor = get_cursor(tu, bufname, row, col)
     if not cursor:
         return None
 
