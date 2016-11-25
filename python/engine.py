@@ -3,12 +3,15 @@ import json
 import SocketServer as socketserver
 import threading
 import sys
+from threading import Timer
+
 
 from clang import cindex
 import clighter8_helper
 
 
 class BufferData:
+
     def __init__(self):
         self.tu = None
         self.compile_args = None
@@ -365,11 +368,16 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def __init__(self, addr, handler):
         self.__clients = set()
         self.__lock = threading.Lock()
+        self.__timer = None
+
         self.allow_reuse_address = True
 
         socketserver.TCPServer.__init__(self, addr, handler)
 
     def add_client(self, cli):
+        if self.__timer and self.__timer.isAlive():
+            self.__timer.cancel()
+
         with self.__lock:
             self.__clients.add(cli)
 
@@ -378,10 +386,21 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             self.__clients.remove(cli)
             num_client = len(self.__clients)
             logging.info("a client has left(%d clients remains)" % num_client)
+
             if num_client == 0:
-                logging.info('server shutdown')
-                server.shutdown()
-                server.server_close()
+                logging.info(
+                    'going to exit if there is no new client comes in 10 seconds')
+                self.__timer = Timer(10, self.shutdown_if_need)
+                self.__timer.start()
+
+    def shutdown_if_need(self):
+        num_client = len(self.__clients)
+        if num_client > 0:
+            return
+
+        logging.info('server shutdown')
+        server.shutdown()
+        server.server_close()
 
 
 if __name__ == "__main__":
