@@ -248,7 +248,7 @@ fun ClRename()
     echohl MoreMsg
     echo 'process... 0%'
 
-    # to sort the buffers
+    " to sort the buffers
     let l:sources = []
     let l:headers = []
     for info in l:buffers
