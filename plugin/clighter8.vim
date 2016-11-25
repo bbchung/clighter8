@@ -216,7 +216,6 @@ fun ClRename()
 
     let start = reltime()
 
-
     let l:buffers = getbufinfo()
     let l:all = len(l:buffers)
 
@@ -225,6 +224,12 @@ fun ClRename()
     echohl MoreMsg
     echo 'process... 0%'
     for info in l:buffers
+        execute('silent! buffer! '. info.bufnr)
+
+        if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
+            continue
+        endif
+
         let l:count = l:count + 1
         let l:percent = 100.0 * l:count / l:all
 
@@ -232,8 +237,6 @@ fun ClRename()
             echo 'process... ' . float2nr(l:percent) . '%'
             let l:chk = l:chk + 10
         endif
-
-        execute('silent! buffer! '. info.bufnr)
 
         call s:engine_parse(s:channel, info.name)
         let l:usage = s:engine_rename(s:channel, info.name, l:usr)

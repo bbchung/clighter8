@@ -166,6 +166,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             buffer_data = self.get_buffer_data(bufname)
             if not buffer_data:
+                self.safe_sendall(json.dumps([sn, None]))
                 return
 
             usage = []
