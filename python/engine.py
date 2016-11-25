@@ -288,7 +288,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             else:
                 self.buffer_data[bufname].tu = self.idx.parse(
                     bufname,
-                    compile_args if compile_args else None,
+                    compile_args,
                     self.unsaved,
                     options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
         except:
