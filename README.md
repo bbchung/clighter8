@@ -60,8 +60,8 @@ Disable clighter8 log.
 
 #### ClRename()
 
-* An experimental function to do rename-refactor.
-* Only do renaming in opened buffers.
+* It's the experimental function to do rename-refactor.
+* The search scope is the list of Vim buffers.
 * There is no one-step undo function.
 
 For convenience, you can add the key mapping in your vimrc:
