@@ -58,6 +58,7 @@ Vundle Install~
 |g:clighter8_highlight_blacklist|
 |g:clighter8_global_compile_args|
 |g:clighter8_parse_mode|
+|g:clighter8_logfile|
 
 
 ------------------------------------------------------------------------------
@@ -137,6 +138,15 @@ Default: `[]`
 >
 	let g:clighter8_parse_mode = 1
 
+------------------------------------------------------------------------------
+						*g:clighter8_logfile*
+g:clighter8_logfile~
+
+Set the clighter8 log file path. Notice that this option takes effect after
+clighter server restart.
+
+Default: `'/tmp/clighter8.log'`
+>
 ------------------------------------------------------------------------------
 
 ==============================================================================

@@ -285,8 +285,8 @@ fun! s:start_clighter8()
 
     let s:channel = ch_open('localhost:8787')
     if ch_status(s:channel) == 'fail'
-        let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py'
-        let s:job = job_start(l:cmd, {'stoponexit': ''})
+        let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py '. g:clighter8_logfile
+        let s:job = job_start(l:cmd)
         let s:channel = ch_open('localhost:8787', {'waittime': 1000})
         if ch_status(s:channel) == 'fail'
             echohl ErrorMsg
@@ -354,6 +354,7 @@ let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [
 let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
 let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
+let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 
 if g:clighter8_autostart
     au Filetype c,cpp call s:start_clighter8()

@@ -2,6 +2,7 @@ import logging
 import json
 import SocketServer as socketserver
 import threading
+import sys
 
 from clang import cindex
 import clighter8_helper
@@ -33,12 +34,12 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def handle(self):
         remain = ''
         server.add_client(self.request)
-        logging.info('socket accepted')
+        logging.info('accept a vim client')
         while True:
             try:
                 data = self.request.recv(8192)
             except:
-                logging.warn('socket error')
+                logging.warn('socket recv error')
                 break
 
             #print("received: {0}{1}".format(data, len(data)))
@@ -69,6 +70,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         try:
             self.request.sendall(msg)
         except:
+            logging.warn('socket send error')
             pass
 
     def handle_msg(self, sn, msg):
@@ -92,7 +94,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname'].encode("utf-8")
             content = msg['params']['content'].encode("utf-8")
 
-            logging.info("parse %s" % bufname)
             if not bufname:
                 self.safe_sendall(json.dumps([sn, '']))
                 return
@@ -205,10 +206,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             enable = msg['params']['enable']
             if enable:
                 logging.disable(logging.NOTSET)
-                logging.info("enable logger")
             else:
                 logging.disable(logging.CRITICAL)
-                logging.info("disable logger")
 
             self.safe_sendall(json.dumps([sn, True]))
 
@@ -251,7 +250,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.idx = cindex.Index.create()
             self.cdb = cindex.CompilationDatabase.fromDirectory(cwd)
         except cindex.CompilationDatabaseError:
-            logging.warn('compilation data not found')
+            logging.info('compilation data is not found in ' + cwd)
         except:
             return False
 
@@ -292,7 +291,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
         except:
             del self.buffer_data[bufname]
-            logging.warn('libclang failed to parse')
+            logging.warn('libclang failed to parse', bufname)
             return
 
         for i in self.buffer_data[bufname].tu.get_includes():
@@ -367,6 +366,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def __init__(self, addr, handler):
         self.__clients = set()
         self.__lock = threading.Lock()
+        self.allow_reuse_address = True
 
         socketserver.TCPServer.__init__(self, addr, handler)
 
@@ -378,26 +378,30 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         with self.__lock:
             self.__clients.remove(cli)
             num_client = len(self.__clients)
-            logging.info("socket closed(%d clients remains)" % num_client)
+            logging.info("a client has left(%d clients remains)" % num_client)
             if num_client == 0:
                 logging.info('server shutdown')
-                print('server shutdown')
                 server.shutdown()
                 server.server_close()
 
 
 if __name__ == "__main__":
+    logfile = '/tmp/clighter8.log'
+    if len(sys.argv) > 1:
+        logfile = sys.argv[1]
+
     logging.basicConfig(
-        filename='/tmp/clighter8.log',
+        filename=logfile,
         filemode='w',
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s')
-    logging.disable(logging.CRITICAL)
+
+    socketserver.TCPServer.allow_reuse_address = True
     HOST, PORT = "localhost", 8787
     try:
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
     except:
-        logging.error("failed to start TCP server")
+        logging.error("failed to start clighter8 server")
         exit()
 
     ip, port = server.server_address
