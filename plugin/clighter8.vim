@@ -138,7 +138,7 @@ func s:do_hlt(matches)
 
         for l:pos in l:all_pos
             call add(l:match8, l:pos)
-            let l:count = l:count + 1
+            let l:count += 1
             if l:count == 8
                 call matchaddpos(l:group, l:match8, l:priority)
 
@@ -173,6 +173,30 @@ fun! s:clear_match_by_priorities(priorities)
             call matchdelete(l:m['id'])
         endif
     endfor
+endf
+
+fun! s:is_header(bufname)
+    if empty(a:bufname)
+        return ''
+    endif
+
+    let l:dot = -1
+    let l:pos = 0
+    let len = len(a:bufname)
+
+    while l:pos < len
+        if a:bufname[l:pos] ==# '.'
+            let l:dot = l:pos
+        endif
+
+        let l:pos += 1
+    endwhile
+
+    if l:dot == -1 || l:dot == len(a:bufname) - 1
+        return 0
+    endif
+
+    return a:bufname[l:dot + 1] ==? 'h'
 endf
 
 fun! ClFormat()
@@ -223,6 +247,20 @@ fun ClRename()
     let l:chk = 10
     echohl MoreMsg
     echo 'process... 0%'
+
+    # to sort the buffers
+    let l:sources = []
+    let l:headers = []
+    for info in l:buffers
+        if s:is_header(info.name) == 1
+            call add(l:headers, info)
+        else
+            call add(l:sources, info)
+        endif
+    endfor
+
+    let l:buffers = l:sources + l:headers
+
     for info in l:buffers
         execute('silent! buffer! '. info.bufnr)
 
@@ -230,12 +268,12 @@ fun ClRename()
             continue
         endif
 
-        let l:count = l:count + 1
+        let l:count +=  1
         let l:percent = 100.0 * l:count / l:all
 
         if l:percent >= l:chk
             echo 'process... ' . float2nr(l:percent) . '%'
-            let l:chk = l:chk + 10
+            let l:chk += 10
         endif
 
         call s:engine_parse(s:channel, info.name)
@@ -256,6 +294,7 @@ fun ClRename()
 
         call s:engine_parse(s:channel, info.name)
     endfor
+
     echohl None
 
     call setqflist(l:qflist)
