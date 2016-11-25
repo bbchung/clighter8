@@ -270,7 +270,7 @@ fun ClRename()
     endif
 endf
 
-fun! s:req_parse()
+fun! OnTimer(timer)
     call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
 endf
 
@@ -279,7 +279,7 @@ func! s:on_text_changed()
         call timer_stop(s:timer)
     endif
 
-    let s:timer = timer_start(800, 's:req_parse')
+    let s:timer = timer_start(800, {OnTimer})
 endf
 
 fun! s:start_clighter8()
@@ -311,7 +311,7 @@ fun! s:start_clighter8()
         return
     endif
 
-    call s:req_parse()
+    call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
 
     augroup Clighter8
         autocmd!
