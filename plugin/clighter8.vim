@@ -134,7 +134,7 @@ func s:do_hlt(matches)
     for [l:group, l:all_pos] in items(a:matches)
         let l:count = 0
         let l:match8 = []
-        let l:priority = (l:group == 'clighter8Usage') ? g:clighter8_usage_priority : g:clighter8_syntax_priority 
+        let l:priority = (l:group ==# 'clighter8Usage') ? g:clighter8_usage_priority : g:clighter8_syntax_priority 
 
         for l:pos in l:all_pos
             call add(l:match8, l:pos)
@@ -279,7 +279,7 @@ func! s:on_text_changed()
         call timer_stop(s:timer)
     endif
 
-    let s:timer = timer_start(800, {t->s:req_parse()})
+    let s:timer = timer_start(800, 's:req_parse')
 endf
 
 fun! s:start_clighter8()
@@ -288,11 +288,11 @@ fun! s:start_clighter8()
     endif
 
     let s:channel = ch_open('localhost:8787')
-    if ch_status(s:channel) == 'fail'
+    if ch_status(s:channel) ==# 'fail'
         let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py '. g:clighter8_logfile
         let s:job = job_start(l:cmd)
         let s:channel = ch_open('localhost:8787', {'waittime': 1000})
-        if ch_status(s:channel) == 'fail'
+        if ch_status(s:channel) ==# 'fail'
             echohl ErrorMsg
             echo '[clighter8] failed start engine'
             echohl None
