@@ -57,7 +57,6 @@ Vundle Install~
 |g:clighter8_highlight_whitelist|
 |g:clighter8_highlight_blacklist|
 |g:clighter8_global_compile_args|
-|g:clighter8_parse_mode|
 |g:clighter8_logfile|
 
 
@@ -128,17 +127,6 @@ Default: `['-x', 'c++']`
 	let g:clighter8_global_compile_args = ['-I/usr/local/include']
 
 --------------------------------------------------------------------------------
-						*g:clighter8_parse_mode*
-g:clighter8_parse_mode~
-
-0: slow mode(recommended in slow machine or shared server)
-1: fast mode
-
-Default: `[]`
->
-	let g:clighter8_parse_mode = 1
-
-------------------------------------------------------------------------------
 						*g:clighter8_logfile*
 g:clighter8_logfile~
 

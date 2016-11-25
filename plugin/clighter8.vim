@@ -270,12 +270,16 @@ fun ClRename()
     endif
 endf
 
-fun! s:check_and_parse()
-    if exists('b:last_changedtick') && b:last_changedtick == b:changedtick
-        return
+fun! s:req_parse()
+    call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
+endf
+
+func! s:on_text_changed()
+    if exists('s:timer')
+        call timer_stop(s:timer)
     endif
 
-    call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
+    let s:timer = timer_start(800, {t->s:req_parse()})
 endf
 
 fun! s:start_clighter8()
@@ -307,15 +311,12 @@ fun! s:start_clighter8()
         return
     endif
 
-    call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
+    call s:req_parse()
 
     augroup Clighter8
         autocmd!
-        if g:clighter8_parse_mode == 0
-            au CursorHold,CursorHoldI,BufEnter * call s:check_and_parse()
-        else
-            au TextChanged,TextChangedI,BufEnter * call s:check_and_parse()
-        endif
+
+        au TextChanged,TextChangedI,BufEnter * call s:on_text_changed()
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
         au CursorMoved,CursorMovedI * call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
         au BufDelete * call s:engine_delete_buffer_async(s:channel, expand('%:p'), '')
@@ -353,7 +354,6 @@ let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [])
 let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
-let g:clighter8_parse_mode = get(g:, 'clighter8_parse_mode', 0)
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 
 if g:clighter8_autostart

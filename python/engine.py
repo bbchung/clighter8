@@ -9,7 +9,6 @@ import clighter8_helper
 
 
 class BufferData:
-
     def __init__(self):
         self.tu = None
         self.compile_args = None
@@ -42,7 +41,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 logging.warn('socket recv error')
                 break
 
-            #print("received: {0}{1}".format(data, len(data)))
+            # print("received: {0}{1}".format(data, len(data)))
             if data == '':
                 break
 
