@@ -245,4 +245,8 @@ hi pythonSync term=NONE cterm=NONE ctermbg=bg ctermfg=fg  guibg=bg guifg=fg
 hi pythonSpaceError term=NONE cterm=NONE ctermbg=bg ctermfg=fg  guibg=bg guifg=fg
 " }
 
+hi link ValidatorErrorSign SyntasticErrorSign
+hi link ValidatorWarningSign SyntasticWarningSign
+
+
 " vim: tw=0 ts=4 sw=4 foldmarker={,} foldlevel=0 foldmethod=marker
