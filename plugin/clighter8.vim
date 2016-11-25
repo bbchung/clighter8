@@ -388,8 +388,8 @@ command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:chann
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
-let g:clighter8_usage_priority = get(g:, 'clighter8_usage_priority', -1)
-let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
+let g:clighter8_usage_priority = get(g:, 'clighter8_usage_priority', 12)
+let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', 11)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [])
 let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
