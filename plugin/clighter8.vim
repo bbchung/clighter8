@@ -279,7 +279,7 @@ func! s:on_text_changed()
         call timer_stop(s:timer)
     endif
 
-    let s:timer = timer_start(800, {OnTimer})
+    let s:timer = timer_start(800, 'OnTimer')
 endf
 
 fun! s:start_clighter8()
