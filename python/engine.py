@@ -89,16 +89,19 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             except:
                 logging.warn('cannot config library path')
 
-            succ = self.init(cwd, global_compile_args, whitelist, blacklist)
-            self.safe_sendall(json.dumps([sn, succ]))
+            result = self.init(cwd, global_compile_args, whitelist, blacklist)
+            self.safe_sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'parse':
-            bufname = msg['params']['bufname'].encode("utf-8")
-            content = msg['params']['content'].encode("utf-8")
+            bufname = msg['params']['bufname']
+            content = msg['params']['content']
 
-            if not bufname:
-                self.safe_sendall(json.dumps([sn, '']))
+            if not bufname or not content:
+                self.safe_sendall(json.dumps([sn, None]))
                 return
+
+            bufname = bufname.encode('utf-8')
+            content = content.encode('utf-8')
 
             self.update_unsaved(bufname, content)
             self.parse(bufname)
@@ -106,30 +109,49 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.safe_sendall(json.dumps([sn, bufname]))
 
         elif msg['cmd'] == 'req_parse':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            bufname = msg['params']['bufname']
+
+            if not bufname:
+                self.safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
+
             if self.is_parse_busy(bufname):
-                self.safe_sendall(json.dumps([sn, ""]))
+                self.safe_sendall(json.dumps([sn, None]))
                 return
 
             self.set_parse_busy(bufname)
             self.safe_sendall(json.dumps([sn, bufname]))
 
         elif msg['cmd'] == 'req_get_hlt':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            bufname = msg['params']['bufname']
+
+            if not bufname:
+                self.safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
 
             if self.is_hlt_busy(bufname):
-                self.safe_sendall(json.dumps([sn, ""]))
+                self.safe_sendall(json.dumps([sn, None]))
                 return
 
             self.set_hlt_busy(bufname)
             self.safe_sendall(json.dumps([sn, bufname]))
 
         elif msg['cmd'] == 'get_hlt':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            bufname = msg['params']['bufname']
             begin_line = msg['params']['begin_line']
             end_line = msg['params']['end_line']
             row = msg['params']['row']
             col = msg['params']['col']
+
+            if not bufname:
+                self.safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
 
             self.unset_hlt_busy(bufname)
             hlt = self.get_hlt(
@@ -140,32 +162,52 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 [sn, result]))
 
         elif msg['cmd'] == 'delete_buffer':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            bufname = msg['params']['bufname']
+
+            if not bufname:
+                self.safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
             self.delete_buffer_data(bufname)
 
+            self.safe_sendall(json.dumps([sn, bufname]))
+
         elif msg['cmd'] == 'get_usr_info':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            bufname = msg['params']['bufname']
             row = msg['params']['row']
             col = msg['params']['col']
 
+            if not bufname:
+                self.safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
+
             ctx = self.get_buffer_data(bufname)
             if not ctx or not ctx.tu:
-                self.safe_sendall(json.dumps([sn, '']))
+                self.safe_sendall(json.dumps([sn, None]))
                 return
 
             symbol = clighter8_helper.get_semantic_symbol_from_location(
                 ctx.tu, bufname, row, col)
 
             if not symbol:
-                self.safe_sendall(json.dumps([sn, '']))
+                self.safe_sendall(json.dumps([sn, None]))
                 return
 
             self.safe_sendall(json.dumps(
                 [sn, [symbol.spelling, symbol.get_usr()]]))
 
         elif msg['cmd'] == 'rename':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            bufname = msg['params']['bufname']
             usr = msg['params']['usr']
+
+            if not bufname:
+                self.safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
 
             buffer_data = self.get_buffer_data(bufname)
             if not buffer_data:
@@ -179,9 +221,15 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.safe_sendall(json.dumps([sn, usage]))
 
         elif msg['cmd'] == 'cursor_info':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            bufname = msg['params']['bufname']
             row = msg['params']['row']
             col = msg['params']['col']
+
+            if not bufname:
+                self.safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
 
             tu = self.get_buffer_data(bufname).tu
             cursor = clighter8_helper.get_cursor(tu, bufname, row, col)
@@ -198,7 +246,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.safe_sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'compile_info':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            bufname = msg['params']['bufname']
+
+            if not bufname:
+                self.safe_sendall(json.dumps([sn, '']))
+                return
+
+            bufname = bufname.encode('utf-8')
 
             result = self.get_buffer_data(
                 bufname).compile_args + self.global_compile_args
@@ -206,12 +260,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         elif msg['cmd'] == 'enable_log':
             enable = msg['params']['enable']
+
             if enable:
                 logging.disable(logging.NOTSET)
             else:
                 logging.disable(logging.CRITICAL)
 
-            self.safe_sendall(json.dumps([sn, True]))
+            self.safe_sendall(json.dumps([sn, enable]))
 
     def get_buffer_data(self, bufname):
         if bufname in self.buffer_data:

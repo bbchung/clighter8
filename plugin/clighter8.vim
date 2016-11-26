@@ -26,8 +26,7 @@ func s:engine_cursor_info(channel, bufname, row, col)
     endif
 
     let l:expr = {'cmd' : 'cursor_info', 'params' : {'bufname' : a:bufname, 'row' : a:row, 'col': a:col}}
-    let l:result = ch_evalexpr(a:channel, l:expr)
-    echo l:result
+    return ch_evalexpr(a:channel, l:expr)
 endf
 
 func s:engine_compile_info(channel, bufname)
@@ -36,8 +35,7 @@ func s:engine_compile_info(channel, bufname)
     endif
 
     let l:expr = {'cmd' : 'compile_info', 'params' : {'bufname' : a:bufname}}
-    let l:result = ch_evalexpr(a:channel, l:expr)
-    echo l:result
+    return ch_evalexpr(a:channel, l:expr)
 endf
 
 
@@ -80,9 +78,9 @@ func s:engine_parse(channel, bufname)
     return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
 endf
 
-fun! s:engine_delete_buffer_async(channel, bufname, callback)
+fun! s:engine_delete_buffer(channel, bufname)
     let l:expr = {'cmd' : 'delete_buffer', 'params' : {'bufname' : a:bufname}}
-    call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
+    call ch_evalexpr(a:channel, l:expr)
 endf
 
 fun! s:engine_enable_log(channel, en)
@@ -102,8 +100,6 @@ fun! s:engine_rename(channel, bufname, usr)
 endf
 
 func HandleParse(channel, msg)
-    let b:last_changedtick = b:changedtick
-
     if !empty(a:msg)
         call s:engine_req_get_hlt_async(a:channel, a:msg, 'HandleReqGetHlt')
     endif
@@ -117,11 +113,15 @@ endfunc
 
 func HandleReqGetHlt(channel, msg)
     if !empty(a:msg)
-        call s:engine_get_hlt_async(a:channel, a:msg, 'HandleHlt')
+        call s:engine_get_hlt_async(a:channel, a:msg, 'HandleGetHlt')
     endif
 endfunc
 
-func HandleHlt(channel, msg)
+func HandleGetHlt(channel, msg)
+    if empty(a:msg)
+        return
+    endif
+
     if a:msg['bufname'] != expand('%:p')
         return
     endif
@@ -209,29 +209,21 @@ fun ClRename()
         return
     endif
 
-    let l:bufname = s:engine_parse(s:channel, expand('%:p'))
-
-    if empty(l:bufname)
-        echohl WarningMsg
-        echo '[clighter8] unable to rename'
-        echohl None
+    if empty(s:engine_parse(s:channel, expand('%:p')))
+        echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
         return
     endif
 
-    let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, getpos('.'))
+    let l:usr_info = s:engine_get_usr_info(s:channel, expand('%:p'), getpos('.'))
     
     if empty(l:usr_info)
-        echohl WarningMsg
-        echo '[clighter8] unable to rename'
-        echohl None
+        echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
         return
     endif
 
     let [l:old, l:usr] = l:usr_info
-    echohl Question
-    let l:new = input('Rename ' . l:old . ' to : ', l:old)
-    echohl None
-    if (empty(l:new) || l:old == l:new)
+    echohl Question | let l:new = input('Rename ' . l:old . ' to : ', l:old) | echohl None
+    if (empty(l:new) || l:old ==# l:new)
         return
     endif
 
@@ -245,7 +237,7 @@ fun ClRename()
         return
     endif
 
-    let start = reltime()
+    let l:start = reltime()
 
     let l:buffers = getbufinfo()
     let l:all = len(l:buffers)
@@ -281,13 +273,11 @@ fun ClRename()
             let l:chk += 10
         endif
 
-        let l:bufname = s:engine_parse(s:channel, info.name)
-
-        if empty(l:bufname)
+        if empty(s:engine_parse(s:channel, info.name))
             continue
         endif
 
-        let l:usage = s:engine_rename(s:channel, l:bufname, l:usr)
+        let l:usage = s:engine_rename(s:channel, info.name, l:usr)
 
         if empty(l:usage) 
             continue
@@ -295,7 +285,7 @@ fun ClRename()
 
         if (l:prompt == 1)
             let l:yn = confirm("rename '". l:old ."' to '" .l:new. "' in " .info.name. '?', "&Yes\n&No", 1)
-            if (l:yn == 2)
+            if (l:yn == 2 || l:yn == 0)
                 continue
             endif
         endif
@@ -305,8 +295,6 @@ fun ClRename()
         call s:engine_parse(s:channel, info.name)
     endfor
 
-    echohl None
-
     call setqflist(l:qflist)
     exe 'buffer! '.l:bufnr
     call setpos('.', l:pos)
@@ -314,9 +302,11 @@ fun ClRename()
     exe l:wnr.'wincmd w'
     
     if l:prompt == 2
-        let l:seconds = reltimefloat(reltime(start))
+        let l:seconds = reltimefloat(reltime(l:start))
         echo printf('time usage: %f seconds', l:seconds)
     endif
+
+    echohl None
 endf
 
 fun! OnTimer(timer)
@@ -342,9 +332,7 @@ fun! s:start_clighter8()
         let s:job = job_start(l:cmd, {'stoponexit': ''})
         let s:channel = ch_open('localhost:8787', {'waittime': 1000})
         if ch_status(s:channel) ==# 'fail'
-            echohl ErrorMsg
-            echo '[clighter8] failed start engine'
-            echohl None
+            echohl ErrorMsg | echo '[clighter8] failed start engine' | echohl None
             return
         endif
     endif
@@ -352,9 +340,7 @@ fun! s:start_clighter8()
     let l:succ = s:engine_init(s:channel, g:clighter8_libclang_path, g:clighter8_global_compile_args, g:clighter8_highlight_whitelist, g:clighter8_highlight_blacklist)
 
     if l:succ == v:false
-        echohl ErrorMsg
-        echo '[clighter8] failed to init client'
-        echohl None
+        echohl ErrorMsg | echo '[clighter8] failed to init client' | echohl None
         call ch_close(s:channel)
         unlet s:channel
         return
@@ -368,7 +354,7 @@ fun! s:start_clighter8()
         au TextChanged,TextChangedI,BufEnter * call s:on_text_changed()
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
         au CursorMoved,CursorMovedI * call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
-        au BufDelete * call s:engine_delete_buffer_async(s:channel, expand('%:p'), '')
+        au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
         au VimLeave * call s:stop_clighter8()
     augroup END
 endf
@@ -391,8 +377,8 @@ endf
 command! ClStart call s:start_clighter8()
 command! ClStop call s:stop_clighter8()
 command! ClRestart call s:stop_clighter8() | call s:start_clighter8()
-command! ClShowCursorInfo if exists ('s:channel') | call s:engine_cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif
-command! ClShowCompileInfo if exists ('s:channel') | call s:engine_compile_info(s:channel, expand('%:p')) | endif
+command! ClShowCursorInfo if exists ('s:channel') | echo s:engine_cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif
+command! ClShowCompileInfo if exists ('s:channel') | echo s:engine_compile_info(s:channel, expand('%:p')) | endif
 command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:true) | endif
 command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:false) | endif
 
