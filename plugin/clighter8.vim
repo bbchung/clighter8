@@ -77,7 +77,7 @@ func s:engine_parse(channel, bufname)
     endif
 
     let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : join(getline(1,'$'), "\n")}}
-    return ch_evalexpr(a:channel, l:expr)
+    return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
 endf
 
 fun! s:engine_delete_buffer_async(channel, bufname, callback)
@@ -98,7 +98,7 @@ endf
 
 fun! s:engine_rename(channel, bufname, usr)
     let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'usr' : a:usr}}
-    return ch_evalexpr(a:channel, l:expr, {'timeout' : 10000})
+    return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
 endf
 
 func HandleParse(channel, msg)
@@ -209,8 +209,15 @@ fun ClRename()
         return
     endif
 
-    let l:bufname = expand('%:p')
-    call s:engine_parse(s:channel, l:bufname)
+    let l:bufname = s:engine_parse(s:channel, expand('%:p'))
+
+    if empty(l:bufname)
+        echohl WarningMsg
+        echo '[clighter8] unable to rename'
+        echohl None
+        return
+    endif
+
     let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, getpos('.'))
     
     if empty(l:usr_info)
@@ -259,9 +266,7 @@ fun ClRename()
         endif
     endfor
 
-    let l:buffers = l:sources + l:headers
-
-    for info in l:buffers
+    for info in l:sources + l:headers
         execute('silent! buffer! '. info.bufnr)
 
         if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
@@ -276,8 +281,13 @@ fun ClRename()
             let l:chk += 10
         endif
 
-        call s:engine_parse(s:channel, info.name)
-        let l:usage = s:engine_rename(s:channel, info.name, l:usr)
+        let l:bufname = s:engine_parse(s:channel, info.name)
+
+        if empty(l:bufname)
+            continue
+        endif
+
+        let l:usage = s:engine_rename(s:channel, l:bufname, l:usr)
 
         if empty(l:usage) 
             continue
