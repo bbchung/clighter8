@@ -13,7 +13,7 @@ performance of Vim.
 Clighter8 requires the following things:
 
 * Vim with +job and +channel features
-* [libclang][libclang], (3.6 is recommended)
+* [libclang][libclang], (3.9 is recommended)
 
 ## Installation
 

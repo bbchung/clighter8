@@ -133,12 +133,15 @@ def get_semantic_symbol_from_location(tu, bufname, row, col):
 
 
 def get_semantic_symbol(cursor):
-    if cursor.kind == cindex.CursorKind.MACRO_DEFINITION:
-        return cursor
+    # if cursor.kind == cindex.CursorKind.MACRO_DEFINITION:
+        # return cursor
 
     symbol = cursor.get_definition()
     if not symbol:
         symbol = cursor.referenced
+
+        if not symbol:
+            symbol = cursor.canonical
 
     if not symbol:
         return None
