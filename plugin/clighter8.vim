@@ -232,7 +232,8 @@ fun ClRename()
     let l:bufnr = bufnr('%')
     let l:pos = getpos('.')
 
-    let l:prompt = confirm("rename '". l:old ."' to '" .l:new.'?', "&Yes\n&All\n&No", 1)
+    let l:title = 'rename "' . l:old . '" to "' . l:new. '"'
+    let l:prompt = confirm(l:title . '?', "&Yes\n&All\n&No", 1)
     if (l:prompt == 3 || l:prompt == 0)
         return
     endif
@@ -245,7 +246,7 @@ fun ClRename()
     let l:count = 0
     let l:chk = 10
     echohl MoreMsg
-    echo 'process... 0%'
+    echo l:title. '... 0%'
 
     " to sort the buffers
     let l:sources = []
@@ -269,8 +270,8 @@ fun ClRename()
         let l:percent = 100.0 * l:count / l:all
 
         if l:percent >= l:chk
-            echo 'process... ' . float2nr(l:percent) . '%'
-            let l:chk += 10
+            redraw | echo l:title. ' ...' . float2nr(l:percent) . '%'
+            let l:chk += l:chk
         endif
 
         if empty(s:engine_parse(s:channel, info.name))
