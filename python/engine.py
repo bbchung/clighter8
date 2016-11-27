@@ -249,7 +249,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname']
 
             if not bufname:
-                self.safe_sendall(json.dumps([sn, '']))
+                self.safe_sendall(json.dumps([sn, None]))
                 return
 
             bufname = bufname.encode('utf-8')
@@ -267,6 +267,20 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 logging.disable(logging.CRITICAL)
 
             self.safe_sendall(json.dumps([sn, enable]))
+
+        elif msg['cmd'] == 'get_cdb_files':
+            if not self.cdb:
+                self.safe_sendall(json.dumps([sn, None]))
+                return
+
+            cmds = self.cdb.getAllCompileCommands()
+
+            result = []
+
+            for cmd in cmds:
+                result.append(cmd.filename)
+
+            self.safe_sendall(json.dumps([sn, result]))
 
     def get_buffer_data(self, bufname):
         if bufname in self.buffer_data:

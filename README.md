@@ -58,6 +58,10 @@ Enable clighter8 log, the log file is put under /tmp/clighter8.log.
 
 Disable clighter8 log.
 
+#### ClOpenCdbFiles
+
+Open files in the compilation database.
+
 #### ClRename()
 
 * It's the experimental function to do rename-refactor.

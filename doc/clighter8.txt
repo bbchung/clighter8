@@ -150,6 +150,7 @@ Clighter8 provides these commands and functions.
 |ClShowCompileInfo|
 |ClEnableLog|
 |ClDisableLog|
+|ClOpenCdbFiles|
 |Rename()|
 
 ------------------------------------------------------------------------------
@@ -194,6 +195,11 @@ Enable clighter8 log, the log file is put under /tmp/clighter8.log.
 ClDisableLog~
 
 Disable clighter8 log.
+------------------------------------------------------------------------------
+						*ClOpenCdbFiles*
+ClOpenCdbFiles~
+
+Open files in the compilation database.
 ------------------------------------------------------------------------------
 						*ClRename()*
 ClRename()~

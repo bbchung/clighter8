@@ -99,6 +99,11 @@ fun! s:engine_rename(channel, bufname, usr)
     return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
 endf
 
+fun! s:engine_get_cdb_files(channel)
+    let l:expr = {'cmd' : 'get_cdb_files', 'params' : {}}
+    return ch_evalexpr(a:channel, l:expr)
+endf
+
 func HandleParse(channel, msg)
     if !empty(a:msg)
         call s:engine_req_get_hlt_async(a:channel, a:msg, 'HandleReqGetHlt')
@@ -131,35 +136,35 @@ func HandleGetHlt(channel, msg)
 endfunc
 
 func s:do_hlt(matches)
-    for [l:group, l:all_pos] in items(a:matches)
+    for [group, all_pos] in items(a:matches)
         let l:count = 0
         let l:match8 = []
-        let l:priority = (l:group ==# 'clighter8Usage') ? g:clighter8_usage_priority : g:clighter8_syntax_priority 
+        let l:priority = (group ==# 'clighter8Usage') ? g:clighter8_usage_priority : g:clighter8_syntax_priority 
 
-        for l:pos in l:all_pos
-            call add(l:match8, l:pos)
+        for pos in all_pos
+            call add(l:match8, pos)
             let l:count += 1
             if l:count == 8
-                call matchaddpos(l:group, l:match8, l:priority)
+                call matchaddpos(group, l:match8, l:priority)
 
                 let l:count = 0
                 let l:match8 = []
             endif
         endfor
 
-        call matchaddpos(l:group, l:match8, l:priority)
+        call matchaddpos(group, l:match8, l:priority)
     endfor
 endf
 
 fun! s:do_replace(usage, old, new, qflist)
     let l:pattern = ''
-    for [l:row, l:col] in a:usage
+    for [row, column] in a:usage
         if (!empty(l:pattern))
             let l:pattern = l:pattern . '\|'
         endif
 
-        let l:pattern = l:pattern . '\%' . l:row . 'l' . '\%>' . (l:col - 1) . 'c\%<' . (l:col + strlen(a:old)) . 'c' . a:old
-        call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'col':l:col, 'type' : 'I', 'text':"'".a:old."' was renamed to '".a:new."'"})
+        let l:pattern = l:pattern . '\%' . row . 'l' . '\%>' . (column - 1) . 'c\%<' . (column + strlen(a:old)) . 'c' . a:old
+        call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':row, 'col':column, 'type' : 'I', 'text':"'".a:old."' was renamed to '".a:new."'"})
     endfor
 
     let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
@@ -168,10 +173,23 @@ fun! s:do_replace(usage, old, new, qflist)
 endf
 
 fun! s:clear_match_by_priorities(priorities)
-    for l:m in getmatches()
-        if index(a:priorities, l:m['priority']) >= 0
-            call matchdelete(l:m['id'])
+    for m in getmatches()
+        if index(a:priorities, m['priority']) >= 0
+            call matchdelete(m['id'])
         endif
+    endfor
+endf
+
+fun! s:open_cdb_files()
+    let l:files = s:engine_get_cdb_files(s:channel)
+    
+    if empty(l:files)
+        echohl WarningMsg | echo '[clighter8] no files to open' | echohl None
+        return
+    endif
+
+    for path in l:files
+        execute('e! '. path)
     endfor
 endf
 
@@ -382,6 +400,7 @@ command! ClShowCursorInfo if exists ('s:channel') | echo s:engine_cursor_info(s:
 command! ClShowCompileInfo if exists ('s:channel') | echo s:engine_compile_info(s:channel, expand('%:p')) | endif
 command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:true) | endif
 command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:false) | endif
+command! ClOpenCdbFiles if exists ('s:channel') | call s:open_cdb_files() | endif
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
@@ -389,7 +408,7 @@ let g:clighter8_usage_priority = get(g:, 'clighter8_usage_priority', 12)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', 11)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [])
 let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
-let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
+let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [])
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 
 if g:clighter8_autostart
