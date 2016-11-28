@@ -255,7 +255,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = bufname.encode('utf-8')
 
             result = self.get_buffer_data(
-                bufname).compile_args + self.global_compile_args
+                bufname).compile_args
             self.safe_sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'enable_log':
@@ -382,7 +382,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     bufname,
                     self.buffer_data[bufname].compile_args,
                     self.unsaved,
-                    options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD | 0x100 | 0x200)
+                    cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD | 0x100 | 0x200)
         except:
             del self.buffer_data[bufname]
             logging.warn('libclang failed to parse', bufname)
