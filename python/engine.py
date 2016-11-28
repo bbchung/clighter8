@@ -269,18 +269,47 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.safe_sendall(json.dumps([sn, enable]))
 
         elif msg['cmd'] == 'get_cdb_files':
+            cwd = msg['params']['cwd']
+
             if not self.cdb:
                 self.safe_sendall(json.dumps([sn, None]))
                 return
 
             cmds = self.cdb.getAllCompileCommands()
 
-            result = []
+            result = set()
+            candidate = set()
 
             for cmd in cmds:
-                result.append(cmd.filename)
+                candidate.add(cmd.filename)
 
-            self.safe_sendall(json.dumps([sn, result]))
+            while (len(candidate) != 0):
+                result = result.union(candidate)
+
+                nexts = set()
+                for bufname in candidate:
+                    tu = self.idx.parse(
+                        bufname,
+                        None,
+                        None,
+                        options=cindex.TranslationUnit.PARSE_SKIP_FUNCTION_BODIES)
+
+                    for i in tu.get_includes():
+                        if i.is_input_file:
+                            continue
+
+                        bufname = i.include.name
+                        if bufname in result:
+                            continue
+
+                        if not bufname.startswith(cwd):
+                            continue
+
+                        nexts.add(bufname)
+
+                candidate = nexts
+
+            self.safe_sendall(json.dumps([sn, list(result)]))
 
     def get_buffer_data(self, bufname):
         if bufname in self.buffer_data:

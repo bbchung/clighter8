@@ -100,8 +100,8 @@ fun! s:engine_rename(channel, bufname, usr)
 endf
 
 fun! s:engine_get_cdb_files(channel)
-    let l:expr = {'cmd' : 'get_cdb_files', 'params' : {}}
-    return ch_evalexpr(a:channel, l:expr)
+    let l:expr = {'cmd' : 'get_cdb_files', 'params' : {'cwd' : getcwd()}}
+    return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
 endf
 
 func HandleParse(channel, msg)
