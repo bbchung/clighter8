@@ -408,7 +408,7 @@ let g:clighter8_usage_priority = get(g:, 'clighter8_usage_priority', 12)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', 11)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [])
 let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
-let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [])
+let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 
 if g:clighter8_autostart
