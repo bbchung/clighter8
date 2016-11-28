@@ -3,6 +3,7 @@ import json
 import SocketServer as socketserver
 import threading
 import sys
+import os
 from threading import Timer
 
 
@@ -29,6 +30,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.global_compile_args = None
         self.whitelist = []
         self.blacklist = []
+        self.cwd = None
 
         socketserver.BaseRequestHandler.__init__(
             self, request, client_addres, server)
@@ -105,6 +107,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             self.update_unsaved(bufname, content)
             self.parse(bufname)
+            self.update_compile_args(bufname, None)
 
             self.safe_sendall(json.dumps([sn, bufname]))
 
@@ -269,8 +272,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.safe_sendall(json.dumps([sn, enable]))
 
         elif msg['cmd'] == 'get_cdb_files':
-            cwd = msg['params']['cwd']
-
             if not self.cdb:
                 self.safe_sendall(json.dumps([sn, None]))
                 return
@@ -281,30 +282,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             candidate = set()
 
             for cmd in cmds:
-                candidate.add(cmd.filename)
+                candidate.add(os.path.join(cmd.directory, cmd.filename))
 
-            while (len(candidate) != 0):
-                result = result.union(candidate)
-
-                nexts = set()
-                for bufname in candidate:
-                    self.parse(bufname)
-
-                    tu = self.buffer_data[bufname].tu
-
-                    for i in tu.get_includes():
-                        if i.is_input_file:
-                            continue
-
-                        if i.include.name in result:
-                            continue
-
-                        if not i.include.name.startswith(cwd):
-                            continue
-
-                        nexts.add(i.include.name)
-
-                candidate = nexts
+            for bufname in candidate:
+                self.parse(bufname)
+                self.update_compile_args(bufname, result.add)
 
             self.safe_sendall(json.dumps([sn, list(result)]))
 
@@ -354,6 +336,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.global_compile_args = global_compile_args
         self.whitelist = whitelist
         self.blacklist = blacklist
+        self.cwd = cwd
 
         return True
 
@@ -388,13 +371,26 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             logging.warn('libclang failed to parse', bufname)
             return
 
+    def update_compile_args(self, bufname, on_update):
+        if bufname not in self.buffer_data:
+            return
+
+        if not self.buffer_data[bufname].tu:
+            return
+
         for i in self.buffer_data[bufname].tu.get_includes():
             if i.is_input_file:
+                continue
+
+            if not i.include.name.startswith(self.cwd):
                 continue
 
             if i.include.name not in self.buffer_data:
                 self.buffer_data[
                     i.include.name] = BufferData()
+
+            if on_update:
+                on_update(i.include.name)
 
             self.buffer_data[i.include.name].compile_args = self.buffer_data[
                 bufname].compile_args
