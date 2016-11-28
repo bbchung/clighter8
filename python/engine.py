@@ -288,24 +288,21 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
                 nexts = set()
                 for bufname in candidate:
-                    tu = self.idx.parse(
-                        bufname,
-                        None,
-                        None,
-                        options=cindex.TranslationUnit.PARSE_SKIP_FUNCTION_BODIES)
+                    self.parse(bufname)
+
+                    tu = self.buffer_data[bufname].tu
 
                     for i in tu.get_includes():
                         if i.is_input_file:
                             continue
 
-                        bufname = i.include.name
-                        if bufname in result:
+                        if i.include.name in result:
                             continue
 
-                        if not bufname.startswith(cwd):
+                        if not i.include.name.startswith(cwd):
                             continue
 
-                        nexts.add(bufname)
+                        nexts.add(i.include.name)
 
                 candidate = nexts
 
@@ -371,10 +368,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if bufname not in self.buffer_data:
             self.buffer_data[bufname] = BufferData()
             self.buffer_data[bufname].compile_args = clighter8_helper.get_compile_args_from_cdb(
-                self.cdb, bufname)
-
-        compile_args = self.buffer_data[
-            bufname].compile_args + self.global_compile_args
+                self.cdb, bufname) + self.global_compile_args
 
         self.buffer_data[bufname].parse_busy = False
 
@@ -386,7 +380,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             else:
                 self.buffer_data[bufname].tu = self.idx.parse(
                     bufname,
-                    compile_args,
+                    self.buffer_data[bufname].compile_args,
                     self.unsaved,
                     options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD | 0x100 | 0x200)
         except:
@@ -398,7 +392,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if i.is_input_file:
                 continue
 
-            if i.include not in self.buffer_data:
+            if i.include.name not in self.buffer_data:
                 self.buffer_data[
                     i.include.name] = BufferData()
 
