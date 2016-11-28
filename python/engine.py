@@ -279,12 +279,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             cmds = self.cdb.getAllCompileCommands()
 
             result = set()
-            candidate = set()
+            cdb_files = set()
 
             for cmd in cmds:
-                candidate.add(os.path.join(cmd.directory, cmd.filename))
+                cdb_files.add(os.path.join(cmd.directory, cmd.filename))
 
-            for bufname in candidate:
+            result = result.union(cdb_files)
+
+            for bufname in cdb_files:
                 self.parse(bufname)
                 self.update_compile_args(bufname, result.add)
 

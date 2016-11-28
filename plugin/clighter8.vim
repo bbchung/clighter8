@@ -400,7 +400,7 @@ command! ClShowCursorInfo if exists ('s:channel') | echo s:engine_cursor_info(s:
 command! ClShowCompileInfo if exists ('s:channel') | echo s:engine_compile_info(s:channel, expand('%:p')) | endif
 command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:true) | endif
 command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:false) | endif
-command! ClOpenCdbFiles if exists ('s:channel') | call s:open_cdb_files() | endif
+command! ClOpenCdbFiles call s:start_clighter8() | call s:open_cdb_files()
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
