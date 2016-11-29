@@ -162,6 +162,7 @@ fun! s:load_cdb()
     let l:chk = 10
     let l:count = 0
 
+    echohl MoreMsg
     for bufname in l:cdb_files
         execute('silent! e! '. bufname)
 
@@ -182,10 +183,11 @@ fun! s:load_cdb()
         let l:percent = 100.0 * l:count / l:all
 
         if l:percent >= l:chk
-            echo 'opening...' . float2nr(l:percent) . '%'
+            echo '[clighter8] loading compilation database...' . float2nr(l:percent) . '%'
             let l:chk = l:percent + 10
         endif
     endfor
+    echohl None
 endf
 
 fun! s:is_header(bufname)
@@ -245,7 +247,7 @@ fun ClRename()
     let l:bufnr = bufnr('%')
     let l:pos = getpos('.')
 
-    let l:title = 'rename "' . l:old . '" to "' . l:new. '"'
+    let l:title = '[clighter8] rename "' . l:old . '" to "' . l:new. '"'
     let l:prompt = confirm(l:title . '?', "&Yes\n&All\n&No", 1)
     if (l:prompt == 3 || l:prompt == 0)
         return
@@ -317,7 +319,7 @@ fun ClRename()
     
     if l:prompt == 2
         let l:seconds = reltimefloat(reltime(l:start))
-        echo printf('time usage: %f seconds', l:seconds)
+        echo printf('[clighter8] time usage: %f seconds', l:seconds)
     endif
 
     echohl None

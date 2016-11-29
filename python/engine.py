@@ -6,7 +6,6 @@ import sys
 import os
 from threading import Timer
 
-
 from clang import cindex
 import clighter8_helper
 
@@ -110,7 +109,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.__parse(bufname)
             updates = self.__update_inc_compile_args(bufname, None)
 
-            self.__safe_sendall(json.dumps([sn, {'bufname' : bufname, 'updates' : updates}]))
+            self.__safe_sendall(json.dumps(
+                [sn, {'bufname': bufname, 'updates': updates}]))
 
         elif msg['cmd'] == 'req_parse':
             bufname = msg['params']['bufname']
@@ -339,8 +339,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def __parse(self, bufname):
         if bufname not in self.buffer_data:
             self.buffer_data[bufname] = BufferData()
-            self.buffer_data[bufname].compile_args = clighter8_helper.get_compile_args_from_cdb(
-                self.cdb, bufname) + self.global_compile_args
+            self.buffer_data[bufname].compile_args = self.global_compile_args + \
+                clighter8_helper.get_compile_args_from_cdb(self.cdb, bufname)
 
         self.buffer_data[bufname].parse_busy = False
 
