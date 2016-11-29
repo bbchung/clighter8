@@ -156,11 +156,11 @@ fun! s:load_cdb()
         return
     endif
     
-    let l:opens = []
     let l:all = len(l:cdb_files)
     let l:chk = 10
     let l:count = 0
 
+    let l:new = ''
     echohl MoreMsg
     for bufname in l:cdb_files
         execute('silent! e! '. bufname)
@@ -174,9 +174,7 @@ fun! s:load_cdb()
             continue
         endif
 
-        for path in l:result['updates']
-            execute('silent! e! '. path)
-        endfor
+        let l:new .= join(l:result['updates'], ' ')
 
         let l:count += 1
         let l:percent = 100.0 * l:count / l:all
@@ -187,6 +185,10 @@ fun! s:load_cdb()
         endif
     endfor
     echohl None
+    
+    if !empty(l:new)
+        execute('n! ' . l:new)
+    endif
 endf
 
 fun! s:is_header(bufname)

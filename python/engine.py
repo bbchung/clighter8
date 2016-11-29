@@ -98,14 +98,15 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname']
             content = msg['params']['content']
 
-            if not bufname or not content:
+            if not bufname:
                 self.__safe_sendall(json.dumps([sn, None]))
                 return
 
             bufname = bufname.encode('utf-8')
-            content = content.encode('utf-8')
 
-            self.__update_unsaved(bufname, content)
+            if content is not None:
+                self.__update_unsaved(bufname, content.encode('utf-8'))
+
             self.__parse(bufname)
             updates = self.__update_inc_compile_args(bufname, None)
 
