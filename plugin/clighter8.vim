@@ -182,7 +182,7 @@ fun! s:load_cdb()
         let l:percent = 100.0 * l:count / l:all
 
         if l:percent >= l:chk
-            echo '[clighter8] loading compilation database...' . float2nr(l:percent) . '%'
+            redraw | echo '[clighter8] loading compilation database...' . float2nr(l:percent) . '%'
             let l:chk = l:percent + 10
         endif
     endfor
@@ -266,6 +266,7 @@ fun s:cl_rename(row, col)
     " to sort the buffers
     let l:sources = []
     let l:headers = []
+    
     for info in l:buffers
         if s:is_header(info.name) == 1
             call add(l:headers, info)
@@ -367,7 +368,7 @@ fun! s:start_clighter8()
     augroup Clighter8
         autocmd!
 
-        au TextChanged,TextChangedI,BufEnter * call s:on_text_changed()
+        au TextChanged,TextChangedI * call s:on_text_changed()
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
         au CursorMoved,CursorMovedI * call s:clear_match_by_priorities([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
         au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
