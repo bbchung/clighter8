@@ -108,9 +108,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             self.__update_unsaved(bufname, content)
             self.__parse(bufname)
-            self.__update_inc_compile_args(bufname, None)
+            updates = self.__update_inc_compile_args(bufname, None)
 
-            self.__safe_sendall(json.dumps([sn, bufname]))
+            self.__safe_sendall(json.dumps([sn, {'bufname' : bufname, 'updates' : updates}]))
 
         elif msg['cmd'] == 'req_parse':
             bufname = msg['params']['bufname']
@@ -279,16 +279,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             cmds = self.cdb.getAllCompileCommands()
 
             result = set()
-            cdb_files = set()
 
             for cmd in cmds:
-                cdb_files.add(os.path.join(cmd.directory, cmd.filename))
-
-            result = result.union(cdb_files)
-
-            for bufname in cdb_files:
-                self.__parse(bufname)
-                self.__update_inc_compile_args(bufname, result.add)
+                result.add(os.path.join(cmd.directory, cmd.filename))
 
             self.__safe_sendall(json.dumps([sn, list(result)]))
 
@@ -368,6 +361,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             return
 
     def __update_inc_compile_args(self, bufname, on_update):
+        updates = []
+
         if bufname not in self.buffer_data:
             return
 
@@ -390,6 +385,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             self.buffer_data[i.include.name].compile_args = self.buffer_data[
                 bufname].compile_args
+
+            updates.append(i.include.name)
+
+        return updates
 
     def __get_hlt(self, bufname, begin_line, end_line, row, col):
         if bufname not in self.buffer_data:

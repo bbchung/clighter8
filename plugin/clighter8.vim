@@ -11,70 +11,38 @@ fun! s:engine_init(channel, libclang_path, compile_args, hlt_whitelist, hlt_blac
 endf
 
 fun! s:engine_get_hlt_async(channel, bufname, callback)
-    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
-        return
-    endif
-
     let l:pos = getpos('.')
     let l:expr = {'cmd' : 'get_hlt', 'params' : {'bufname' : a:bufname, 'begin_line' : line('w0'), 'end_line' : line('w$'), 'row' : l:pos[1], 'col': l:pos[2]}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
 func s:engine_cursor_info(channel, bufname, row, col)
-    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
-        return
-    endif
-
     let l:expr = {'cmd' : 'cursor_info', 'params' : {'bufname' : a:bufname, 'row' : a:row, 'col': a:col}}
     return ch_evalexpr(a:channel, l:expr)
 endf
 
 func s:engine_compile_info(channel, bufname)
-    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
-        return
-    endif
-
     let l:expr = {'cmd' : 'compile_info', 'params' : {'bufname' : a:bufname}}
     return ch_evalexpr(a:channel, l:expr)
 endf
 
-
 func s:engine_req_parse_async(channel, bufname, callback)
-    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
-        return
-    endif
-
     let l:expr = {'cmd' : 'req_parse', 'params' : {'bufname' : a:bufname}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
 func s:engine_req_get_hlt_async(channel, bufname, callback)
-    call s:clear_match_by_priorities([g:clighter8_usage_priority])
-
-    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
-        return
-    endif
-
     let l:expr = {'cmd' : 'req_get_hlt', 'params' : {'bufname' : a:bufname}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
-
 func s:engine_parse_async(channel, bufname, callback)
-    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
-        return
-    endif
-
-    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : join(getline(1,'$'), "\n")}}
+    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : join(getbufline(a:bufname, 1,'$'), "\n")}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
 func s:engine_parse(channel, bufname)
-    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
-        return
-    endif
-
-    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : join(getline(1,'$'), "\n")}}
+    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : join(getbufline(a:bufname, 1,'$'), "\n")}}
     return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
 endf
 
@@ -106,7 +74,8 @@ endf
 
 func HandleParse(channel, msg)
     if !empty(a:msg)
-        call s:engine_req_get_hlt_async(a:channel, a:msg, 'HandleReqGetHlt')
+        call s:clear_match_by_priorities([g:clighter8_usage_priority])
+        call s:engine_req_get_hlt_async(a:channel, a:msg['bufname'], 'HandleReqGetHlt')
     endif
 endfunc
 
@@ -180,16 +149,42 @@ fun! s:clear_match_by_priorities(priorities)
     endfor
 endf
 
-fun! s:open_cdb_files()
-    let l:files = s:engine_get_cdb_files(s:channel)
-    
-    if empty(l:files)
+fun! s:load_cdb()
+    let l:cdb_files = s:engine_get_cdb_files(s:channel)
+
+    if empty(l:cdb_files)
         echohl WarningMsg | echo '[clighter8] no files to open' | echohl None
         return
     endif
+    
+    let l:opens = []
+    let l:all = len(l:cdb_files)
+    let l:chk = 10
+    let l:count = 0
 
-    for path in l:files
-        execute('e! '. path)
+    for bufname in l:cdb_files
+        execute('silent! e! '. bufname)
+
+        if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
+            continue
+        endif
+
+        let l:result = s:engine_parse(s:channel, bufname)
+        if empty(l:result)
+            continue
+        endif
+
+        for path in l:result['updates']
+            execute('silent! e! '. path)
+        endfor
+
+        let l:count += 1
+        let l:percent = 100.0 * l:count / l:all
+
+        if l:percent >= l:chk
+            echo 'opening...' . float2nr(l:percent) . '%'
+            let l:chk = l:percent + 10
+        endif
     endfor
 endf
 
@@ -284,14 +279,6 @@ fun ClRename()
             continue
         endif
 
-        let l:count +=  1
-        let l:percent = 100.0 * l:count / l:all
-
-        if l:percent >= l:chk
-            redraw | echo l:title. ' ...' . float2nr(l:percent) . '%'
-            let l:chk += l:chk
-        endif
-
         if empty(s:engine_parse(s:channel, info.name))
             continue
         endif
@@ -312,6 +299,14 @@ fun ClRename()
         silent! call s:do_replace(l:usage, l:old, l:new, l:qflist)
 
         call s:engine_parse(s:channel, info.name)
+
+        let l:count += 1
+        let l:percent = 100.0 * l:count / l:all
+
+        if l:percent >= l:chk
+            redraw | echo l:title. ' ...' . float2nr(l:percent) . '%'
+            let l:chk = l:percent + 10
+        endif
     endfor
 
     call setqflist(l:qflist)
@@ -372,7 +367,7 @@ fun! s:start_clighter8()
 
         au TextChanged,TextChangedI,BufEnter * call s:on_text_changed()
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-        au CursorMoved,CursorMovedI * call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
+        au CursorMoved,CursorMovedI * call s:clear_match_by_priorities([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
         au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
         au VimLeave * call s:stop_clighter8()
     augroup END
@@ -400,7 +395,7 @@ command! ClShowCursorInfo if exists ('s:channel') | echo s:engine_cursor_info(s:
 command! ClShowCompileInfo if exists ('s:channel') | echo s:engine_compile_info(s:channel, expand('%:p')) | endif
 command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:true) | endif
 command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:false) | endif
-command! ClOpenCdbFiles call s:start_clighter8() | call s:open_cdb_files()
+command! ClLoadCdb call s:start_clighter8() | call s:load_cdb()
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')

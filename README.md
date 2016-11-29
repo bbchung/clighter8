@@ -58,7 +58,7 @@ Enable clighter8 log, the log file is put under /tmp/clighter8.log.
 
 Disable clighter8 log.
 
-#### ClOpenCdbFiles
+#### ClLoadCdb
 
 Open files in the compilation database.
 
