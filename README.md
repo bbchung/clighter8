@@ -61,7 +61,8 @@ Disable clighter8 log.
 #### ClLoadCdb
 
 Open source files described in compilation database and all reference header
-files under current working folder of Vim.
+files under current working folder of Vim. It will take a lot of time if the
+compilation database is big.
 
 #### ClRenameCursor
 
@@ -92,7 +93,7 @@ Database][cdb].
 Check the Requirements and Installation, and check if a valid libclang path is
 given.
 
-#### ClRename() function is an experimental function?
+#### ClRenameCursor is experimental?
 Due to the many restrictions, it's hard to do rename-refactor. Clighter8 only
 searches opened buffers in Vim to do renaming and it can't guarantee the
 correctness.

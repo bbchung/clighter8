@@ -32,14 +32,14 @@ https://github.com/bbchung/clighter8
 
 Clighter8 requires the following things:
 
-* Vim8
-* libclang, http://llvm.org/apt/
+* Vim with +job and +channel features
+* libclang, http://llvm.org/apt/ (3.9 is recommended)
 
 ==============================================================================
 						*clighter8-installation*
 3. Installation~
 
-Use a VIM plugin manager, for example
+Use a Vim plugin manager, for example
 
 Vundle Install~
 >
@@ -199,10 +199,12 @@ Disable clighter8 log.
 						*ClLoadCdb*
 ClLoadCdb~
 
-Open files in the compilation database.
+Open source files described in compilation database and all reference header
+files under current working folder of Vim. It will take a lot of time if the
+compilation database is big.
 ------------------------------------------------------------------------------
-						*ClRename()*
-ClRename()~
+						*ClRenameCursor*
+ClRenameCursor~
 
 * An experimental function to do rename-refactor.
 * Only do renaming in opened buffers.
@@ -210,7 +212,7 @@ ClRename()~
 
 For convenience, you can add key mapping in your vimrc:
 >
-	nmap <silent> <Leader>r :call ClRename()<CR>
+	nmap <silent> <Leader>r :ClRenameCursor<CR>
 >
 ==============================================================================
 						*clighter8-compilation-database*
@@ -274,7 +276,7 @@ A. Check the Requirements and Installation, and check if a valid libclang path
 is given.
 
 
-Q. ClRename() is an experimental function?
+Q. ClRenameCursor is experimental?
 A. Due to the many restrictions, it's hard to do rename-refactor. Clighter8
 only searches opened buffers in Vim to do renaming and it can't guarantee the
 correctness.
