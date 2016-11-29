@@ -60,9 +60,10 @@ Disable clighter8 log.
 
 #### ClLoadCdb
 
-Open files in the compilation database.
+Open source files described in compilation database and all reference header
+files under current working folder of Vim.
 
-#### ClRename()
+#### ClRenameCursor
 
 * It's the experimental function to do rename-refactor.
 * The search scope is the list of Vim buffers.
@@ -70,7 +71,7 @@ Open files in the compilation database.
 
 For convenience, you can add the key mapping in your vimrc:
 ```vim
-nmap <silent> <Leader>r :call ClRename()<CR>
+nmap <silent> <Leader>r :ClRenameCursor<CR>
 ```
 
 ## Options

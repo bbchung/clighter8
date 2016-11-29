@@ -10,9 +10,8 @@ fun! s:engine_init(channel, libclang_path, compile_args, hlt_whitelist, hlt_blac
     return ch_evalexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_get_hlt_async(channel, bufname, callback)
-    let l:pos = getpos('.')
-    let l:expr = {'cmd' : 'get_hlt', 'params' : {'bufname' : a:bufname, 'begin_line' : line('w0'), 'end_line' : line('w$'), 'row' : l:pos[1], 'col': l:pos[2]}}
+fun! s:engine_get_hlt_async(channel, bufname, row, col, callback)
+    let l:expr = {'cmd' : 'get_hlt', 'params' : {'bufname' : a:bufname, 'begin_line' : line('w0'), 'end_line' : line('w$'), 'row' : a:row, 'col': a:col}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
@@ -36,13 +35,13 @@ func s:engine_req_get_hlt_async(channel, bufname, callback)
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
-func s:engine_parse_async(channel, bufname, callback)
-    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : join(getbufline(a:bufname, 1,'$'), "\n")}}
+func s:engine_parse_async(channel, bufname, content, callback)
+    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : a:content}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
-func s:engine_parse(channel, bufname)
-    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : join(getbufline(a:bufname, 1,'$'), "\n")}}
+func s:engine_parse(channel, bufname, content)
+    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : a:content}}
     return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
 endf
 
@@ -56,8 +55,8 @@ fun! s:engine_enable_log(channel, en)
     call ch_sendexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_get_usr_info(channel, bufname, pos)
-    let l:expr = {'cmd' : 'get_usr_info', 'params' : {'bufname' : a:bufname, 'row' : a:pos[1], 'col': a:pos[2]}}
+fun! s:engine_get_usr_info(channel, bufname, row, col)
+    let l:expr = {'cmd' : 'get_usr_info', 'params' : {'bufname' : a:bufname, 'row' : a:row, 'col': a:col}}
     let l:result = ch_evalexpr(a:channel, l:expr)
     return l:result
 endf
@@ -81,13 +80,13 @@ endfunc
 
 func HandleReqParse(channel, msg)
     if !empty(a:msg)
-        call s:engine_parse_async(a:channel, a:msg, 'HandleParse')
+        call s:engine_parse_async(a:channel, a:msg, join(getbufline(a:msg, 1,'$'), "\n"), 'HandleParse')
     endif
 endfunc
 
 func HandleReqGetHlt(channel, msg)
     if !empty(a:msg)
-        call s:engine_get_hlt_async(a:channel, a:msg, 'HandleGetHlt')
+        call s:engine_get_hlt_async(a:channel, a:msg, line('.'), col('.'), 'HandleGetHlt')
     endif
 endfunc
 
@@ -170,7 +169,7 @@ fun! s:load_cdb()
             continue
         endif
 
-        let l:result = s:engine_parse(s:channel, bufname)
+        let l:result = s:engine_parse(s:channel, bufname, join(getbufline(bufname, 1,'$'), "\n"))
         if empty(l:result)
             continue
         endif
@@ -196,15 +195,15 @@ fun! s:is_header(bufname)
     endif
 
     let l:dot = -1
-    let l:pos = 0
+    let l:offset = 0
     let len = len(a:bufname)
 
-    while l:pos < len
-        if a:bufname[l:pos] ==# '.'
-            let l:dot = l:pos
+    while l:offset < len
+        if a:bufname[l:offset] ==# '.'
+            let l:dot = l:offset
         endif
 
-        let l:pos += 1
+        let l:offset += 1
     endwhile
 
     if l:dot == -1 || l:dot == len(a:bufname) - 1
@@ -219,17 +218,18 @@ fun! ClFormat()
     execute('pyf '.s:script_folder_path.'/../python/clang-format.py')
 endf
 
-fun ClRename()
+fun s:cl_rename(row, col)
     if !exists('s:channel')
         return
     endif
 
-    if empty(s:engine_parse(s:channel, expand('%:p')))
+    let l:bufname = expand('%:p')
+    if empty(s:engine_parse(s:channel, l:bufname, join(getbufline(l:bufname, 1,'$'), "\n")))
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
         return
     endif
 
-    let l:usr_info = s:engine_get_usr_info(s:channel, expand('%:p'), getpos('.'))
+    let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, a:row, a:col)
     
     if empty(l:usr_info)
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
@@ -281,7 +281,7 @@ fun ClRename()
             continue
         endif
 
-        if empty(s:engine_parse(s:channel, info.name))
+        if empty(s:engine_parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n")))
             continue
         endif
 
@@ -300,7 +300,7 @@ fun ClRename()
 
         silent! call s:do_replace(l:usage, l:old, l:new, l:qflist)
 
-        call s:engine_parse(s:channel, info.name)
+        call s:engine_parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n"))
 
         let l:count += 1
         let l:percent = 100.0 * l:count / l:all
@@ -398,6 +398,8 @@ command! ClShowCompileInfo if exists ('s:channel') | echo s:engine_compile_info(
 command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:true) | endif
 command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:false) | endif
 command! ClLoadCdb call s:start_clighter8() | call s:load_cdb()
+command! ClRenameCursor call s:cl_rename(line('.'), col('.'))
+
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
