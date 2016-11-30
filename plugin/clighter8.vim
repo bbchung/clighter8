@@ -328,8 +328,8 @@ fun s:cl_rename(row, col)
     echohl None
 endf
 
-fun! OnTimer(timer)
-    call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
+fun! OnTimer(bufname, timer)
+    call s:engine_req_parse_async(s:channel, a:bufname, 'HandleReqParse')
 endf
 
 func! s:on_text_changed()
@@ -337,7 +337,7 @@ func! s:on_text_changed()
         call timer_stop(s:timer)
     endif
 
-    let s:timer = timer_start(800, 'OnTimer')
+    let s:timer = timer_start(800, function('OnTimer', [expand('%:p')]))
 endf
 
 fun! s:start_clighter8()
