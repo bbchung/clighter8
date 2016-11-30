@@ -42,7 +42,7 @@ endf
 
 func s:engine_parse(channel, bufname, content)
     let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : a:content}}
-    return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
+    return ch_evalexpr(a:channel, l:expr, {'timeout' : 10000})
 endf
 
 fun! s:engine_delete_buffer(channel, bufname)
@@ -63,12 +63,12 @@ endf
 
 fun! s:engine_rename(channel, bufname, usr)
     let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'usr' : a:usr}}
-    return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
+    return ch_evalexpr(a:channel, l:expr, {'timeout' : 10000})
 endf
 
 fun! s:engine_get_cdb_files(channel)
     let l:expr = {'cmd' : 'get_cdb_files', 'params' : {}}
-    return ch_evalexpr(a:channel, l:expr, {'timeout' : 30000})
+    return ch_evalexpr(a:channel, l:expr, {'timeout' : 10000})
 endf
 
 func HandleParse(channel, msg)
