@@ -2,10 +2,9 @@
 
 ## Intro
 
-Clighter8 is a Vim plugin using libclang to help c-family programming.
-Currently it can highlight code semantically and do rename-refactor.
-Clighter8 is designed for the new async io mechanism of Vim, it's cool and
-.
+Clighter8 is a Vim plugin using libclang to help c-family programming and
+Currently it can highlight code semantically and do rename-refactor. Taking
+the benefit from new async api of Vim, Clighter8 is fast and cool.
 
 ## Requirements
 
@@ -25,25 +24,23 @@ Bundle 'bbchung/clighter8'
 
 ## Usage
 
-Clighter8 provides following commands and functions:
+Clighter8 provides following commands.
 
 #### ClStart
 
-Start Clighter8 immediatly. Clighter8 will highlight the code after it starts,
-and the refactor-rename function will be enabled.
+Start Clighter8, highlight the code.
 
 #### ClStop
 
-Stop Clighter8 and cleanup highlight, refactor-rename function will be
-disabled.
+Stop Clighter8.
 
 #### ClRestart
 
-Restart clighter8.
+Restart Clighter8.
 
 #### ClShowCursorInfo
 
-Show cursor informations.
+Show cursor informations from libclang. It's useful when debugging.
 
 #### ClShowCompileInfo
 
@@ -51,25 +48,24 @@ Show compiler args of current buffer.
 
 #### ClEnableLog
 
-Enable clighter8 log, the log file is put under /tmp/clighter8.log.
+Enable log, the path of log file is '/tmp/clighter8.log'.
 
 #### ClDisableLog
 
-Disable clighter8 log.
+Disable log.
 
-#### ClLoadCdb
+#### ClLoadCdb (Experimental)
 
 Open source files described in compilation database and all reference header
-files under current working folder of Vim. It will take a lot of time if the
-compilation database is big.
+files under current working folder of Vim. Notice that it will take much time
+if the compilation database is big.
 
-#### ClRenameCursor
+#### ClRenameCursor (Experimental)
 
-* It's the experimental function to do rename-refactor.
-* The search scope is the list of Vim buffers.
-* There is no one-step undo function.
+Refactor-rename the current cursor of the buffer. Notice that the search scope
+is Vim opened buffers and it's will take much time if there are many opened
+buffers. For convenience, you can add the key mapping in your vimrc:
 
-For convenience, you can add the key mapping in your vimrc:
 ```vim
 nmap <silent> <Leader>r :ClRenameCursor<CR>
 ```
@@ -80,22 +76,22 @@ nmap <silent> <Leader>r :ClRenameCursor<CR>
 
 ## Compilation Database
 
-Clighter8 supports compilation database if the compilation database exists in
-current directory. It's strongly recommended to provide a compilation database
-in your project to get the better result of highlight and refactor-rename. For
-more information about compilation database, please reference [Compilation
-Database][cdb].
+Clighter8 supports compilation database, and it will load the compilation
+database in the current working directory. It's strongly recommended to
+provide a compilation database for Clighter8 to get the better result of
+highlight and refactor-rename. For more information about compilation
+database, please reference [Compilation Database][cdb].
 
 ## FAQ
 
 #### Clighter8 doesn't work?
-Check the Requirements and Installation, and check if a valid libclang path is
-given.
+Check the requirements and installation, and check if a valid libclang path is
+given. Also, you can check /tmp/clighter8.log.
 
 #### ClRenameCursor is experimental?
-Due to the many restrictions, it's hard to do rename-refactor. Clighter8 only
-searches opened buffers in Vim to do renaming and it can't guarantee the
-correctness.
+Due to the many restrictions, it's hard to do rename-refactor of c++ code.
+Clighter8 only searches opened buffers in Vim to do renaming and it can't
+guarantee the correctness.
 
 #### How to set compile args?
 Clighter8 sets the compile args for each file with
