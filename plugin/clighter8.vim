@@ -370,8 +370,9 @@ fun! s:start_clighter8()
     augroup Clighter8
         autocmd!
 
-        au TextChanged,TextChangedI * call s:on_text_changed()
+        au BufEnter,TextChanged,TextChangedI * call s:on_text_changed()
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+        au BufLeave * if exists('s:channel') | call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse') | endif
         au CursorMoved,CursorMovedI * call s:clear_match_by_priorities([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
         au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
         au VimLeave * call s:stop_clighter8()
