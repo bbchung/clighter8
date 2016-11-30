@@ -332,12 +332,12 @@ fun! OnTimer(bufname, timer)
     call s:engine_req_parse_async(s:channel, a:bufname, 'HandleReqParse')
 endf
 
-func! s:on_text_changed()
+func! s:on_text_changed(bufname)
     if exists('s:timer')
         call timer_stop(s:timer)
     endif
 
-    let s:timer = timer_start(800, function('OnTimer', [expand('%:p')]))
+    let s:timer = timer_start(800, function('OnTimer', [a:bufname]))
 endf
 
 fun! s:start_clighter8()
@@ -370,7 +370,7 @@ fun! s:start_clighter8()
     augroup Clighter8
         autocmd!
 
-        au BufEnter,TextChanged,TextChangedI * call s:on_text_changed()
+        au BufEnter,TextChanged,TextChangedI * call s:on_text_changed(expand('%:p'))
         au BufEnter * call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
         au BufLeave * if exists('s:channel') | call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse') | endif
         au CursorMoved,CursorMovedI * call s:clear_match_by_priorities([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
