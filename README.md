@@ -2,12 +2,13 @@
 
 # Intro
 
-Clighter8 is a server-client architecture Vim plugin, implemented with Vim channel api.
-It integrates with [clang][clang] and provides following functions currently:
+Clighter8 is a server-client architecture Vim plugin, implemented with Vim
+channel api. It integrates with [clang][clang] and provides following
+features currently:
 * On-the-fly, highly customized syntax highlight
 * Rename-refactor
-* Compilation database support
-* A function to to integrate with clang-format.py
+* Intelligent compilation database supporting
+* Integrate with clang-format.py
 * A color scheme for Clighter8
 
 # Requirements
@@ -15,7 +16,7 @@ Clighter8 requires the following things:
 
 * Vim with +job and +channel features
 * [libclang][libclang], (3.9 is recommended)
-* clang-format, clang-format.py
+* clang-format-3.9
 
 # Installation
 

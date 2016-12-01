@@ -396,7 +396,7 @@ endf
 
 fun! ClFormat()
     let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
-    execute('pyf '.s:script_folder_path.'/../python/clang-format.py')
+    execute('pyf '.s:script_folder_path.'/../python/third_party/clang-format.py')
 endf
 
 command! ClStart call s:cl_start()
