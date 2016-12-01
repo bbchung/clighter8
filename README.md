@@ -7,7 +7,7 @@ Currently it can highlight code(in realtime, of course) and do
 rename-refactor.  Taking the benefit from new async api of Vim, Clighter8 is
 fast and cool.
 
-## Requirements
+# Requirements
 
 Clighter8 requires the following things:
 
@@ -86,7 +86,7 @@ database, please reference [Compilation Database][cdb].
 ## FAQ
 
 #### Clighter8 doesn't work?
-Check the [Requirements] (##Requirements) and [Installation](##Installation)
+Check the [Requirements](#Requirements) and [Installation](##Installation)
 , and check if a valid libclang path is
 given. Also, you can check /tmp/clighter8.log.
 
