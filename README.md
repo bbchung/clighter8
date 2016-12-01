@@ -86,7 +86,7 @@ database, please reference [Compilation Database][cdb].
 ## FAQ
 
 #### Clighter8 doesn't work?
-Check the [Requirements](##requirements) and [Installation](##installation)
+Check the [requirements] and [Installation](##installation)
 , and check if a valid libclang path is
 given. Also, you can check /tmp/clighter8.log.
 
@@ -111,3 +111,4 @@ Note: This license does not cover the files that come from the LLVM project.
 [gpl]: http://www.gnu.org/copyleft/gpl.html
 [ycm]: https://github.com/Valloric/YouCompleteMe
 [cdb]: http://clang.llvm.org/docs/JSONCompilationDatabase.html
+[requirements]:##Requirements
