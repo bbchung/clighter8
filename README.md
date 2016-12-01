@@ -1,20 +1,19 @@
 # Clighter8: Vim plugin to use libclang to do syntax highlight, code format, refactor
 
-## Intro
+# Intro
 
 Clighter8 is a Vim plugin using libclang to help c-family programming and
 Currently it can highlight code(in realtime, of course) and do
 rename-refactor.  Taking the benefit from new async api of Vim, Clighter8 is
 fast and cool.
 
-## Requirements
-
+# Requirements
 Clighter8 requires the following things:
 
 * Vim with +job and +channel features
 * [libclang][libclang], (3.9 is recommended)
 
-## Installation
+# Installation
 
 Use a plugin manager, for example
 
@@ -23,45 +22,45 @@ Use a plugin manager, for example
 Bundle 'bbchung/clighter8'
 ```
 
-## Usage
+# Usage
 
 Clighter8 provides following commands.
 
-#### ClStart
+## ClStart
 
 Start Clighter8, highlight the code.
 
-#### ClStop
+## ClStop
 
 Stop Clighter8.
 
-#### ClRestart
+## ClRestart
 
 Restart Clighter8.
 
-#### ClShowCursorInfo
+## ClShowCursorInfo
 
 Show cursor informations from libclang. It's useful when debugging.
 
-#### ClShowCompileInfo
+## ClShowCompileInfo
 
 Show compiler args of current buffer.
 
-#### ClEnableLog
+## ClEnableLog
 
 Enable log, the path of log file is '/tmp/clighter8.log'.
 
-#### ClDisableLog
+## ClDisableLog
 
 Disable log.
 
-#### ClLoadCdb (Experimental)
+## ClLoadCdb (Experimental)
 
 It will start clighter8 and open source files described in compilation
 database and all reference header files under current working folder of Vim.
 Notice that it will take much time if the compilation database is big.
 
-#### ClRenameCursor (Experimental)
+## ClRenameCursor (Experimental)
 
 Refactor-rename the current cursor of the buffer. Notice that the search scope
 is Vim opened buffers and it's will take much time if there are many opened
@@ -85,22 +84,22 @@ database, please reference [Compilation Database][cdb].
 
 ## FAQ
 
-#### Clighter8 doesn't work?
-Check the [Requirements][requirements] and [Installation](##installation)
+## Clighter8 doesn't work?
+Check the [Requirements][#requirements] and [Installation](#installation)
 , and check if a valid libclang path is
 given. Also, you can check /tmp/clighter8.log.
 
-#### ClRenameCursor is experimental?
+## ClRenameCursor is experimental?
 Due to the many restrictions, it's hard to do rename-refactor of c++ code.
 Clighter8 only searches opened buffers in Vim to do renaming and it can't
 guarantee the correctness.
 
-#### How to set compile args?
+## How to set compile args?
 Clighter8 sets the compile args for each file with
 (g:clighter8_global_compile_args + "compilation database"). Compile args will
 affect the correctness of highlight and rename-refactor.
 
-## LICENSE
+# LICENSE
 
 This software is licensed under the [GPL v3 license][gpl].
 
@@ -111,4 +110,3 @@ Note: This license does not cover the files that come from the LLVM project.
 [gpl]: http://www.gnu.org/copyleft/gpl.html
 [ycm]: https://github.com/Valloric/YouCompleteMe
 [cdb]: http://clang.llvm.org/docs/JSONCompilationDatabase.html
-[requirements]:##Requirements
