@@ -79,7 +79,12 @@ endfunc
 
 func HandleReqParse(channel, msg)
     if !empty(a:msg)
-        call s:engine_parse_async(a:channel, a:msg, join(getbufline(a:msg, 1,'$'), "\n"), 'HandleParse')
+        let l:content = v:null
+        if bufloaded(a:msg)
+            let l:content = join(getbufline(a:msg, 1,'$'), "\n")
+        endif
+
+        call s:engine_parse_async(a:channel, a:msg, l:content, 'HandleParse')
     endif
 endfunc
 
