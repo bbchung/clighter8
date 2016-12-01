@@ -14,7 +14,7 @@ Clighter8 requires the following things:
 * Vim with +job and +channel features
 * [libclang][libclang], (3.9 is recommended)
 
-## Installation
+# Installation
 
 Use a plugin manager, for example
 
