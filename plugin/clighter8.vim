@@ -4,6 +4,51 @@ endif
 
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
+execute('source '. s:script_folder_path . '/../third_party/gtags.vim')
+
+au VimEnter * call s:check_create_gtags()
+au BufWritePost * call s:check_update_gtags()
+
+fun! s:on_gtags_finish()
+    if exists('s:gtags_need_update') && s:gtags_need_update == 1
+        call s:update_gtags()
+    endif
+endf
+
+fun! s:update_gtags()
+    let s:gtags_need_update = 0
+    let l:cmd = 'global -u --single-update="' . expand('%') . '"'
+    let s:gtags_job = job_start(l:cmd, {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {job, status->s:on_gtags_finish()}})
+endf
+
+fun! s:check_update_gtags()
+    if &diff || index(['c', 'cpp'], &filetype) == -1
+        return
+    endif
+
+    if !executable('global')
+        return
+    endif
+
+    if exists('s:gtags_job') && job_status(s:gtags_job) ==# 'run'
+        let s:gtags_need_update = 1
+    else
+        call s:update_gtags()
+    endif
+endf
+
+fun! s:check_create_gtags()
+    if &diff || index(['c', 'cpp'], &filetype) == -1
+        return
+    endif
+
+    if !executable('gtags') || filereadable('GTAGS')
+        return
+    endif
+
+    let s:gtags_need_update = 0
+    let s:gtags_job = job_start('gtags', {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {job, status->s:on_gtags_finish()}})
+endf
 
 fun! s:engine_init(channel, libclang_path, compile_args, cwd, hlt_whitelist, hlt_blacklist)
     let l:expr = {'cmd' : 'init', 'params' : {'libclang' : a:libclang_path, 'cwd' : a:cwd, 'global_compile_args' : a:compile_args, 'whitelist' : a:hlt_whitelist, 'blacklist' : a:hlt_blacklist}}
@@ -348,7 +393,7 @@ fun! s:cl_start()
     let s:channel = ch_open('localhost:8787')
     if ch_status(s:channel) ==# 'fail'
         let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py '. g:clighter8_logfile
-        let s:job = job_start(l:cmd, {'stoponexit': ''})
+        let s:job = job_start(l:cmd, {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null'})
         let s:channel = ch_open('localhost:8787', {'waittime': 1000})
         if ch_status(s:channel) ==# 'fail'
             echohl ErrorMsg | echo '[clighter8] failed start engine' | echohl None
