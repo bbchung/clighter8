@@ -5,13 +5,13 @@ endif
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
-fun! s:engine_init(channel, libclang_path, compile_args, hlt_whitelist, hlt_blacklist)
-    let l:expr = {'cmd' : 'init', 'params' : {'libclang' : a:libclang_path, 'cwd' : getcwd(), 'global_compile_args' : a:compile_args, 'whitelist' : a:hlt_whitelist, 'blacklist' : a:hlt_blacklist}}
+fun! s:engine_init(channel, libclang_path, compile_args, cwd, hlt_whitelist, hlt_blacklist)
+    let l:expr = {'cmd' : 'init', 'params' : {'libclang' : a:libclang_path, 'cwd' : a:cwd, 'global_compile_args' : a:compile_args, 'whitelist' : a:hlt_whitelist, 'blacklist' : a:hlt_blacklist}}
     return ch_evalexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_get_hlt_async(channel, bufname, row, col, callback)
-    let l:expr = {'cmd' : 'get_hlt', 'params' : {'bufname' : a:bufname, 'begin_line' : line('w0'), 'end_line' : line('w$'), 'row' : a:row, 'col': a:col}}
+fun! s:engine_get_hlt_async(channel, bufname, begin, end, row, col, callback)
+    let l:expr = {'cmd' : 'get_hlt', 'params' : {'bufname' : a:bufname, 'begin_line' : a:begin, 'end_line' : a:end, 'row' : a:row, 'col': a:col}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
@@ -57,8 +57,7 @@ endf
 
 fun! s:engine_get_usr_info(channel, bufname, row, col)
     let l:expr = {'cmd' : 'get_usr_info', 'params' : {'bufname' : a:bufname, 'row' : a:row, 'col': a:col}}
-    let l:result = ch_evalexpr(a:channel, l:expr)
-    return l:result
+    return ch_evalexpr(a:channel, l:expr)
 endf
 
 fun! s:engine_rename(channel, bufname, usr)
@@ -73,7 +72,7 @@ endf
 
 func HandleParse(channel, msg)
     if !empty(a:msg)
-        call s:clear_match_by_priorities([g:clighter8_usage_priority])
+        call s:vim_clear_matches([g:clighter8_usage_priority])
         call s:engine_req_get_hlt_async(a:channel, a:msg['bufname'], 'HandleReqGetHlt')
     endif
 endfunc
@@ -86,7 +85,7 @@ endfunc
 
 func HandleReqGetHlt(channel, msg)
     if !empty(a:msg)
-        call s:engine_get_hlt_async(a:channel, a:msg, line('.'), col('.'), 'HandleGetHlt')
+        call s:engine_get_hlt_async(a:channel, a:msg, line('w0'), line('w$'), line('.'), col('.'), 'HandleGetHlt')
     endif
 endfunc
 
@@ -99,11 +98,11 @@ func HandleGetHlt(channel, msg)
         return
     endif
 
-    call s:clear_match_by_priorities([g:clighter8_syntax_priority, g:clighter8_usage_priority])
-    call s:do_hlt(a:msg['hlt'])
+    call s:vim_clear_matches([g:clighter8_syntax_priority, g:clighter8_usage_priority])
+    call s:vim_highlight(a:msg['hlt'])
 endfunc
 
-func s:do_hlt(matches)
+func s:vim_highlight(matches)
     for [group, all_pos] in items(a:matches)
         let l:count = 0
         let l:match8 = []
@@ -124,7 +123,7 @@ func s:do_hlt(matches)
     endfor
 endf
 
-fun! s:do_replace(usage, old, new, qflist)
+fun! s:vim_replace(usage, old, new, qflist)
     let l:pattern = ''
     for [row, column] in a:usage
         if (!empty(l:pattern))
@@ -140,7 +139,7 @@ fun! s:do_replace(usage, old, new, qflist)
     execute(l:cmd)
 endf
 
-fun! s:clear_match_by_priorities(priorities)
+fun! s:vim_clear_matches(priorities)
     for m in getmatches()
         if index(a:priorities, m['priority']) >= 0
             call matchdelete(m['id'])
@@ -148,7 +147,7 @@ fun! s:clear_match_by_priorities(priorities)
     endfor
 endf
 
-fun! s:load_cdb()
+fun! s:cl_load_cdb()
     let l:cdb_files = s:engine_get_cdb_files(s:channel)
 
     if empty(l:cdb_files)
@@ -191,7 +190,7 @@ fun! s:load_cdb()
     endif
 endf
 
-fun! s:is_header(bufname)
+fun! s:cl_is_header(bufname)
     if empty(a:bufname)
         return ''
     endif
@@ -215,10 +214,6 @@ fun! s:is_header(bufname)
     return a:bufname[l:dot + 1] ==? 'h'
 endf
 
-fun! ClFormat()
-    let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
-    execute('pyf '.s:script_folder_path.'/../python/clang-format.py')
-endf
 
 fun s:cl_rename(row, col)
     if !exists('s:channel')
@@ -270,7 +265,7 @@ fun s:cl_rename(row, col)
     let l:headers = []
     
     for info in l:buffers
-        if s:is_header(info.name) == 1
+        if s:cl_is_header(info.name) == 1
             call add(l:headers, info)
         else
             call add(l:sources, info)
@@ -301,7 +296,7 @@ fun s:cl_rename(row, col)
             endif
         endif
 
-        silent! call s:do_replace(l:usage, l:old, l:new, l:qflist)
+        silent! call s:vim_replace(l:usage, l:old, l:new, l:qflist)
 
         call s:engine_parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n"))
 
@@ -332,7 +327,7 @@ fun! OnTimer(bufname, timer)
     call s:engine_req_parse_async(s:channel, a:bufname, 'HandleReqParse')
 endf
 
-func! s:on_text_changed(bufname)
+func! s:cl_textchanged(bufname)
     if exists('s:timer')
         call timer_stop(s:timer)
     endif
@@ -340,7 +335,7 @@ func! s:on_text_changed(bufname)
     let s:timer = timer_start(800, function('OnTimer', [a:bufname]))
 endf
 
-fun! s:start_clighter8()
+fun! s:cl_start()
     if exists('s:channel')
         return
     endif
@@ -356,7 +351,7 @@ fun! s:start_clighter8()
         endif
     endif
 
-    let l:succ = s:engine_init(s:channel, g:clighter8_libclang_path, g:clighter8_global_compile_args, g:clighter8_highlight_whitelist, g:clighter8_highlight_blacklist)
+    let l:succ = s:engine_init(s:channel, g:clighter8_libclang_path, g:clighter8_global_compile_args, getcwd(), g:clighter8_highlight_whitelist, g:clighter8_highlight_blacklist)
 
     if l:succ == v:false
         echohl ErrorMsg | echo '[clighter8] failed to init client' | echohl None
@@ -370,16 +365,16 @@ fun! s:start_clighter8()
     augroup Clighter8
         autocmd!
 
-        au BufEnter,TextChanged,TextChangedI * call s:on_text_changed(expand('%:p'))
-        au BufEnter * call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+        au BufEnter,TextChanged,TextChangedI * call s:cl_textchanged(expand('%:p'))
+        au BufEnter * call s:vim_clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
         au BufLeave * if exists('s:channel') | call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse') | endif
-        au CursorMoved,CursorMovedI * call s:clear_match_by_priorities([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
+        au CursorMoved,CursorMovedI * call s:vim_clear_matches([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
         au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
-        au VimLeave * call s:stop_clighter8()
+        au VimLeave * call s:cl_stop()
     augroup END
 endf
 
-fun! s:stop_clighter8()
+fun! s:cl_stop()
     augroup Clighter8
         autocmd!
     augroup END
@@ -390,18 +385,23 @@ fun! s:stop_clighter8()
     endif
 
     let a:wnr = winnr()
-    windo call s:clear_match_by_priorities([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+    windo call s:vim_clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
     exe a:wnr.'wincmd w'
 endf
 
-command! ClStart call s:start_clighter8()
-command! ClStop call s:stop_clighter8()
-command! ClRestart call s:stop_clighter8() | call s:start_clighter8()
+fun! ClFormat()
+    let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
+    execute('pyf '.s:script_folder_path.'/../python/clang-format.py')
+endf
+
+command! ClStart call s:cl_start()
+command! ClStop call s:cl_stop()
+command! ClRestart call s:cl_stop() | call s:cl_start()
 command! ClShowCursorInfo if exists ('s:channel') | echo s:engine_cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif
 command! ClShowCompileInfo if exists ('s:channel') | echo s:engine_compile_info(s:channel, expand('%:p')) | endif
 command! ClEnableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:true) | endif
 command! ClDisableLog if exists ('s:channel') | call s:engine_enable_log(s:channel, v:false) | endif
-command! ClLoadCdb call s:start_clighter8() | call s:load_cdb()
+command! ClLoadCdb call s:cl_start() | call s:cl_load_cdb()
 command! ClRenameCursor call s:cl_rename(line('.'), col('.'))
 
 
@@ -415,7 +415,7 @@ let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 
 if g:clighter8_autostart
-    au Filetype c,cpp call s:start_clighter8()
+    au Filetype c,cpp call s:cl_start()
 endif
 
 let g:loaded_clighter8=1

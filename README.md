@@ -57,9 +57,9 @@ Disable log.
 
 #### ClLoadCdb (Experimental)
 
-Open source files described in compilation database and all reference header
-files under current working folder of Vim. Notice that it will take much time
-if the compilation database is big.
+It will start clighter8 and open source files described in compilation
+database and all reference header files under current working folder of Vim.
+Notice that it will take much time if the compilation database is big.
 
 #### ClRenameCursor (Experimental)
 
