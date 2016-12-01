@@ -86,7 +86,7 @@ database, please reference [Compilation Database][cdb].
 ## FAQ
 
 #### Clighter8 doesn't work?
-Check the [Requirements](#Requirements) and [Installation](##Installation)
+Check the [Requirements](##Requirements) and [Installation](##Installation)
 , and check if a valid libclang path is
 given. Also, you can check /tmp/clighter8.log.
 
