@@ -8,6 +8,7 @@ It integrates with [clang][clang] and provides following functions currently:
 * Rename-refactor
 * Compilation database support
 * A function to to integrate with clang-format.py
+* A color scheme for Clighter8
 
 # Requirements
 Clighter8 requires the following things:
