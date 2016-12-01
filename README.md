@@ -77,17 +77,14 @@ buffers. For convenience, you can add the key mapping in your vimrc:
 nmap <silent> <Leader>r :ClRenameCursor<CR>
 ```
 
-## Options
-
-:help clighter8-options
-
 ## Compilation Database
 
-Clighter8 supports compilation database, and it will load the compilation
-database in the current working directory. It's strongly recommended to
-provide a compilation database for Clighter8 to get the better result of
-highlight and refactor-rename. For more information about compilation
-database, please reference [Compilation Database][cdb].
+Clighter8 supports compilation database, and it loads the compilation database
+under the current working directory automatically. Compilation database can
+give Clighter8 the compile args for each source file precisely, so it's
+strongly recommended to provide a compilation database for Clighter8 to get
+the better result of highlight and refactor-rename. For more information about
+compilation database, please reference [Compilation Database][cdb].
 
 ## FAQ
 
