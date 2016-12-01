@@ -1,17 +1,20 @@
-# Clighter8: Vim plugin to use libclang to do syntax highlight, code format, refactor
+# Clighter8: Vim plugin for c/c++ developers and Vim lovers
 
 # Intro
 
-Clighter8 is a Vim plugin using libclang to help c-family programming and
-Currently it can highlight code(in realtime, of course) and do
-rename-refactor.  Taking the benefit from new async api of Vim, Clighter8 is
-fast and cool.
+Clighter8 is a server-client architecture Vim plugin, implemented with Vim channel api.
+It integrates with clang and current provides following functions
+* On-the-fly, highly customized syntax highlight
+* Rename-refactor
+* Compilation database support
+* A function to to integrate with clang-format.py
 
 # Requirements
 Clighter8 requires the following things:
 
 * Vim with +job and +channel features
 * [libclang][libclang], (3.9 is recommended)
+* clang-format, clang-format.py
 
 # Installation
 
