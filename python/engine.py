@@ -6,9 +6,11 @@ import sys
 import os
 from threading import Timer
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/third_party")
+sys.path.append(
+    os.path.dirname(
+        os.path.realpath(__file__)) +
+    "/../third_party")
 from clang import cindex
-
 import clighter8_helper
 
 
