@@ -484,7 +484,7 @@ let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 let g:clighter8_gtags = get(g:, 'clighter8_gtags', 1)
 let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 1)
-let g:clighter8_format_on_save = get(g:, 'clighter8_format_on_save', 1)
+let g:clighter8_format_on_save = get(g:, 'clighter8_format_on_save', 0)
 
 if g:clighter8_autostart
     au Filetype c,cpp call s:cl_start()
