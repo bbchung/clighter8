@@ -402,44 +402,34 @@ fun! s:cl_start()
 
     call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
 
-    if g:clighter8_syntax_highlight == 1
-        augroup Clighter8SyntaxHighlight
-            autocmd!
+    if g:clighter8_auto_gtags == 1
+        call s:check_update_gtags()
+    endif
 
+    augroup Clighter8
+        autocmd!
+
+        if g:clighter8_syntax_highlight == 1
             au BufEnter,TextChanged,TextChangedI * call s:cl_textchanged(expand('%:p'))
             au BufEnter * call s:vim_clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
             au BufLeave * if exists('s:channel') | call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse') | endif
             au CursorMoved,CursorMovedI * call s:vim_clear_matches([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
             au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
             au VimLeave * call s:cl_stop()
-        augroup END
-    endif
+        endif
 
-    if g:clighter8_auto_gtags == 1
-        call s:check_update_gtags()
-
-        augroup Clighter8Gtags
-            autocmd!
-
+        if g:clighter8_auto_gtags == 1
             au BufWritePost,BufEnter * call s:check_update_gtags()
-        augroup END
-    endif
+        endif
 
-    if g:clighter8_format_on_save == 1
-        augroup Clighter8FormatOnSave
-            autocmd!
-
-            au BufWritePost * call ClFormat()
-        augroup END
-    endif
+        if g:clighter8_format_on_save == 1
+            au BufWritePre * call ClFormat()
+        endif
+    augroup END
 endf
 
 fun! s:cl_stop()
-    augroup Clighter8SyntaxHighlight
-        autocmd!
-    augroup END
-
-    augroup Clighter8Gtags
+    augroup Clighter8
         autocmd!
     augroup END
 
@@ -488,7 +478,7 @@ let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 let g:clighter8_auto_gtags = get(g:, 'clighter8_auto_gtags', 1)
 let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 1)
-let g:clighter8_format_on_save = get(g:, 'clighter8_format_on_save', 0)
+let g:clighter8_format_on_save = get(g:, 'clighter8_format_on_save', 1)
 let g:clang_format_path = get(g:, 'clang_format_path', 'clang-format-3.9')
 
 
