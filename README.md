@@ -93,7 +93,7 @@ Check the [Requirements](#requirements) and [Installation](#installation)
 , and check if a valid libclang path is
 given. Also, you can check /tmp/clighter8.log.
 
-## Gtags feature not work?
+## Gtags feature doesn't work?
 Check if both 'gtags' and 'global' are installed and the execute path is under
 system PATH.
 
@@ -111,7 +111,8 @@ affect the correctness of highlight and rename-refactor.
 
 This software is licensed under the [GPL v3 license][gpl].
 
-Note: This license does not cover the files that come from the LLVM project.
+Note: This license does not cover the files that come from the LLVM and GNU
+Global or other third party libraries.
 
 
 [libclang]: http://llvm.org/apt/

@@ -70,37 +70,32 @@ Vundle Install~
 
 
 ------------------------------------------------------------------------------
-						*g:clighter8_autostart*
-g:clighter8_autostart~
+*g:clighter8_autostart*
 
 Config Clighter8 to start automatically.
 
 Default: `1`
 ------------------------------------------------------------------------------
-						*g:clighter8_libclang_path*
-g:clighter8_libclang_path~
+*g:clighter8_libclang_path*
 
 Config the libclang path if libclang is not in default path or Clighter8 can't
 find it.
 
 Default: `''`
 ------------------------------------------------------------------------------
-						*g:clighter8_usage_priority*
-g:clighter8_usage_priority~
+*g:clighter8_usage_priority*
 
 Set the match priority of references.
 
 Default: `-1`
 ------------------------------------------------------------------------------
-						*g:clighter8_syntax_priority*
-g:clighter8_syntax_priority~
+*g:clighter8_syntax_priority*
 
 Set the syntex priority of syntax
 
 Default: `-2`
 ------------------------------------------------------------------------------
-						*g:clighter8_highlight_whitelist*
-g:clighter8_highlight_whitelist~
+*g:clighter8_highlight_whitelist*
 
 Define the group of syntax to highligh.
 
@@ -111,8 +106,7 @@ This is the recommend setting to avoid code being dazzled:
 	let g:clighter8_syntax_groups = ['clighter8NamespaceRef', 'clighter8FunctionDecl']
 <
 ------------------------------------------------------------------------------
-						*g:clighter8_highlight_blacklist*
-g:clighter8_highlight_blacklist~
+*g:clighter8_highlight_blacklist*
 
 Define the group of syntax NOT to highlight. Notice that this option will be
 ignored if g:clighter8_highlight_whitelist is set and if both
@@ -126,8 +120,7 @@ This is the recommend setting to avoid code being dazzled:
 	let g:clighter8_syntax_groups = ['clighter8NamespaceRef', 'clighter8FunctionDecl']
 <
 ------------------------------------------------------------------------------
-						*g:clighter8_global_compile_args*
-g:clighter8_global_compile_args~
+*g:clighter8_global_compile_args*
 
 The global compile args of Clighter8.
 
@@ -135,26 +128,23 @@ Default: `['-x', 'c++']`
 >
 	let g:clighter8_global_compile_args = ['-I/usr/local/include']
 
---------------------------------------------------------------------------------
-						*g:clighter8_logfile*
-g:clighter8_logfile~
+------------------------------------------------------------------------------
+*g:clighter8_logfile*
 
 Set the clighter8 log file path. Notice that this option takes effect after
 clighter server restart.
 
 Default: `'/tmp/clighter8.log'`
 >
---------------------------------------------------------------------------------
-						*g:clighter8_logfile*
-g:clighter8_gtags~
+------------------------------------------------------------------------------
+*g:clighter8_gtags*
 
 Enable auto gtags feature or not.
 
 Default: `1`
 
---------------------------------------------------------------------------------
-						*g:clighter8_logfile*
-g:clighter8_highlight~
+------------------------------------------------------------------------------
+*g:clighter8_highlight*
 
 Enable syntax highlight feature or not.
 
@@ -174,7 +164,7 @@ Clighter8 provides these commands and functions.
 |ClEnableLog|
 |ClDisableLog|
 |ClLoadCdb|
-|Rename()|
+|ClRenameCursor|
 
 ------------------------------------------------------------------------------
 						*ClStart*
@@ -201,13 +191,13 @@ ClShowCursorInfo~
 
 Show cursor informations from libclang. It's useful when debugging.
 
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 						*ShowCompileInfo*
 ClShowCompileInfo~
 
 Show compiler args of current buffer.
 
------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 						*ClEnableLog*
 ClEnableLog~
 
@@ -298,13 +288,19 @@ You can customize these colors in your colorscheme, for example:
 
 ------------------------------------------------------------------------------
 
-#### Clighter8 doesn't work?
-Check the requirements and installation, and check if a valid libclang path is
-given. Also, you can check /tmp/clighter8.log.
+## Highlight feature doesn't work?
+Check |clighter8-requirements| and |clighter8-installation| , and check if a
+valid libclang path is given. Also, you can check /tmp/clighter8.log.
 
 ------------------------------------------------------------------------------
 
-#### ClRenameCursor is experimental?
+## Gtags feature doesn't work?
+Check if both 'gtags' and 'global' are installed and the execute path is under
+system PATH.
+
+------------------------------------------------------------------------------
+
+#### |ClRenameCursor| is experimental?
 Due to the many restrictions, it's hard to do rename-refactor of c++ code.
 Clighter8 only searches opened buffers in Vim to do renaming and it can't
 guarantee the correctness.
@@ -313,7 +309,7 @@ guarantee the correctness.
 
 #### How to set compile args?
 Clighter8 sets the compile args for each file with
-(g:clighter8_global_compile_args + "compilation database"). Compile args will
+(|g:clighter8_global_compile_args| + "compilation database"). Compile args will
 affect the correctness of highlight and rename-refactor.
 
 ==============================================================================
@@ -322,7 +318,8 @@ affect the correctness of highlight and rename-refactor.
 
 This software is licensed under the GPL v3 license.
 
-Note: This license does not cover the files that come from the LLVM project.
+Note: This license does not cover the files that come from the LLVM and GNU
+Global or other third party libraries.
 
 ==============================================================================
 
