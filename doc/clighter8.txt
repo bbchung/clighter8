@@ -65,6 +65,8 @@ Vundle Install~
 |g:clighter8_highlight_blacklist|
 |g:clighter8_global_compile_args|
 |g:clighter8_logfile|
+|g:clighter8_gtags|
+|g:clighter8_highlight|
 
 
 ------------------------------------------------------------------------------
@@ -142,7 +144,21 @@ clighter server restart.
 
 Default: `'/tmp/clighter8.log'`
 >
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+						*g:clighter8_logfile*
+g:clighter8_gtags~
+
+Enable auto gtags feature or not.
+
+Default: `1`
+
+--------------------------------------------------------------------------------
+						*g:clighter8_logfile*
+g:clighter8_highlight~
+
+Enable syntax highlight feature or not.
+
+Default: `1`
 
 ==============================================================================
 						*clighter8-usage*

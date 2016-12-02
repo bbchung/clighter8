@@ -11,6 +11,7 @@ from clang import cindex
 
 import clighter8_helper
 
+
 class BufferData:
 
     def __init__(self):

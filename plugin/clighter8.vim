@@ -6,8 +6,6 @@ let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 execute('source '. s:script_folder_path . '/../third_party/gtags.vim')
 
-au VimEnter * call s:check_create_gtags()
-au BufWritePost * call s:check_update_gtags()
 
 fun! s:on_gtags_finish()
     if exists('s:gtags_need_update') && s:gtags_need_update == 1
@@ -204,7 +202,7 @@ fun! s:cl_load_cdb()
         echohl WarningMsg | echo '[clighter8] no files to open' | echohl None
         return
     endif
-    
+
     let l:all = len(l:cdb_files)
     let l:chk = 10
     let l:count = 0
@@ -234,7 +232,7 @@ fun! s:cl_load_cdb()
         endif
     endfor
     echohl None
-    
+
     if !empty(l:new)
         execute('n! ' . l:new)
     endif
@@ -277,7 +275,7 @@ fun s:cl_rename(row, col)
     endif
 
     let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, a:row, a:col)
-    
+
     if empty(l:usr_info)
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
         return
@@ -313,7 +311,7 @@ fun s:cl_rename(row, col)
     " to sort the buffers
     let l:sources = []
     let l:headers = []
-    
+
     for info in l:buffers
         if s:cl_is_header(info.name) == 1
             call add(l:headers, info)
@@ -364,7 +362,7 @@ fun s:cl_rename(row, col)
     call setpos('.', l:pos)
     copen
     exe l:wnr.'wincmd w'
-    
+
     if l:prompt == 2
         let l:seconds = reltimefloat(reltime(l:start))
         echo printf('[clighter8] time usage: %f seconds', l:seconds)
@@ -412,16 +410,27 @@ fun! s:cl_start()
 
     call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
 
-    augroup Clighter8
-        autocmd!
+    if g:clighter8_syntax_highlight == 1
+        augroup Clighter8SyntaxHighlight
+            autocmd!
 
-        au BufEnter,TextChanged,TextChangedI * call s:cl_textchanged(expand('%:p'))
-        au BufEnter * call s:vim_clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-        au BufLeave * if exists('s:channel') | call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse') | endif
-        au CursorMoved,CursorMovedI * call s:vim_clear_matches([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
-        au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
-        au VimLeave * call s:cl_stop()
-    augroup END
+            au BufEnter,TextChanged,TextChangedI * call s:cl_textchanged(expand('%:p'))
+            au BufEnter * call s:vim_clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+            au BufLeave * if exists('s:channel') | call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse') | endif
+            au CursorMoved,CursorMovedI * call s:vim_clear_matches([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
+            au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
+            au VimLeave * call s:cl_stop()
+        augroup END
+    endif
+
+    if g:clighter8_gtags == 1
+        augroup Clighter8Gtags
+            autocmd!
+
+            au VimEnter * call s:check_create_gtags()
+            au BufWritePost,BufEnter * call s:check_update_gtags()
+        augroup END
+    endif
 endf
 
 fun! s:cl_stop()
@@ -463,6 +472,8 @@ let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [
 let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
+let g:clighter8_gtags = get(g:, 'clighter8_gtags', 1)
+let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 0)
 
 if g:clighter8_autostart
     au Filetype c,cpp call s:cl_start()
