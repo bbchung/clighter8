@@ -98,6 +98,9 @@ given. Also, you can check /tmp/clighter8.log.
 Check if both 'gtags' and 'global' are installed and the execute path is under
 system PATH.
 
+## Clang format integration doesn't work?
+Check 'clang-format-3.9' is executable and set g:clang_format_path if need.
+
 ## ClRenameCursor is experimental?
 Due to the many restrictions, it's hard to do rename-refactor of c++ code.
 Clighter8 only searches opened buffers in Vim to do renaming and it can't
