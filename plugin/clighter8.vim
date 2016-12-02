@@ -434,7 +434,11 @@ fun! s:cl_start()
 endf
 
 fun! s:cl_stop()
-    augroup Clighter8
+    augroup Clighter8SyntaxHighlight
+        autocmd!
+    augroup END
+
+    augroup Clighter8Gtags
         autocmd!
     augroup END
 
@@ -473,7 +477,7 @@ let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 let g:clighter8_gtags = get(g:, 'clighter8_gtags', 1)
-let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 0)
+let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 1)
 
 if g:clighter8_autostart
     au Filetype c,cpp call s:cl_start()
