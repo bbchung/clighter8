@@ -8,10 +8,10 @@ provides following features currently:
 
 * On-the-fly, highly customized syntax highlight
 * Rename-refactor
-* Automatically update gtags in background
+* Automatic backgroud gtags updating
 * Intelligent compilation database supporting
-* Integrate with clang-format.py
-* A color scheme for Clighter8
+* clang-format integration
+* A beautiful color scheme
 
 # Requirements
 Clighter8 requires the following things:

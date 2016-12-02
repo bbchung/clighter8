@@ -22,10 +22,10 @@ features currently:
 
 * On-the-fly, highly customized syntax highlight
 * Rename-refactor
-* Automatic gtags updating
+* Automatic backgroud gtags updating
 * Intelligent compilation database supporting
 * clang-format integration
-* A nice color scheme
+* A beautiful color scheme
 
 Github~
 
