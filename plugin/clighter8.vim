@@ -424,6 +424,14 @@ fun! s:cl_start()
             au BufWritePost,BufEnter * call s:check_create_gtags()
         augroup END
     endif
+
+    if g:clighter8_format_on_save == 1
+        augroup Clighter8FormatOnSave
+            autocmd!
+
+            au BufWritePost * call ClFormat()
+        augroup END
+    endif
 endf
 
 fun! s:cl_stop()
@@ -446,7 +454,12 @@ fun! s:cl_stop()
 endf
 
 fun! ClFormat()
-    let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
+    if v:count == 0
+        let l:lines='all'
+    else
+        let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
+    endif
+
     execute('pyf '.s:script_folder_path.'/../python/third_party/clang-format.py')
 endf
 
@@ -471,6 +484,7 @@ let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', [
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 let g:clighter8_gtags = get(g:, 'clighter8_gtags', 1)
 let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 1)
+let g:clighter8_format_on_save = get(g:, 'clighter8_format_on_save', 1)
 
 if g:clighter8_autostart
     au Filetype c,cpp call s:cl_start()

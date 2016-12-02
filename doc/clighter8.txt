@@ -1,4 +1,4 @@
-*clighter8*	Plugin to improve c-family development environment based on Clang
+*clighter8*	Clighter8: Vim plugin for c/c++ developers and Vim lovers
 
 ==============================================================================
 CONTENTS					*clighter8-contents*
@@ -17,15 +17,15 @@ CONTENTS					*clighter8-contents*
 1. Intro~
 
 Clighter8 is a server-client architecture Vim plugin, implemented with Vim
-channel api. Clighter8 integrates with [clang][clang], [gtags][gtags] and
-provides following features currently:
+channel api. Clighter8 integrates clang, GNU Global and provides following
+features currently:
 
 * On-the-fly, highly customized syntax highlight
 * Rename-refactor
-* Auto update gtags in background
+* Automatic gtags updating
 * Intelligent compilation database supporting
-* Integrate with clang-format.py
-* A color scheme for Clighter8
+* clang-format integration
+* A nice color scheme
 
 Github~
 
@@ -67,7 +67,7 @@ Vundle Install~
 |g:clighter8_logfile|
 |g:clighter8_gtags|
 |g:clighter8_highlight|
-
+|g:clighter8_format_on_save|
 
 ------------------------------------------------------------------------------
 *g:clighter8_autostart*
@@ -149,6 +149,13 @@ Default: `1`
 Enable syntax highlight feature or not.
 
 Default: `1`
+
+------------------------------------------------------------------------------
+*g:clighter8_format_on_save*
+
+Format code after file save.
+
+Default: `0`
 
 ==============================================================================
 						*clighter8-usage*
