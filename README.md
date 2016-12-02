@@ -65,7 +65,7 @@ Disable log.
 ## ClLoadCdb (Experimental)
 
 It will start clighter8 and open source files described in compilation
-database and all reference header files under current working folder of Vim.
+database and all referenced header files under current working folder of Vim.
 Notice that it will take much time if the compilation database is big.
 
 ## ClRenameCursor (Experimental)
@@ -80,19 +80,18 @@ nmap <silent> <Leader>r :ClRenameCursor<CR>
 
 ## Compilation Database
 
-Clighter8 supports compilation database, and it loads the compilation database
-under the current working directory automatically. Compilation database can
-give Clighter8 the compile args for each source file precisely, so it's
-strongly recommended to provide a compilation database for Clighter8 to get
-the better result of highlight and refactor-rename. For more information about
-compilation database, please reference [Compilation Database][cdb].
+Clighter8 supports compilation database, and it will load the compilation
+database in the current working directory. It's strongly recommended to
+provide a compilation database for Clighter8 to get the better result of
+syntax highlight and refactor-rename. For more information about compilation
+database, please reference [Compilation Database][cdb].
 
 ## FAQ
 
 ## Highlight feature doesn't work?
-Check the [Requirements](#requirements) and [Installation](#installation)
-, and check if a valid libclang path is
-given. Also, you can check /tmp/clighter8.log.
+Check the [Requirements](#requirements) and [Installation](#installation) ,
+and check if a valid libclang path is given. Also, you can check
+/tmp/clighter8.log.
 
 ## Gtags feature doesn't work?
 Check if both 'gtags' and 'global' are installed and the execute path is under

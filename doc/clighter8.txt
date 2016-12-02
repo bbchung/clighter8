@@ -221,7 +221,7 @@ Disable log.
 ClLoadCdb~
 
 It will start clighter8 and open source files described in compilation
-database and all reference header files under current working folder of Vim.
+database and all referenced header files under current working folder of Vim.
 Notice that it will take much time if the compilation database is big.
 
 ------------------------------------------------------------------------------
@@ -241,7 +241,7 @@ buffers. For convenience, you can add the key mapping in your vimrc:
 Clighter8 supports compilation database, and it will load the compilation
 database in the current working directory. It's strongly recommended to
 provide a compilation database for Clighter8 to get the better result of
-highlight and refactor-rename. For more information about compilation
+syntax highlight and refactor-rename. For more information about compilation
 database, please reference
 http://clang.llvm.org/docs/JSONCompilationDatabase.html
 
