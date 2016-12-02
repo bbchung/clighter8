@@ -94,8 +94,8 @@ and check if a valid libclang path is given. Also, you can check
 /tmp/clighter8.log.
 
 ## Gtags feature doesn't work?
-Check if both 'gtags' and 'global' are installed and the execute path is under
-system PATH.
+Check if both 'gtags' and 'global' are installed and the execute path are
+under system PATH.
 
 ## Clang format integration doesn't work?
 Check 'clang-format-3.9' is executable and set g:clang_format_path if need.
