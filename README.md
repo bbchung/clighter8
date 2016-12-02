@@ -88,10 +88,14 @@ compilation database, please reference [Compilation Database][cdb].
 
 ## FAQ
 
-## Clighter8 doesn't work?
+## Highlight feature doesn't work?
 Check the [Requirements](#requirements) and [Installation](#installation)
 , and check if a valid libclang path is
 given. Also, you can check /tmp/clighter8.log.
+
+## Gtags feature not work?
+Check if both 'gtags' and 'global' are installed and the execute path is under
+system PATH.
 
 ## ClRenameCursor is experimental?
 Due to the many restrictions, it's hard to do rename-refactor of c++ code.

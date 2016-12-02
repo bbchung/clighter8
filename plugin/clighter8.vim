@@ -6,10 +6,9 @@ let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 execute('source '. s:script_folder_path . '/../third_party/gtags.vim')
 
-
 fun! s:on_gtags_finish()
     if exists('s:gtags_need_update') && s:gtags_need_update == 1
-        call s:update_gtags()
+        call s:check_create_gtags()
     endif
 endf
 
@@ -19,33 +18,26 @@ fun! s:update_gtags()
     let s:gtags_job = job_start(l:cmd, {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {job, status->s:on_gtags_finish()}})
 endf
 
-fun! s:check_update_gtags()
-    if &diff || index(['c', 'cpp'], &filetype) == -1
-        return
-    endif
-
-    if !executable('global')
+fun! s:check_create_gtags()
+    if &diff
         return
     endif
 
     if exists('s:gtags_job') && job_status(s:gtags_job) ==# 'run'
         let s:gtags_need_update = 1
     else
-        call s:update_gtags()
-    endif
-endf
+        let s:gtags_need_update = 0
 
-fun! s:check_create_gtags()
-    if &diff || index(['c', 'cpp'], &filetype) == -1
-        return
+        if filereadable('GPATH') && filereadable('GRTAGS') && filereadable('GTAGS')
+            if executable('global')
+                call s:update_gtags()
+            endif
+        else
+            if executable('gtags')
+                let s:gtags_job = job_start('gtags', {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {job, status->s:on_gtags_finish()}})
+            endif
+        endif
     endif
-
-    if !executable('gtags') || filereadable('GTAGS')
-        return
-    endif
-
-    let s:gtags_need_update = 0
-    let s:gtags_job = job_start('gtags', {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {job, status->s:on_gtags_finish()}})
 endf
 
 fun! s:engine_init(channel, libclang_path, compile_args, cwd, hlt_whitelist, hlt_blacklist)
@@ -424,11 +416,12 @@ fun! s:cl_start()
     endif
 
     if g:clighter8_gtags == 1
+        call s:check_create_gtags()
+
         augroup Clighter8Gtags
             autocmd!
 
-            au VimEnter * call s:check_create_gtags()
-            au BufWritePost,BufEnter * call s:check_update_gtags()
+            au BufWritePost,BufEnter * call s:check_create_gtags()
         augroup END
     endif
 endf
