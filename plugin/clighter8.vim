@@ -8,7 +8,7 @@ execute('source '. s:script_folder_path . '/../third_party/gtags.vim')
 
 fun! s:on_gtags_finish()
     if exists('s:gtags_need_update') && s:gtags_need_update == 1
-        call s:check_create_gtags()
+        call s:check_update_gtags()
     endif
 endf
 
@@ -18,7 +18,7 @@ fun! s:update_gtags()
     let s:gtags_job = job_start(l:cmd, {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {job, status->s:on_gtags_finish()}})
 endf
 
-fun! s:check_create_gtags()
+fun! s:check_update_gtags()
     if &diff
         return
     endif
@@ -415,13 +415,13 @@ fun! s:cl_start()
         augroup END
     endif
 
-    if g:clighter8_gtags == 1
-        call s:check_create_gtags()
+    if g:clighter8_auto_gtags == 1
+        call s:check_update_gtags()
 
         augroup Clighter8Gtags
             autocmd!
 
-            au BufWritePost,BufEnter * call s:check_create_gtags()
+            au BufWritePost,BufEnter * call s:check_update_gtags()
         augroup END
     endif
 
@@ -486,7 +486,7 @@ let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [
 let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
-let g:clighter8_gtags = get(g:, 'clighter8_gtags', 1)
+let g:clighter8_auto_gtags = get(g:, 'clighter8_auto_gtags', 1)
 let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 1)
 let g:clighter8_format_on_save = get(g:, 'clighter8_format_on_save', 0)
 let g:clang_format_path = get(g:, 'clang_format_path', 'clang-format-3.9')
