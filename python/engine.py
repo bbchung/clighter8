@@ -1,183 +1,93 @@
+#! /usr/bin/python
+
 import logging
 import json
 import SocketServer as socketserver
+import threading
+import sys
+import os
+from threading import Timer
 
+sys.path.append(
+    os.path.dirname(
+        os.path.realpath(__file__)) +
+    "/../third_party")
 from clang import cindex
-import compilation_database
 import clighter8_helper
 
-CUSTOM_SYNTAX_GROUP = {
-    cindex.CursorKind.INCLUSION_DIRECTIVE: 'clighter8InclusionDirective',
-    cindex.CursorKind.MACRO_INSTANTIATION: 'clighter8MacroInstantiation',
-    cindex.CursorKind.VAR_DECL: 'clighter8VarDecl',
-    cindex.CursorKind.STRUCT_DECL: 'clighter8StructDecl',
-    cindex.CursorKind.UNION_DECL: 'clighter8UnionDecl',
-    cindex.CursorKind.CLASS_DECL: 'clighter8ClassDecl',
-    cindex.CursorKind.ENUM_DECL: 'clighter8EnumDecl',
-    cindex.CursorKind.PARM_DECL: 'clighter8ParmDecl',
-    cindex.CursorKind.FUNCTION_DECL: 'clighter8FunctionDecl',
-    cindex.CursorKind.FUNCTION_TEMPLATE: 'clighter8FunctionDecl',
-    cindex.CursorKind.CXX_METHOD: 'clighter8FunctionDecl',
-    cindex.CursorKind.CONSTRUCTOR: 'clighter8FunctionDecl',
-    cindex.CursorKind.DESTRUCTOR: 'clighter8FunctionDecl',
-    cindex.CursorKind.FIELD_DECL: 'clighter8FieldDecl',
-    cindex.CursorKind.ENUM_CONSTANT_DECL: 'clighter8EnumConstantDecl',
-    cindex.CursorKind.NAMESPACE: 'clighter8Namespace',
-    cindex.CursorKind.CLASS_TEMPLATE: 'clighter8ClassDecl',
-    cindex.CursorKind.TEMPLATE_TYPE_PARAMETER: 'clighter8TemplateTypeParameter',
-    cindex.CursorKind.TEMPLATE_NON_TYPE_PARAMETER: 'clighter8TemplateNoneTypeParameter',
-    cindex.CursorKind.TYPE_REF: 'clighter8TypeRef',  # class ref
-    cindex.CursorKind.NAMESPACE_REF: 'clighter8NamespaceRef',  # namespace ref
-    cindex.CursorKind.TEMPLATE_REF: 'clighter8TemplateRef',  # template class ref
-    cindex.CursorKind.DECL_REF_EXPR:
-    {
-        cindex.TypeKind.FUNCTIONPROTO: 'clighter8DeclRefExprCall',  # function call
-        cindex.TypeKind.ENUM: 'clighter8DeclRefExprEnum',  # enum ref
-        cindex.TypeKind.TYPEDEF: 'clighter8TypeRef',  # ex: cout
-    },
-    # ex: designated initializer
-    cindex.CursorKind.MEMBER_REF: 'clighter8DeclRefExprCall',
-    cindex.CursorKind.MEMBER_REF_EXPR:
-    {
-        cindex.TypeKind.UNEXPOSED: 'clighter8MemberRefExprCall',  # member function call
-    },
-}
 
+class BufferData:
 
-def _get_default_syn(cursor_kind):
-    if cursor_kind.is_preprocessing():
-        return 'clighter8Prepro'
-    elif cursor_kind.is_declaration():
-        return 'clighter8Decl'
-    elif cursor_kind.is_reference():
-        return 'clighter8Ref'
-    else:
-        return None
-
-
-def _get_syntax_group(cursor, blacklist):
-    group = _get_default_syn(cursor.kind)
-
-    custom = CUSTOM_SYNTAX_GROUP.get(cursor.kind)
-    if custom:
-        if cursor.kind == cindex.CursorKind.DECL_REF_EXPR:
-            custom = custom.get(cursor.type.kind)
-            if custom:
-                group = custom
-        elif cursor.kind == cursor.kind == cindex.CursorKind.MEMBER_REF_EXPR:
-            custom = custom.get(cursor.type.kind)
-            if custom:
-                group = custom
-            else:
-                group = 'clighter8MemberRefExprVar'
-        else:
-            group = custom
-
-    if group in blacklist:
-        return None
-
-    return group
-
-
-class ClientData:
-    translation_units = {}
-    unsaved = []
-    cdb = None
-    idx = None
-    global_args = None
-
-
-def parse_line_delimited(data, on_parse):
-    i = 0
-    sz = len(data)
-    start = 0
-    while i < sz:
-        if data[i] == '\n':
-            on_parse(data[start:i])
-            start = i + 1
-
-        i += 1
-
-    return data[start:]
-
-
-def parse_concatenated(data):
-    result = []
-    quatos = 0
-    i = 0
-    sz = len(data)
-    depth = 0
-    start = 0
-    used = -1
-    while i < sz:
-        if i > 0 and data[i - 1] == "\\":
-            i += 1
-            continue
-
-        if data[i] == '"':
-            quatos += 1
-        elif data[i] == '[' and quatos % 2 == 0:
-            depth += 1
-        elif data[i] == ']' and quatos % 2 == 0:
-            depth -= 1
-            if depth == 0:
-                used = i
-                result.append(data[start:i + 1])
-                start = i + 1
-
-        i += 1
-
-    return result, data[used + 1:]
+    def __init__(self):
+        self.tu = None
+        self.compile_args = None
+        self.parse_busy = False
+        self.hlt_busy = False
 
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
+    def __init__(self, request, client_addres, server):
+        self.buffer_data = {}
+        self.unsaved = []
+        self.cdb = None
+        self.idx = None
+        self.global_compile_args = None
+        self.whitelist = []
+        self.blacklist = []
+        self.cwd = None
+
+        socketserver.BaseRequestHandler.__init__(
+            self, request, client_addres, server)
+
     def handle(self):
         remain = ''
-        server.clients[self.request] = ClientData()
-        logging.info('socket accepted')
+        server.add_client(self.request)
+        logging.info('accept a vim client')
         while True:
             try:
                 data = self.request.recv(8192)
             except:
-                logging.warn('socket error')
+                logging.warn('socket recv error')
                 break
 
-            #print("received: {0}{1}".format(data, len(data)))
+            # print("received: {0}{1}".format(data, len(data)))
             if data == '':
                 break
 
             if remain != '':
                 data = remain + data
 
-            remain = parse_line_delimited(data, self.handle_json)
+            remain = clighter8_helper.parse_line_delimited(
+                data, self.__handle_json)
 
-        del server.clients[self.request]
-        self.request = None
+        self.request.close()
 
-        num_client = len(server.clients)
-        logging.info("socket closed(%d clients remains)" % num_client)
-        if num_client == 0:
-            logging.info('server shutdown')
-            server.shutdown()
-            server.server_close()
+        server.remove_client(self.request)
 
-    def handle_json(self, json_str):
+    def __handle_json(self, json_str):
         try:
             decoded = json.loads(json_str)
         except ValueError:
             logging.warn('json decoding failed')
+            return
 
         if decoded[0] >= 0:
-            self.handle_msg(decoded[0], decoded[1])
+            self.__handle_msg(decoded[0], decoded[1])
 
+    def __safe_sendall(self, msg):
+        try:
+            self.request.sendall(msg)
+        except:
+            logging.warn('socket send error')
+            pass
 
-    def handle_msg(self, sn, msg):
-        if msg['cmd'] == 'init_client':
+    def __handle_msg(self, sn, msg):
+        if msg['cmd'] == 'init':
             libclang = msg["params"]["libclang"]
             cwd = msg["params"]["cwd"]
-            hcargs = msg["params"]["hcargs"]
-            gcargs = msg["params"]["gcargs"]
+            global_compile_args = msg["params"]["global_compile_args"]
+            whitelist = msg["params"]["whitelist"]
             blacklist = msg["params"]["blacklist"]
 
             try:
@@ -186,230 +96,322 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             except:
                 logging.warn('cannot config library path')
 
-            succ = server.init_client(
-                self.request, cwd, hcargs, gcargs, blacklist)
-            self.request.sendall(json.dumps([sn, succ]))
+            result = self.__init(
+                cwd, global_compile_args, whitelist, blacklist)
+            self.__safe_sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'parse':
-            bufname = msg['params']['bufname'].encode("utf-8")
-            content = msg['params']['content'].encode("utf-8")
+            bufname = msg['params']['bufname']
+            content = msg['params']['content']
 
-            logging.info("parse %s" % bufname)
             if not bufname:
-                self.request.sendall(json.dumps([sn, False]))
+                self.__safe_sendall(json.dumps([sn, None]))
                 return
 
-            self.server.update_unsaved(self.request, bufname, content)
-            self.server.parse_or_reparse(self.request, bufname)
+            bufname = bufname.encode('utf-8')
 
-            self.request.sendall(json.dumps([sn, True]))
+            if content is not None:
+                self.__update_unsaved(bufname, content.encode('utf-8'))
 
-        elif msg['cmd'] == 'notify_parse':
-            bufname = msg['params']['bufname'].encode("utf-8")
-            if server.is_dirty(self.request, bufname):
-                self.request.sendall(json.dumps([sn, ""]))
+            self.__parse(bufname)
+            updates = self.__update_inc_compile_args(bufname, None)
+
+            self.__safe_sendall(json.dumps(
+                [sn, {'bufname': bufname, 'updates': updates}]))
+
+        elif msg['cmd'] == 'req_parse':
+            bufname = msg['params']['bufname']
+
+            if not bufname:
+                self.__safe_sendall(json.dumps([sn, None]))
                 return
 
-            server.set_dirty(self.request, bufname)
-            self.request.sendall(json.dumps([sn, bufname]))
+            bufname = bufname.encode('utf-8')
 
-        elif msg['cmd'] == 'notify_highlight':
-            bufname = msg['params']['bufname'].encode("utf-8")
-
-            if server.is_hl_flag_set(self.request, bufname):
-                self.request.sendall(json.dumps([sn, ""]))
+            if self.__is_parse_busy(bufname):
+                self.__safe_sendall(json.dumps([sn, None]))
                 return
 
-            server.set_hl_flag(self.request, bufname)
-            self.request.sendall(json.dumps([sn, bufname]))
+            self.__set_parse_busy(bufname)
+            self.__safe_sendall(json.dumps([sn, bufname]))
 
+        elif msg['cmd'] == 'req_get_hlt':
+            bufname = msg['params']['bufname']
 
-        elif msg['cmd'] == 'highlight':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            if not bufname:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
+
+            if self.__is_hlt_busy(bufname):
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
+
+            self.__set_hlt_busy(bufname)
+            self.__safe_sendall(json.dumps([sn, bufname]))
+
+        elif msg['cmd'] == 'get_hlt':
+            bufname = msg['params']['bufname']
             begin_line = msg['params']['begin_line']
             end_line = msg['params']['end_line']
             row = msg['params']['row']
             col = msg['params']['col']
 
-            server.clear_hl_flag(self.request, bufname)
+            if not bufname:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
 
-            result = self.server.highlight(
-                self.request, bufname, begin_line, end_line, row, col)
-            self.request.sendall(json.dumps(
-                [sn, [bufname, result]]))
+            bufname = bufname.encode('utf-8')
+
+            self.__unset_hlt_busy(bufname)
+            hlt = self.__get_hlt(
+                bufname, begin_line, end_line, row, col)
+
+            result = {'bufname': bufname, 'hlt': hlt}
+            self.__safe_sendall(json.dumps(
+                [sn, result]))
 
         elif msg['cmd'] == 'delete_buffer':
-            bufname = msg['params']['bufname'].encode("utf-8")
-            self.server.delete_tu(self.request, bufname)
+            bufname = msg['params']['bufname']
 
-        elif msg['cmd'] == 'rename':
-            bufname = msg['params']['bufname'].encode("utf-8")
+            if not bufname:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
+            self.__delete_buffer_data(bufname)
+
+            self.__safe_sendall(json.dumps([sn, bufname]))
+
+        elif msg['cmd'] == 'get_usr_info':
+            bufname = msg['params']['bufname']
             row = msg['params']['row']
             col = msg['params']['col']
 
-            #self.server.parse_or_reparse(self.request, bufname)
-
-            if bufname not in self.server.get_all_tu(self.request):
-                self.request.sendall(json.dumps([sn, {}]))
+            if not bufname:
+                self.__safe_sendall(json.dumps([sn, None]))
                 return
 
-            tu = self.server.get_all_tu(self.request)[bufname][0]
+            bufname = bufname.encode('utf-8')
+
+            bfdata = self.buffer_data.get(bufname)
+            if not bfdata or not bfdata.tu:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
+
             symbol = clighter8_helper.get_semantic_symbol_from_location(
-                tu, bufname, row, col)
+                bfdata.tu, bufname, row, col)
 
             if not symbol:
-                logging.info("not symbol at %s:[%d, %d]" % (bufname, row, col))
-                self.request.sendall(json.dumps([sn, {}]))
+                self.__safe_sendall(json.dumps([sn, None]))
                 return
 
-            usr = symbol.get_usr()
-            if not usr:
-                self.request.sendall(json.dumps([sn, {}]))
+            self.__safe_sendall(json.dumps(
+                [sn, [symbol.spelling, symbol.get_usr()]]))
+
+        elif msg['cmd'] == 'rename':
+            bufname = msg['params']['bufname']
+            usr = msg['params']['usr']
+
+            if not bufname:
+                self.__safe_sendall(json.dumps([sn, None]))
                 return
 
-            result = {'old': symbol.spelling, 'renames': {}}
+            bufname = bufname.encode('utf-8')
 
-            for next_bufname, next_tu in self.server.get_all_tu(
-                    self.request).iteritems():
-                locations = []
-                clighter8_helper.search_referenced_tokens_by_usr(
-                    next_tu[0], usr, locations, symbol.spelling)
+            buffer_data = self.buffer_data.get(bufname)
+            if not buffer_data:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
 
-                if locations:
-                    result['renames'][next_bufname] = locations
+            usage = []
+            clighter8_helper.search_by_usr(
+                self.buffer_data.get(bufname).tu, usr, usage)
 
-            self.request.sendall(json.dumps([sn, result]))
+            self.__safe_sendall(json.dumps([sn, usage]))
 
-        elif msg['cmd'] == 'info':
-            bufname = msg['params']['bufname'].encode("utf-8")
+        elif msg['cmd'] == 'cursor_info':
+            bufname = msg['params']['bufname']
             row = msg['params']['row']
             col = msg['params']['col']
 
-            tu = self.server.get_all_tu(self.request)[bufname][0]
+            if not bufname:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
+
+            tu = self.buffer_data.get(bufname).tu
             cursor = clighter8_helper.get_cursor(tu, bufname, row, col)
 
             if not cursor:
-                self.request.sendall(json.dumps([sn, None]))
+                self.__safe_sendall(json.dumps([sn, None]))
                 return
-
 
             result = {
                 'cursor': str(cursor), 'cursor.kind': str(
                     cursor.kind), 'cursor.type.kind': str(
-                    cursor.type.kind), 'cursor.spelling': cursor.spelling}
-            self.request.sendall(json.dumps([sn, result]))
+                    cursor.type.kind), 'cursor.spelling': cursor.spelling, 'location': [
+                    cursor.location.line, cursor.location.column]}
+            self.__safe_sendall(json.dumps([sn, result]))
+
+        elif msg['cmd'] == 'compile_info':
+            bufname = msg['params']['bufname']
+
+            if not bufname:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
+
+            bufname = bufname.encode('utf-8')
+
+            result = self.buffer_data.get(bufname).compile_args
+            self.__safe_sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'enable_log':
             enable = msg['params']['enable']
+
             if enable:
                 logging.disable(logging.NOTSET)
-                logging.info("enable logger")
             else:
                 logging.disable(logging.CRITICAL)
-                logging.info("disable logger")
 
-            self.request.sendall(json.dumps([sn, True]))
+            self.__safe_sendall(json.dumps([sn, enable]))
 
+        elif msg['cmd'] == 'get_cdb_files':
+            if not self.cdb:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
 
-class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    clients = {}
+            cmds = self.cdb.getAllCompileCommands()
 
-    def get_all_tu(self, cli):
-        return self.clients[cli].translation_units
+            result = set()
 
-    def delete_tu(self, cli, bufname):
-        try:
-            del self.clients[cli].translation_units[bufname]
-        except:
-            pass
+            for cmd in cmds:
+                result.add(os.path.join(cmd.directory, cmd.filename))
 
-    def set_dirty(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            self.clients[cli].translation_units[bufname][1] = True
+            self.__safe_sendall(json.dumps([sn, list(result)]))
 
-    def is_dirty(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            return self.clients[cli].translation_units[bufname][1]
+    def __delete_buffer_data(self, bufname):
+        if bufname in self.buffer_data:
+            del self.buffer_data[bufname]
 
-        return False
+    def __set_parse_busy(self, bufname):
+        if bufname in self.buffer_data:
+            self.buffer_data[bufname].parse_busy = True
 
-    def set_hl_flag(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            self.clients[cli].translation_units[bufname][2] = True
-
-    def clear_hl_flag(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            self.clients[cli].translation_units[bufname][2] = False
-
-    def is_hl_flag_set(self, cli, bufname):
-        if bufname in self.clients[cli].translation_units:
-            return self.clients[cli].translation_units[bufname][2]
+    def __is_parse_busy(self, bufname):
+        if bufname in self.buffer_data:
+            return self.buffer_data[bufname].parse_busy
 
         return False
 
+    def __set_hlt_busy(self, bufname):
+        if bufname in self.buffer_data:
+            self.buffer_data[bufname].hlt_busy = True
 
-    def init_client(self, cli, cwd, hcargs, gcargs, blacklist):
+    def __unset_hlt_busy(self, bufname):
+        if bufname in self.buffer_data:
+            self.buffer_data[bufname].hlt_busy = False
+
+    def __is_hlt_busy(self, bufname):
+        if bufname in self.buffer_data:
+            return self.buffer_data[bufname].hlt_busy
+
+        return False
+
+    def __init(self, cwd, global_compile_args, whitelist, blacklist):
         try:
-            self.clients[cli].idx = cindex.Index.create()
+            self.idx = cindex.Index.create()
+            self.cdb = cindex.CompilationDatabase.fromDirectory(cwd)
+        except cindex.CompilationDatabaseError:
+            logging.info('compilation data is not found in ' + cwd)
         except:
             return False
 
-        self.clients[cli].cdb = compilation_database.CompilationDatabase.from_dir(
-            cwd, hcargs)
-        self.clients[cli].global_args = gcargs
-        self.clients[cli].blacklist = blacklist
+        self.global_compile_args = global_compile_args
+        self.whitelist = whitelist
+        self.blacklist = blacklist
+        self.cwd = cwd
 
         return True
 
-    def update_unsaved(self, cli, bufname, content):
-        for item in self.clients[cli].unsaved:
+    def __update_unsaved(self, bufname, content):
+        for item in self.unsaved:
             if item[0] == bufname:
-                self.clients[cli].unsaved.remove(item)
+                self.unsaved.remove(item)
 
-        self.clients[cli].unsaved.append((bufname, content))
+        self.unsaved.append((bufname, content))
 
-    def parse_or_reparse(self, cli, bufname):
-        self.clients[cli].translation_units[
-            bufname] = [self.parse(cli, bufname), False, False]
-        return
-        # if bufname not in self.clients[cli].translation_units:
-        # self.clients[cli].translation_units[bufname] = [self.parse(cli, bufname), False]
-        # else:
-        # self.clients[cli].translation_units[bufname][0].reparse(
-        # self.clients[cli].unsaved,
-        # options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
-        # self.clients[cli].translation_units[bufname][1] = False
+    def __parse(self, bufname):
+        if bufname not in self.buffer_data:
+            self.buffer_data[bufname] = BufferData()
+            self.buffer_data[bufname].compile_args = self.global_compile_args + \
+                clighter8_helper.get_compile_args_from_cdb(self.cdb, bufname)
 
-    def parse(self, cli, bufname):
-        args = None
-        if self.clients[cli].cdb:
-            args = self.clients[cli].cdb.get_useful_args(
-                bufname) + self.clients[cli].global_args
+        self.buffer_data[bufname].parse_busy = False
 
         try:
-            return self.clients[cli].idx.parse(
-                bufname,
-                args,
-                self.clients[cli].unsaved,
-                options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+            if self.buffer_data[bufname].tu:
+                self.buffer_data[bufname].tu.reparse(
+                    self.unsaved,
+                    cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD | 0x100 | 0x200 | 0x2)
+            else:
+                self.buffer_data[bufname].tu = self.idx.parse(
+                    bufname,
+                    self.buffer_data[bufname].compile_args,
+                    self.unsaved,
+                    cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD | 0x100 | 0x200 | 0x2)
         except:
-            logging.warn('libclang failed to parse')
-            return None
+            del self.buffer_data[bufname]
+            logging.warn('libclang failed to parse', bufname)
+            return
 
-    def highlight(self, cli, bufname, begin_line, end_line, row, col):
-        if bufname not in self.clients[cli].translation_units.keys():
-            return [{}, {}]
+    def __update_inc_compile_args(self, bufname, on_update):
+        updates = []
 
-        tu = self.clients[cli].translation_units[bufname][0]
+        if bufname not in self.buffer_data:
+            return
+
+        if not self.buffer_data[bufname].tu:
+            return
+
+        for i in self.buffer_data[bufname].tu.get_includes():
+            if i.is_input_file:
+                continue
+
+            if not i.include.name.startswith(self.cwd):
+                continue
+
+            if i.include.name not in self.buffer_data:
+                self.buffer_data[
+                    i.include.name] = BufferData()
+
+            if on_update:
+                on_update(i.include.name)
+
+            self.buffer_data[i.include.name].compile_args = self.buffer_data[
+                bufname].compile_args
+
+            updates.append(i.include.name)
+
+        return updates
+
+    def __get_hlt(self, bufname, begin_line, end_line, row, col):
+        if bufname not in self.buffer_data:
+            return {}
+
+        tu = self.buffer_data[bufname].tu
         if not tu:
-            return [{}, {}]
+            return {}
 
         symbol = clighter8_helper.get_semantic_symbol_from_location(
             tu, bufname, row, col)
+
         tu_file = tu.get_file(bufname)
 
         if not tu_file:
-            return [{}, {}]
+            return {}
 
         begin = cindex.SourceLocation.from_position(
             tu, tu_file, line=begin_line, column=1)
@@ -418,8 +420,10 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         tokens = tu.get_tokens(
             extent=cindex.SourceRange.from_locations(begin, end))
 
-        syntax = {}
-        occurrence = {'clighter8Occurrences': []}
+        result = {}
+
+        if symbol:
+            result['clighter8Usage'] = []
 
         for token in tokens:
             if token.kind.value != 2:  # no keyword, comment
@@ -431,38 +435,83 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             pos = [
                 token.location.line, token.location.column, len(
                     token.spelling)]
-            group = _get_syntax_group(
-                cursor, self.clients[cli].blacklist)  # blacklist
+            group = clighter8_helper.get_hlt_group(
+                cursor, self.whitelist, self.blacklist)
 
             if group:
-                if group not in syntax:
-                    syntax[group] = []
+                if group not in result:
+                    result[group] = []
 
-                syntax[group].append(pos)
+                result[group].append(pos)
 
             t_symbol = None
             t_symbol = clighter8_helper.get_semantic_symbol(cursor)
 
             if symbol and t_symbol and symbol == t_symbol and t_symbol.spelling == token.spelling:
-                occurrence['clighter8Occurrences'].append(pos)
+                result['clighter8Usage'].append(pos)
 
-        return [syntax, occurrence]
+        return result
+
+
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+
+    def __init__(self, addr, handler):
+        self.__clients = set()
+        self.__lock = threading.Lock()
+        self.__timer = None
+
+        self.allow_reuse_address = True
+
+        socketserver.TCPServer.__init__(self, addr, handler)
+
+    def add_client(self, cli):
+        if self.__timer and self.__timer.isAlive():
+            self.__timer.cancel()
+
+        with self.__lock:
+            self.__clients.add(cli)
+
+    def remove_client(self, cli):
+        with self.__lock:
+            self.__clients.remove(cli)
+            num_client = len(self.__clients)
+            logging.info("a client has left(%d clients remains)" % num_client)
+
+            if num_client == 0:
+                logging.info(
+                    'going to exit if there is no new client comes in 10 seconds')
+                self.__timer = Timer(10, self.__shutdown_if_nocli)
+                self.__timer.start()
+
+    def __shutdown_if_nocli(self):
+        num_client = len(self.__clients)
+        if num_client > 0:
+            return
+
+        logging.info('server shutdown')
+        server.shutdown()
+        server.server_close()
 
 
 if __name__ == "__main__":
+    logfile = '/tmp/clighter8.log'
+    if len(sys.argv) > 1:
+        logfile = sys.argv[1]
+
     logging.basicConfig(
-        filename='/tmp/clighter8.log',
+        filename=logfile,
         filemode='w',
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s')
-    logging.disable(logging.CRITICAL)
+
+    socketserver.TCPServer.allow_reuse_address = True
     HOST, PORT = "localhost", 8787
     try:
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
     except:
-        logging.error("failed to start TCP server")
+        logging.error("failed to start clighter8 server")
         exit()
 
     ip, port = server.server_address
-    logging.info("server start looping")
+    logging.info("server start at %s:%d" % (ip, port))
     server.serve_forever()
