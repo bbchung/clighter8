@@ -33,7 +33,7 @@ https://github.com/bbchung/clighter8
 Clighter8 requires the following things:
 
 * Vim8
-* libclang 3.9, http://llvm.org/apt/ (Note: If you are using a different version of clang, you have to replace the Python clang bindings in python/clang with the appropriate version.)
+* libclang, http://llvm.org/apt/
 
 ==============================================================================
 						*clighter8-installation*
