@@ -12,8 +12,6 @@ from threading import Timer
 # os.path.dirname(
 # os.path.realpath(__file__)) +
 # "/../third_party")
-from clang import cindex
-import clighter8_helper
 
 
 class BufferData:
@@ -323,12 +321,16 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def __init(self, cwd, global_compile_args, whitelist, blacklist):
         try:
             self.idx = cindex.Index.create()
+        except Exception as e:
+            logging.error(str(e))
+            return False
+
+        try:
             self.cdb = cindex.CompilationDatabase.fromDirectory(cwd)
         except cindex.CompilationDatabaseError:
             logging.info('compilation data is not found in ' + cwd)
         except Exception as e:
-            logging.error(str(e))
-            return False
+            logging.warn(str(e))
 
         self.global_compile_args = global_compile_args
         self.whitelist = whitelist
@@ -504,6 +506,15 @@ if __name__ == "__main__":
         filemode='w',
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s')
+
+    try:
+        from clang import cindex
+    except ImportError, e:
+        print(123)
+        logging.error(str(e))
+        sys.exit(1)
+
+    import clighter8_helper
 
     socketserver.TCPServer.allow_reuse_address = True
     HOST, PORT = "localhost", 8787
