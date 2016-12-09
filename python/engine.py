@@ -47,8 +47,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         while True:
             try:
                 data = self.request.recv(8192)
-            except:
-                logging.warn('socket recv error')
+            except Exception, e:
+                logging.warn(str(e))
                 break
 
             # print("received: {0}{1}".format(data, len(data)))
@@ -78,8 +78,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def __safe_sendall(self, msg):
         try:
             self.request.sendall(msg)
-        except:
-            logging.warn('socket send error')
+        except Exception, e:
+            logging.warn(str(e))
             pass
 
     def __handle_msg(self, sn, msg):
@@ -93,8 +93,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             try:
                 cindex.Config.set_library_file(libclang)
                 logging.info('config libclang path')
-            except:
-                logging.warn('cannot config library path')
+            except Exception, e:
+                logging.warn(str(e))
 
             result = self.__init(
                 cwd, global_compile_args, whitelist, blacklist)
@@ -326,7 +326,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.cdb = cindex.CompilationDatabase.fromDirectory(cwd)
         except cindex.CompilationDatabaseError:
             logging.info('compilation data is not found in ' + cwd)
-        except:
+        except Exception, e:
+            logging.error(str(e))
             return False
 
         self.global_compile_args = global_compile_args
