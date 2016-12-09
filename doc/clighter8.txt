@@ -38,7 +38,7 @@ https://github.com/bbchung/clighter8
 Clighter8 requires the following things:
 
 * Vim with +job and +channel features
-* libclang, http://llvm.org/apt/ (3.9 is recommended)
+* libclang and clang python bindings , (3.9 is recommended)
 * clang-format-3.9
 * GNU Global, https://www.gnu.org/software/global/download.html
 
