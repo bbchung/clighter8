@@ -8,10 +8,10 @@ import sys
 import os
 from threading import Timer
 
-sys.path.append(
-    os.path.dirname(
-        os.path.realpath(__file__)) +
-    "/../third_party")
+# sys.path.append(
+# os.path.dirname(
+# os.path.realpath(__file__)) +
+# "/../third_party")
 from clang import cindex
 import clighter8_helper
 
@@ -47,7 +47,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         while True:
             try:
                 data = self.request.recv(8192)
-            except Exception, e:
+            except Exception as e:
                 logging.warn(str(e))
                 break
 
@@ -78,7 +78,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def __safe_sendall(self, msg):
         try:
             self.request.sendall(msg)
-        except Exception, e:
+        except Exception as e:
             logging.warn(str(e))
             pass
 
@@ -93,7 +93,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             try:
                 cindex.Config.set_library_file(libclang)
                 logging.info('config libclang path')
-            except Exception, e:
+            except Exception as e:
                 logging.warn(str(e))
 
             result = self.__init(
@@ -326,7 +326,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.cdb = cindex.CompilationDatabase.fromDirectory(cwd)
         except cindex.CompilationDatabaseError:
             logging.info('compilation data is not found in ' + cwd)
-        except Exception, e:
+        except Exception as e:
             logging.error(str(e))
             return False
 
