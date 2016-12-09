@@ -433,7 +433,7 @@ fun! s:cl_stop()
         autocmd!
     augroup END
 
-    if exists('s:channel')
+    if exists('s:channel') && ch_status(s:channel) ==# 'open'
         call ch_close(s:channel)
         unlet s:channel
     endif
