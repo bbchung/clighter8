@@ -155,6 +155,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             end_line = msg['params']['end_line']
             row = msg['params']['row']
             col = msg['params']['col']
+            word = msg['params']['word']
 
             if not bufname:
                 self.__safe_sendall(json.dumps([sn, None]))
@@ -164,7 +165,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             self.__unset_hlt_busy(bufname)
             hlt = self.__get_hlt(
-                bufname, begin_line, end_line, row, col)
+                bufname, begin_line, end_line, row, col, word)
 
             result = {'bufname': bufname, 'hlt': hlt}
             self.__safe_sendall(json.dumps(
@@ -186,6 +187,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = msg['params']['bufname']
             row = msg['params']['row']
             col = msg['params']['col']
+            word = msg['params']['word']
 
             if not bufname:
                 self.__safe_sendall(json.dumps([sn, None]))
@@ -199,7 +201,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 return
 
             symbol = clighter8_helper.get_semantic_symbol_from_location(
-                bfdata.tu, bufname, row, col)
+                bfdata.tu, bufname, row, col, word)
 
             if not symbol:
                 self.__safe_sendall(json.dumps([sn, None]))
@@ -358,13 +360,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if self.buffer_data[bufname].tu:
                 self.buffer_data[bufname].tu.reparse(
                     self.unsaved,
-                    0x80 | 0x01 | 0x100 | 0x200 | 0x2)
+                    0x01 | 0x100 | 0x200 | 0x2)
             else:
                 self.buffer_data[bufname].tu = self.idx.parse(
                     bufname,
                     self.buffer_data[bufname].compile_args,
                     self.unsaved,
-                    0x80 | 0x01 | 0x100 | 0x200 | 0x2)
+                    0x01 | 0x100 | 0x200 | 0x2)
         except:
             del self.buffer_data[bufname]
             logging.warn('libclang failed to parse', bufname)
@@ -400,7 +402,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         return updates
 
-    def __get_hlt(self, bufname, begin_line, end_line, row, col):
+    def __get_hlt(self, bufname, begin_line, end_line, row, col, word):
         if bufname not in self.buffer_data:
             return {}
 
@@ -409,7 +411,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             return {}
 
         symbol = clighter8_helper.get_semantic_symbol_from_location(
-            tu, bufname, row, col)
+            tu, bufname, row, col, word)
 
         tu_file = tu.get_file(bufname)
 

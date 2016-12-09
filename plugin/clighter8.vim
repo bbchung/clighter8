@@ -45,8 +45,8 @@ fun! s:engine_init(channel, libclang_path, compile_args, cwd, hlt_whitelist, hlt
     return ch_evalexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_get_hlt_async(channel, bufname, begin, end, row, col, callback)
-    let l:expr = {'cmd' : 'get_hlt', 'params' : {'bufname' : a:bufname, 'begin_line' : a:begin, 'end_line' : a:end, 'row' : a:row, 'col': a:col}}
+fun! s:engine_get_hlt_async(channel, bufname, begin, end, row, col, word, callback)
+    let l:expr = {'cmd' : 'get_hlt', 'params' : {'bufname' : a:bufname, 'begin_line' : a:begin, 'end_line' : a:end, 'row' : a:row, 'col': a:col, 'word' : a:word}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
@@ -90,8 +90,8 @@ fun! s:engine_enable_log(channel, en)
     call ch_sendexpr(a:channel, l:expr)
 endf
 
-fun! s:engine_get_usr_info(channel, bufname, row, col)
-    let l:expr = {'cmd' : 'get_usr_info', 'params' : {'bufname' : a:bufname, 'row' : a:row, 'col': a:col}}
+fun! s:engine_get_usr_info(channel, bufname, row, col, word)
+    let l:expr = {'cmd' : 'get_usr_info', 'params' : {'bufname' : a:bufname, 'row' : a:row, 'col': a:col, 'word' : a:word}}
     return ch_evalexpr(a:channel, l:expr)
 endf
 
@@ -125,7 +125,7 @@ endfunc
 
 func HandleReqGetHlt(channel, msg)
     if !empty(a:msg)
-        call s:engine_get_hlt_async(a:channel, a:msg, line('w0'), line('w$'), line('.'), col('.'), 'HandleGetHlt')
+        call s:engine_get_hlt_async(a:channel, a:msg, line('w0'), line('w$'), line('.'), col('.'), expand("<cword>"), 'HandleGetHlt')
     endif
 endfunc
 
@@ -266,7 +266,7 @@ fun s:cl_rename(row, col)
         return
     endif
 
-    let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, a:row, a:col)
+    let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, a:row, a:col, expand("<cword>"))
 
     if empty(l:usr_info)
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
@@ -474,7 +474,7 @@ let g:clighter8_usage_priority = get(g:, 'clighter8_usage_priority', -1)
 let g:clighter8_syntax_priority = get(g:, 'clighter8_syntax_priority', -2)
 let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [])
 let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
-let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++'])
+let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++', '-std=c++11'])
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 let g:clighter8_auto_gtags = get(g:, 'clighter8_auto_gtags', 1)
 let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 1)
