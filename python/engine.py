@@ -358,13 +358,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if self.buffer_data[bufname].tu:
                 self.buffer_data[bufname].tu.reparse(
                     self.unsaved,
-                    cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD | 0x100 | 0x200 | 0x2)
+                    0x80 | 0x01 | 0x100 | 0x200 | 0x2)
             else:
                 self.buffer_data[bufname].tu = self.idx.parse(
                     bufname,
                     self.buffer_data[bufname].compile_args,
                     self.unsaved,
-                    cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD | 0x100 | 0x200 | 0x2)
+                    0x80 | 0x01 | 0x100 | 0x200 | 0x2)
         except:
             del self.buffer_data[bufname]
             logging.warn('libclang failed to parse', bufname)
@@ -510,7 +510,6 @@ if __name__ == "__main__":
     try:
         from clang import cindex
     except ImportError, e:
-        print(123)
         logging.error(str(e))
         sys.exit(1)
 
