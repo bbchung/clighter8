@@ -221,7 +221,7 @@ fun! s:cl_load_cdb()
             continue
         endif
 
-        let l:new .= join(l:result['updates'], ' ')
+        let l:new .= ' '.join(l:result['updates'], ' ')
 
         let l:count += 1
         let l:percent = 100.0 * l:count / l:all
