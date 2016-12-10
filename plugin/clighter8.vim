@@ -6,6 +6,14 @@ let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 execute('source '. s:script_folder_path . '/../third_party/gtags.vim')
 
+fun! s:get_word()
+    if match(getline('.')[col('.')-1] , '\w') == 0
+        return expand("<cword>")
+    else
+        return ''
+    endif
+endf
+
 fun! s:on_gtags_finish()
     if exists('s:gtags_need_update') && s:gtags_need_update == 1
         call s:check_update_gtags()
@@ -125,7 +133,7 @@ endfunc
 
 func HandleReqGetHlt(channel, msg)
     if !empty(a:msg)
-        call s:engine_get_hlt_async(a:channel, a:msg, line('w0'), line('w$'), line('.'), col('.'), expand("<cword>"), 'HandleGetHlt')
+        call s:engine_get_hlt_async(a:channel, a:msg, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), 'HandleGetHlt')
     endif
 endfunc
 
@@ -266,7 +274,7 @@ fun s:cl_rename(row, col)
         return
     endif
 
-    let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, a:row, a:col, expand("<cword>"))
+    let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, a:row, a:col, s:get_word())
 
     if empty(l:usr_info)
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
