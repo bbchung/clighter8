@@ -201,9 +201,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 return
 
             symbol = clighter8_helper.get_semantic_symbol_from_location(
-                bfdata.tu, bufname, row, col, word)
+                bfdata.tu, bufname, row, col)
 
-            if not symbol:
+            if not symbol or word != symbol.spelling:
                 self.__safe_sendall(json.dumps([sn, None]))
                 return
 
@@ -411,7 +411,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             return {}
 
         symbol = clighter8_helper.get_semantic_symbol_from_location(
-            tu, bufname, row, col, word)
+            tu, bufname, row, col)
+
+        if word != symbol.spelling:
+            symbol = None
 
         tu_file = tu.get_file(bufname)
 
@@ -434,8 +437,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if token.kind.value != 2:  # no keyword, comment
                 continue
 
-            cursor = token.cursor
-            cursor._tu = tu
+            cursor = clighter8_helper.get_cursor(
+                tu, bufname, token.location.line, token.location.column)
 
             pos = [
                 token.location.line, token.location.column, len(
@@ -449,7 +452,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
                 result[group].append(pos)
 
-            t_symbol = None
             t_symbol = clighter8_helper.get_semantic_symbol(cursor)
 
             if symbol and t_symbol and symbol == t_symbol and t_symbol.spelling == token.spelling:
@@ -511,7 +513,7 @@ if __name__ == "__main__":
 
     try:
         from clang import cindex
-    except ImportError, e:
+    except ImportError as e:
         logging.error(str(e))
         sys.exit(1)
 

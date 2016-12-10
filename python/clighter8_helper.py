@@ -115,7 +115,7 @@ def get_cursor(tu, bufname, row, col):
                                             col))
 
 
-def get_semantic_symbol_from_location(tu, bufname, row, col, word):
+def get_semantic_symbol_from_location(tu, bufname, row, col):
     cursor = get_cursor(tu, bufname, row, col)
     if not cursor:
         return None
@@ -125,19 +125,16 @@ def get_semantic_symbol_from_location(tu, bufname, row, col, word):
     if not symbol:
         return None
 
-    if word != symbol.spelling:
-        return None
-
     # if cursor.location.line != row or col < cursor.location.column or col >= cursor.location.column + \
-            # len(symbol.spelling):
+        # len(symbol.spelling):
         # return None
 
     return symbol
 
 
 def get_semantic_symbol(cursor):
-    # if cursor.kind == cindex.CursorKind.MACRO_DEFINITION:
-        # return cursor
+    if not cursor:
+        return None
 
     symbol = cursor.get_definition()
     if not symbol:
