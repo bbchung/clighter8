@@ -140,10 +140,8 @@ def get_semantic_symbol(cursor):
     if not symbol:
         symbol = cursor.referenced
 
-        if symbol:
-            canonical = cursor.canonical
-            if canonical:
-                symbol = canonical
+        if not symbol:
+            symbol = cursor.canonical
 
     if not symbol:
         return None
