@@ -413,7 +413,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         symbol = clighter8_helper.get_semantic_symbol_from_location(
             tu, bufname, row, col)
 
-        if word != symbol.spelling:
+        if symbol and word != symbol.spelling:
             symbol = None
 
         tu_file = tu.get_file(bufname)
