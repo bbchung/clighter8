@@ -152,14 +152,14 @@ def get_semantic_symbol(cursor):
     return symbol
 
 
-def search_by_usr(tu, usr, result):
+def search_by_usr(tu, bufname, usr, result):
     if not tu:
         return None
 
     tokens = tu.cursor.get_tokens()
     for token in tokens:
-        cursor = token.cursor
-        cursor._tu = tu
+        cursor = get_cursor(
+            tu, bufname, token.location.line, token.location.column)
 
         symbol = get_semantic_symbol(cursor)
 

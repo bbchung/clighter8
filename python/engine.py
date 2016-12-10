@@ -227,7 +227,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             usage = []
             clighter8_helper.search_by_usr(
-                self.buffer_data.get(bufname).tu, usr, usage)
+                self.buffer_data.get(bufname).tu, bufname, usr, usage)
 
             self.__safe_sendall(json.dumps([sn, usage]))
 
