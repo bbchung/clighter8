@@ -207,7 +207,7 @@ fun! s:cl_load_cdb()
     let l:chk = 10
     let l:count = 0
 
-    let l:new = ''
+    let l:incs = ''
     echohl MoreMsg
     for bufname in l:cdb_files
         execute('silent! e! '. bufname)
@@ -221,7 +221,7 @@ fun! s:cl_load_cdb()
             continue
         endif
 
-        let l:new .= ' '.join(l:result['updates'], ' ')
+        let l:incs .= ' '.join(l:result['includes'], ' ')
 
         let l:count += 1
         let l:percent = 100.0 * l:count / l:all
@@ -233,8 +233,8 @@ fun! s:cl_load_cdb()
     endfor
     echohl None
 
-    if !empty(l:new)
-        execute('n! ' . l:new)
+    if !empty(l:incs)
+        execute('n! ' . l:incs)
     endif
 endf
 

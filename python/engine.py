@@ -111,11 +111,17 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if content is not None:
                 self.__update_unsaved(bufname, content.encode('utf-8'))
 
-            self.__parse(bufname)
-            updates = self.__update_inc_compile_args(bufname, None)
+            if not self.__parse(bufname):
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
+
+            includes = clighter8_helper.get_cwd_includes(
+                self.buffer_data[bufname].tu, self.cwd)
+            self.__update_inc_compile_args(
+                includes, self.buffer_data[bufname].compile_args)
 
             self.__safe_sendall(json.dumps(
-                [sn, {'bufname': bufname, 'updates': updates}]))
+                [sn, {'bufname': bufname, 'includes': includes}]))
 
         elif msg['cmd'] == 'req_parse':
             bufname = msg['params']['bufname']
@@ -367,40 +373,19 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     self.buffer_data[bufname].compile_args,
                     self.unsaved,
                     0x01 | 0x100 | 0x200 | 0x2)
+
+            return True
         except:
             del self.buffer_data[bufname]
             logging.warn('libclang failed to parse', bufname)
-            return
+            return False
 
-    def __update_inc_compile_args(self, bufname, on_update):
-        updates = []
+    def __update_inc_compile_args(self, includes, args):
+        for bufname in includes:
+            if bufname not in self.buffer_data:
+                self.buffer_data[bufname] = BufferData()
 
-        if bufname not in self.buffer_data:
-            return
-
-        if not self.buffer_data[bufname].tu:
-            return
-
-        for i in self.buffer_data[bufname].tu.get_includes():
-            if i.is_input_file:
-                continue
-
-            if not i.include.name.startswith(self.cwd):
-                continue
-
-            if i.include.name not in self.buffer_data:
-                self.buffer_data[
-                    i.include.name] = BufferData()
-
-            if on_update:
-                on_update(i.include.name)
-
-            self.buffer_data[i.include.name].compile_args = self.buffer_data[
-                bufname].compile_args
-
-            updates.append(i.include.name)
-
-        return updates
+            self.buffer_data[bufname].compile_args = args
 
     def __get_hlt(self, bufname, begin_line, end_line, row, col, word):
         if bufname not in self.buffer_data:

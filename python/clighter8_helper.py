@@ -182,3 +182,21 @@ def get_compile_args_from_cdb(cdb, bufname):
     result.pop(0)
 
     return result
+
+
+def get_cwd_includes(tu, cwd):
+    if not tu:
+        return []
+
+    result = []
+
+    for i in tu.get_includes():
+        if i.is_input_file:
+            continue
+
+        if not i.include.name.startswith(cwd):
+            continue
+
+        result.append(i.include.name)
+
+    return result
