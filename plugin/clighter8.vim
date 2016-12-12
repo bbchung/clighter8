@@ -452,7 +452,7 @@ fun! s:cl_stop()
 endf
 
 fun! ClFormat()
-    if !executable('clang-format-3.9')
+    if !executable(g:clang_format_path)
         return
     endif
 
