@@ -6,48 +6,6 @@ let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 execute('source '. s:script_folder_path . '/../third_party/gtags.vim')
 
-fun! s:get_word()
-    if match(getline('.')[col('.')-1] , '\w') == 0
-        return expand("<cword>")
-    else
-        return ''
-    endif
-endf
-
-fun! s:on_gtags_finish()
-    if exists('s:gtags_need_update') && s:gtags_need_update == 1
-        call s:check_update_gtags()
-    endif
-endf
-
-fun! s:update_gtags()
-    let s:gtags_need_update = 0
-    let l:cmd = 'global -u --single-update="' . expand('%') . '"'
-    let s:gtags_job = job_start(l:cmd, {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {job, status->s:on_gtags_finish()}})
-endf
-
-fun! s:check_update_gtags()
-    if &diff
-        return
-    endif
-
-    if exists('s:gtags_job') && job_status(s:gtags_job) ==# 'run'
-        let s:gtags_need_update = 1
-    else
-        let s:gtags_need_update = 0
-
-        if filereadable('GPATH') && filereadable('GRTAGS') && filereadable('GTAGS')
-            if executable('global')
-                call s:update_gtags()
-            endif
-        else
-            if executable('gtags')
-                let s:gtags_job = job_start('gtags', {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {job, status->s:on_gtags_finish()}})
-            endif
-        endif
-    endif
-endf
-
 fun! s:engine_init(channel, libclang_path, compile_args, cwd, hlt_whitelist, hlt_blacklist)
     let l:expr = {'cmd' : 'init', 'params' : {'libclang' : a:libclang_path, 'cwd' : a:cwd, 'global_compile_args' : a:compile_args, 'whitelist' : a:hlt_whitelist, 'blacklist' : a:hlt_blacklist}}
     return ch_evalexpr(a:channel, l:expr)
@@ -113,44 +71,7 @@ fun! s:engine_get_cdb_files(channel)
     return ch_evalexpr(a:channel, l:expr, {'timeout' : 10000})
 endf
 
-func HandleParse(channel, msg)
-    if !empty(a:msg)
-        call s:vim_clear_matches([g:clighter8_usage_priority])
-        call s:engine_req_get_hlt_async(a:channel, a:msg['bufname'], 'HandleReqGetHlt')
-    endif
-endfunc
-
-func HandleReqParse(channel, msg)
-    if !empty(a:msg)
-        let l:content = v:null
-        if bufloaded(a:msg)
-            let l:content = join(getbufline(a:msg, 1,'$'), "\n")
-        endif
-
-        call s:engine_parse_async(a:channel, a:msg, l:content, 'HandleParse')
-    endif
-endfunc
-
-func HandleReqGetHlt(channel, msg)
-    if !empty(a:msg)
-        call s:engine_get_hlt_async(a:channel, a:msg, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), 'HandleGetHlt')
-    endif
-endfunc
-
-func HandleGetHlt(channel, msg)
-    if empty(a:msg)
-        return
-    endif
-
-    if a:msg['bufname'] != expand('%:p')
-        return
-    endif
-
-    call s:vim_clear_matches([g:clighter8_syntax_priority, g:clighter8_usage_priority])
-    call s:vim_highlight(a:msg['hlt'])
-endfunc
-
-func s:vim_highlight(matches)
+func s:cl_highlight(matches)
     for [group, all_pos] in items(a:matches)
         let l:count = 0
         let l:match8 = []
@@ -171,7 +92,89 @@ func s:vim_highlight(matches)
     endfor
 endf
 
-fun! s:vim_replace(usage, old, new, qflist)
+fun! s:cl_get_word()
+    if match(getline('.')[col('.')-1] , '\w') == 0
+        return expand("<cword>")
+    else
+        return ''
+    endif
+endf
+
+fun! s:cl_on_gtags_finish()
+    if exists('s:gtags_need_update') && s:gtags_need_update == 1
+        call s:cl_update_gtags()
+    endif
+endf
+
+fun! s:cl_update_gtags()
+    if &diff
+        return
+    endif
+
+    if exists('s:gtags_job') && job_status(s:gtags_job) ==# 'run'
+        let s:gtags_need_update = 1
+    else
+        let s:gtags_need_update = 0
+
+        if filereadable('GPATH') && filereadable('GRTAGS') && filereadable('GTAGS')
+            if executable('global')
+                let s:gtags_need_update = 0
+                let l:cmd = 'global -u --single-update="' . expand('%') . '"'
+                let s:gtags_job = job_start(l:cmd, {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {->s:cl_on_gtags_finish()}})
+            endif
+        else
+            if executable('gtags')
+                let s:gtags_job = job_start('gtags', {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {->s:cl_on_gtags_finish()}})
+            endif
+        endif
+    endif
+endf
+
+func s:cl_on_parse(channel, msg)
+    if empty(a:msg)
+        return
+    endif
+
+    call s:cl_clear_matches([g:clighter8_usage_priority])
+    call s:engine_req_get_hlt_async(a:channel, a:msg['bufname'], {channel, msg->s:cl_on_req_get_hlt(channel, msg)})
+endfunc
+
+func s:cl_on_req_parse(channel, msg)
+    if empty(a:msg)
+        return
+    endif
+
+    let l:content = v:null
+    if bufloaded(a:msg)
+        let l:content = join(getbufline(a:msg, 1,'$'), "\n")
+    endif
+
+    call s:engine_parse_async(a:channel, a:msg, l:content, {channel, msg->s:cl_on_parse(channel, msg)})
+endfunc
+
+func s:cl_on_req_get_hlt(channel, msg)
+    if empty(a:msg)
+        return
+    endif
+
+    call s:engine_get_hlt_async(a:channel, a:msg, line('w0'), line('w$'), line('.'), col('.'), s:cl_get_word(), {channel, msg->s:cl_on_get_hlt(channel, msg)})
+endfunc
+
+func s:cl_on_get_hlt(channel, msg)
+    if empty(a:msg)
+        return
+    endif
+
+    if a:msg['bufname'] != expand('%:p')
+        return
+    endif
+
+    call s:cl_clear_matches([g:clighter8_syntax_priority, g:clighter8_usage_priority])
+    call s:cl_highlight(a:msg['hlt'])
+endfunc
+
+
+fun! s:cl_replace(usage, old, new, qflist)
     let l:pattern = ''
     for [row, column] in a:usage
         if (!empty(l:pattern))
@@ -187,7 +190,7 @@ fun! s:vim_replace(usage, old, new, qflist)
     execute(l:cmd)
 endf
 
-fun! s:vim_clear_matches(priorities)
+fun! s:cl_clear_matches(priorities)
     for m in getmatches()
         if index(a:priorities, m['priority']) >= 0
             call matchdelete(m['id'])
@@ -212,7 +215,7 @@ fun! s:cl_load_cdb()
     for bufname in l:cdb_files
         execute('silent! e! '. bufname)
 
-        if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
+        if index(['c', 'cpp'], &filetype) == -1
             continue
         endif
 
@@ -262,9 +265,12 @@ fun! s:cl_is_header(bufname)
     return a:bufname[l:dot + 1] ==? 'h'
 endf
 
-
 fun s:cl_rename(row, col)
     if !exists('s:channel')
+        return
+    endif
+
+    if index(['c', 'cpp'], &filetype) == -1
         return
     endif
 
@@ -274,7 +280,7 @@ fun s:cl_rename(row, col)
         return
     endif
 
-    let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, a:row, a:col, s:get_word())
+    let l:usr_info = s:engine_get_usr_info(s:channel, l:bufname, a:row, a:col, s:cl_get_word())
 
     if empty(l:usr_info)
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
@@ -323,7 +329,7 @@ fun s:cl_rename(row, col)
     for info in l:sources + l:headers
         execute('silent! buffer! '. info.bufnr)
 
-        if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
+        if index(['c', 'cpp'], &filetype) == -1
             continue
         endif
 
@@ -344,7 +350,7 @@ fun s:cl_rename(row, col)
             endif
         endif
 
-        silent! call s:vim_replace(l:usage, l:old, l:new, l:qflist)
+        silent! call s:cl_replace(l:usage, l:old, l:new, l:qflist)
 
         call s:engine_parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n"))
 
@@ -371,16 +377,20 @@ fun s:cl_rename(row, col)
     echohl None
 endf
 
-fun! OnTimer(bufname, timer)
-    call s:engine_req_parse_async(s:channel, a:bufname, 'HandleReqParse')
+fun! s:cl_on_timer(bufname)
+    call s:cl_req_parsecpp(a:bufname)
 endf
 
-func! s:cl_textchanged(bufname)
+func! s:cl_on_textchanged(bufname)
+    if index(['c', 'cpp'], &filetype) == -1
+        return
+    endif
+
     if exists('s:timer')
         call timer_stop(s:timer)
     endif
 
-    let s:timer = timer_start(800, function('OnTimer', [a:bufname]))
+    let s:timer = timer_start(800, {timer->s:cl_on_timer(a:bufname)})
 endf
 
 fun! s:cl_start()
@@ -408,26 +418,26 @@ fun! s:cl_start()
         return
     endif
 
-    call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse')
+    call s:cl_req_parsecpp(expand('%:p'))
 
     if g:clighter8_auto_gtags == 1
-        call s:check_update_gtags()
+        call s:cl_update_gtags()
     endif
 
     augroup Clighter8
         autocmd!
 
         if g:clighter8_syntax_highlight == 1
-            au BufEnter,TextChanged,TextChangedI * call s:cl_textchanged(expand('%:p'))
-            au BufEnter * call s:vim_clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-            au BufLeave * if exists('s:channel') | call s:engine_req_parse_async(s:channel, expand('%:p'), 'HandleReqParse') | endif
-            au CursorMoved,CursorMovedI * call s:vim_clear_matches([g:clighter8_usage_priority]) | call s:engine_req_get_hlt_async(s:channel, expand('%:p'), 'HandleReqGetHlt')
+            au BufEnter,TextChanged,TextChangedI * call s:cl_on_textchanged(expand('%:p'))
+            au BufEnter * call s:cl_clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+            au BufLeave * call s:cl_req_parsecpp(expand('%:p'))
+            au CursorMoved,CursorMovedI * call s:cl_req_get_hlt(expand('%:p'))
             au BufDelete * call s:engine_delete_buffer(s:channel, expand('%:p'))
             au VimLeave * call s:cl_stop()
         endif
 
         if g:clighter8_auto_gtags == 1
-            au BufWritePost,BufEnter * call s:check_update_gtags()
+            au BufWritePost,BufEnter * call s:cl_update_gtags()
         endif
 
         if g:clighter8_format_on_save == 1
@@ -447,9 +457,35 @@ fun! s:cl_stop()
     endif
 
     let a:wnr = winnr()
-    windo call s:vim_clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+    windo call s:cl_clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
     exe a:wnr.'wincmd w'
 endf
+
+fun s:cl_req_parsecpp(bufname)
+    if !exists('s:channel')
+        return
+    endif
+
+    if index(['c', 'cpp'], &filetype) == -1
+        return
+    endif
+
+    call s:engine_req_parse_async(s:channel, a:bufname, {channel, msg->s:cl_on_req_parse(channel, msg)})
+endf
+
+fun s:cl_req_get_hlt(bufname)
+    if !exists('s:channel')
+        return
+    endif
+
+    if index(['c', 'cpp'], &filetype) == -1
+        return
+    endif
+
+    call s:cl_clear_matches([g:clighter8_usage_priority])
+    call s:engine_req_get_hlt_async(s:channel, a:bufname, {channel, msg->s:cl_on_req_get_hlt(channel, msg)})
+endf
+
 
 fun! ClFormat()
     if !executable(g:clang_format_path)

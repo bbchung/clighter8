@@ -248,7 +248,12 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             bufname = bufname.encode('utf-8')
 
-            tu = self.buffer_data.get(bufname).tu
+            bufdata = self.buffer_data.get(bufname)
+            if not bufdata:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
+
+            tu = bufdata.tu
             cursor = clighter8_helper.get_cursor(tu, bufname, row, col)
 
             if not cursor:
@@ -271,7 +276,12 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             bufname = bufname.encode('utf-8')
 
-            result = self.buffer_data.get(bufname).compile_args
+            bufdata = self.buffer_data.get(bufname)
+            if not bufdata:
+                self.__safe_sendall(json.dumps([sn, None]))
+                return
+
+            result = bufdata.compile_args
             self.__safe_sendall(json.dumps([sn, result]))
 
         elif msg['cmd'] == 'enable_log':
