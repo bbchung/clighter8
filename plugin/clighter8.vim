@@ -2,6 +2,21 @@ if exists('g:loaded_clighter8')
     finish
 endif
 
+let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
+
+fun! ClFormat()
+    if !executable(g:clang_format_path)
+        return
+    endif
+
+    if v:count == 0
+        let l:lines='all'
+    else
+        let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
+    endif
+
+    execute('pyf '.s:script_folder_path.'/../third_party/clang-format.py')
+endf
 
 command! ClStart call clighter8#start()
 command! ClStop call clighter8#stop()

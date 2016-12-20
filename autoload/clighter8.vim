@@ -50,9 +50,15 @@ fun! clighter8#start()
         endif
 
         if g:clighter8_format_on_save == 1
-            au BufWritePre * call clighter8#format()
+            au BufWritePre * call ClFormat()
         endif
     augroup END
+
+    command! ClShowCursorInfo if exists ('s:channel') | echo clighter8#engine#cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif
+    command! ClShowCompileInfo if exists ('s:channel') | echo clighter8#engine#compile_info(s:channel, expand('%:p')) | endif
+    command! ClEnableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:true) | endif
+    command! ClDisableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:false) | endif
+    command! ClRenameCursor if exists ('s:channel') | call clighter8#rename(line('.'), col('.')) | endif
 endf
 
 fun! clighter8#stop()
@@ -68,6 +74,12 @@ fun! clighter8#stop()
     let a:wnr = winnr()
     windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
     exe a:wnr.'wincmd w'
+
+    delc ClShowCursorInfo
+    delc ClShowCompileInfo
+    delc ClEnableLog
+    delc ClDisableLog
+    delc ClRenameCursor
 endf
 
 fun s:req_parsecpp(bufname)
@@ -413,25 +425,3 @@ fun s:req_get_hlt(bufname)
     call s:clear_matches([g:clighter8_usage_priority])
     call clighter8#engine#req_get_hlt_async(s:channel, a:bufname, {channel, msg->s:on_req_get_hlt(channel, msg)})
 endf
-
-fun! clighter8#format()
-    if !executable(g:clang_format_path)
-        return
-    endif
-
-    if v:count == 0
-        let l:lines='all'
-    else
-        let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
-    endif
-
-    execute('pyf '.s:script_folder_path.'/../third_party/clang-format.py')
-endf
-
-
-command! ClShowCursorInfo if exists ('s:channel') | echo clighter8#engine#cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif
-command! ClShowCompileInfo if exists ('s:channel') | echo clighter8#engine#compile_info(s:channel, expand('%:p')) | endif
-command! ClEnableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:true) | endif
-command! ClDisableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:false) | endif
-command! ClRenameCursor if exists ('s:channel') | call clighter8#rename(line('.'), col('.')) | endif
-
