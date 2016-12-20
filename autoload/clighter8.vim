@@ -27,7 +27,7 @@ fun! clighter8#start()
         return
     endif
 
-    call s:req_parsecpp(expand('%:p'))
+    call s:timer_parse(expand('%:p'))
 
     if g:clighter8_auto_gtags == 1
         call s:update_gtags()
@@ -37,7 +37,7 @@ fun! clighter8#start()
         autocmd!
 
         if g:clighter8_syntax_highlight == 1
-            au BufEnter,TextChanged,TextChangedI * call s:on_textchanged(expand('%:p'))
+            au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
             au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
             au BufLeave * call s:req_parsecpp(expand('%:p'))
             au CursorMoved,CursorMovedI * call s:req_get_hlt(expand('%:p'))
@@ -65,6 +65,10 @@ fun! clighter8#stop()
     augroup Clighter8
         autocmd!
     augroup END
+
+    if exists('s:timer')
+        call timer_stop(s:timer)
+    endif
 
     if exists('s:channel') && ch_status(s:channel) ==# 'open'
         call ch_close(s:channel)
@@ -397,11 +401,7 @@ fun! s:is_header(bufname)
     return a:bufname[l:dot + 1] ==? 'h'
 endf
 
-fun! s:on_timer(bufname)
-    call s:req_parsecpp(a:bufname)
-endf
-
-func! s:on_textchanged(bufname)
+func! s:timer_parse(bufname)
     if index(['c', 'cpp'], &filetype) == -1
         return
     endif
@@ -410,7 +410,7 @@ func! s:on_textchanged(bufname)
         call timer_stop(s:timer)
     endif
 
-    let s:timer = timer_start(800, {timer->s:on_timer(a:bufname)})
+    let s:timer = timer_start(800, {timer->s:req_parsecpp(a:bufname)})
 endf
 
 fun s:req_get_hlt(bufname)
