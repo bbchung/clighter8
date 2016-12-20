@@ -75,11 +75,11 @@ fun! clighter8#stop()
     windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
     exe a:wnr.'wincmd w'
 
-    delc ClShowCursorInfo
-    delc ClShowCompileInfo
-    delc ClEnableLog
-    delc ClDisableLog
-    delc ClRenameCursor
+    silent! delc ClShowCursorInfo
+    silent! delc ClShowCompileInfo
+    silent! delc ClEnableLog
+    silent! delc ClDisableLog
+    silent! delc ClRenameCursor
 endf
 
 fun s:req_parsecpp(bufname)
