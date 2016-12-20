@@ -2,30 +2,11 @@ if exists('g:loaded_clighter8')
     finish
 endif
 
-fun! ClFormat()
-    if !executable(g:clang_format_path)
-        return
-    endif
-
-    if v:count == 0
-        let l:lines='all'
-    else
-        let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
-    endif
-
-    execute('pyf '.s:script_folder_path.'/../third_party/clang-format.py')
-endf
 
 command! ClStart call clighter8#start()
 command! ClStop call clighter8#stop()
 command! ClRestart call clighter8#stop() | call clighter8#start()
-command! ClShowCursorInfo if exists ('s:channel') | echo clighter8#engine#cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif
-command! ClShowCompileInfo if exists ('s:channel') | echo clighter8#engine#compile_info(s:channel, expand('%:p')) | endif
-command! ClEnableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:true) | endif
-command! ClDisableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:false) | endif
 command! ClLoadCdb call clighter8#start() | call clighter8#load_cdb()
-command! ClRenameCursor call clighter8#rename(line('.'), col('.'))
-
 
 let g:clighter8_autostart = get(g:, 'clighter8_autostart', 1)
 let g:clighter8_libclang_path = get(g:, 'clighter8_libclang_path', '')
