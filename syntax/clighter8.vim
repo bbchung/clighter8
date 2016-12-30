@@ -27,6 +27,7 @@ hi default link clighter8NamespaceRef Type
 hi default link clighter8MemberRef Type
 hi default link clighter8DeclRefExpr Type
 hi default link clighter8MemberRefExpr Type
+hi default link clighter8CallExpr Type
 hi default link clighter8MacroInstantiation Constant
 hi default link clighter8InclusionDirective cIncluded
 
