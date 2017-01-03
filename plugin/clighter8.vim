@@ -2,7 +2,9 @@ if exists('g:loaded_clighter8')
     finish
 endif
 
+
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
+execute('source '. s:script_folder_path . '/../third_party/gtags.vim')
 
 fun! ClFormat()
     if !executable(g:clang_format_path)

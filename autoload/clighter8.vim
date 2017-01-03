@@ -1,6 +1,5 @@
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
-execute('source '. s:script_folder_path . '/../third_party/gtags.vim')
 
 fun! clighter8#start()
     if exists('s:channel')
