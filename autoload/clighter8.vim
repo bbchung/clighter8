@@ -8,7 +8,7 @@ fun! clighter8#start()
 
     let s:channel = ch_open('localhost:8787')
     if ch_status(s:channel) ==# 'fail'
-        let l:cmd = 'python '. s:script_folder_path.'/../python/engine.py '. g:clighter8_logfile
+        let l:cmd = 'python2 '. s:script_folder_path.'/../python/engine.py '. g:clighter8_logfile
         let s:job = job_start(l:cmd, {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null'})
         let s:channel = ch_open('localhost:8787', {'waittime': 500})
         if ch_status(s:channel) ==# 'fail'
