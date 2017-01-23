@@ -35,13 +35,13 @@ fun! clighter8#start()
     augroup Clighter8
         autocmd!
 
-        if g:clighter8_syntax_highlight == 1
             au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
             au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
             au BufLeave * call s:req_parsecpp(expand('%:p'))
-            au CursorMoved,CursorMovedI * call s:req_get_hlt(expand('%:p'))
             au BufDelete * call clighter8#engine#delete_buffer(s:channel, expand('%:p'))
             au VimLeave * call clighter8#stop()
+        if g:clighter8_syntax_highlight == 1
+            au CursorMoved,CursorMovedI * call s:req_get_hlt(expand('%:p'))
         endif
 
         if g:clighter8_auto_gtags == 1
@@ -314,7 +314,9 @@ func s:on_parse(channel, msg)
     endif
 
     call s:clear_matches([g:clighter8_usage_priority])
-    call clighter8#engine#req_get_hlt_async(a:channel, a:msg['bufname'], {channel, msg->s:on_req_get_hlt(channel, msg)})
+    if g:clighter8_syntax_highlight == 1
+        call clighter8#engine#req_get_hlt_async(a:channel, a:msg['bufname'], {channel, msg->s:on_req_get_hlt(channel, msg)})
+    endif
 endfunc
 
 func s:on_req_parse(channel, msg)
