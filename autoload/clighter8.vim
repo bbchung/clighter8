@@ -296,7 +296,8 @@ fun! s:update_gtags()
         if filereadable('GPATH') && filereadable('GRTAGS') && filereadable('GTAGS')
             if executable('global')
                 let s:gtags_need_update = 0
-                let l:cmd = 'global -u --single-update="' . expand('%') . '"'
+                "let l:cmd = 'global -u --single-update="' . expand('%') . '"'
+                let l:cmd = 'global -u'
                 let s:gtags_job = job_start(l:cmd, {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {->s:on_gtags_finish()}})
             endif
         else
