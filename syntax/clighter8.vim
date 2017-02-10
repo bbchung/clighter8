@@ -2,6 +2,7 @@ hi default link clighter8Decl Identifier
 hi default link clighter8Ref Type
 hi default link clighter8Prepro PreProc
 hi default link clighter8Stat Keyword
+hi default link clighter8Expr Type
 
 hi default link clighter8StructDecl Identifier
 hi default link clighter8UnionDecl Identifier
