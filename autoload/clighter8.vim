@@ -37,7 +37,7 @@ fun! clighter8#start()
         if g:clighter8_syntax_highlight == 1
             au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
             au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-            au BufLeave * call s:req_parsecpp(expand('%:p'))
+            "au BufLeave * call s:req_parsecpp(expand('%:p'))
             au BufDelete * call clighter8#engine#delete_buffer(s:channel, expand('%:p'))
             au VimLeave * call clighter8#stop()
             au CursorMoved,CursorMovedI * call s:req_get_hlt(expand('%:p'))
