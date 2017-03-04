@@ -166,6 +166,7 @@ Clighter8 provides these commands and functions.
 |ClStart|
 |ClStop|
 |ClRestart|
+|ClToggleHighlight|
 |ClShowCursorInfo|
 |ClShowCompileInfo|
 |ClEnableLog|
@@ -192,7 +193,12 @@ ClRestart~
 Restart Clighter8.
 
 ------------------------------------------------------------------------------
+						*ClToggleHighlight*
+ClToggleHighlight~
 
+Toggle highlight function.
+
+------------------------------------------------------------------------------
 						*ShowCursorInfo*
 ClShowCursorInfo~
 

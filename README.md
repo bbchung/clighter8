@@ -47,6 +47,10 @@ Stop Clighter8.
 
 Restart Clighter8.
 
+## ClToggleHighlight
+
+Toggle highlight function.
+
 ## ClShowCursorInfo
 
 Show cursor informations from libclang. It's useful when debugging.
