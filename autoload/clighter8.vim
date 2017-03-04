@@ -26,7 +26,7 @@ fun! clighter8#start()
         return
     endif
 
-    call s:timer_parse(expand('%:p'))
+    call clighter8#engine#req_parse_async(s:channel, expand('%:p'), {channel, msg->s:on_req_parse(channel, msg)})
 
     if g:clighter8_auto_gtags == 1
         call s:update_gtags()
@@ -34,14 +34,8 @@ fun! clighter8#start()
 
     augroup Clighter8
         autocmd!
-        if g:clighter8_syntax_highlight == 1
-            au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
-            au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-            "au BufLeave * call s:req_parsecpp(expand('%:p'))
-            au BufDelete * call clighter8#engine#delete_buffer(s:channel, expand('%:p'))
-            au VimLeave * call clighter8#stop()
-            au CursorMoved,CursorMovedI * call s:req_get_hlt(expand('%:p'))
-        endif
+        let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight " a trick to reuse next function
+        call s:toggle_highlight()
 
         if g:clighter8_auto_gtags == 1
             au BufWritePost,BufEnter * call s:update_gtags()
@@ -56,7 +50,8 @@ fun! clighter8#start()
     command! ClShowCompileInfo if exists ('s:channel') | echo clighter8#engine#compile_info(s:channel, expand('%:p')) | endif
     command! ClEnableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:true) | endif
     command! ClDisableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:false) | endif
-    command! ClRenameCursor if exists ('s:channel') | call clighter8#rename(line('.'), col('.')) | endif
+    command! ClRenameCursor if exists ('s:channel') | call s:rename(line('.'), col('.')) | endif
+    command! ClToggleHighlight if exists ('s:channel') | call s:toggle_highlight() | endif
 endf
 
 fun! clighter8#stop()
@@ -73,27 +68,16 @@ fun! clighter8#stop()
         unlet s:channel
     endif
 
-    let a:wnr = winnr()
+    let l:wnr = winnr()
     windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-    exe a:wnr.'wincmd w'
+    exe l:wnr.'wincmd w'
 
     silent! delc ClShowCursorInfo
     silent! delc ClShowCompileInfo
     silent! delc ClEnableLog
     silent! delc ClDisableLog
     silent! delc ClRenameCursor
-endf
-
-fun s:req_parsecpp(bufname)
-    if !exists('s:channel')
-        return
-    endif
-
-    if index(['c', 'cpp'], &filetype) == -1
-        return
-    endif
-
-    call clighter8#engine#req_parse_async(s:channel, a:bufname, {channel, msg->s:on_req_parse(channel, msg)})
+    silent! delc ClToggleHighlight
 endf
 
 fun! clighter8#load_cdb()
@@ -139,18 +123,17 @@ fun! clighter8#load_cdb()
     endif
 endf
 
-fun clighter8#rename(row, col)
+fun s:rename(row, col)
     if index(['c', 'cpp'], &filetype) == -1
         return
     endif
 
-    let l:bufname = expand('%:p')
-    if empty(clighter8#engine#parse(s:channel, l:bufname, join(getbufline(l:bufname, 1,'$'), "\n")))
+    if empty(clighter8#engine#parse(s:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n")))
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
         return
     endif
 
-    let l:usr_info = clighter8#engine#get_usr_info(s:channel, l:bufname, a:row, a:col, s:get_word())
+    let l:usr_info = clighter8#engine#get_usr_info(s:channel, expand('%:p'), a:row, a:col, s:get_word())
 
     if empty(l:usr_info)
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
@@ -411,7 +394,7 @@ func! s:timer_parse(bufname)
         call timer_stop(s:timer)
     endif
 
-    let s:timer = timer_start(800, {timer->s:req_parsecpp(a:bufname)})
+    let s:timer = timer_start(800, {->clighter8#engine#req_parse_async(s:channel, a:bufname, {channel, msg->s:on_req_parse(channel, msg)})})
 endf
 
 fun s:req_get_hlt(bufname)
@@ -425,4 +408,24 @@ fun s:req_get_hlt(bufname)
 
     call s:clear_matches([g:clighter8_usage_priority])
     call clighter8#engine#req_get_hlt_async(s:channel, a:bufname, {channel, msg->s:on_req_get_hlt(channel, msg)})
+endf
+
+fun! s:toggle_highlight()
+    augroup Clighter8Highlight
+        autocmd!
+        let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight
+        if g:clighter8_syntax_highlight == 1
+            call clighter8#engine#req_parse_async(s:channel, expand('%:p'), {channel, msg->s:on_req_parse(channel, msg)})
+
+            au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
+            au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+            au BufDelete * call clighter8#engine#delete_buffer(s:channel, expand('%:p'))
+            au VimLeave * call clighter8#stop()
+            au CursorMoved,CursorMovedI * call s:req_get_hlt(expand('%:p'))
+        else
+            let l:wnr = winnr()
+            windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+            exe l:wnr.'wincmd w'
+        endif
+    augroup END
 endf
