@@ -7,11 +7,11 @@ channel api. Clighter8 integrates [clang][clang], [GNU Global][GNU Global] and
 provides following features currently:
 
 * On-the-fly, highly customized syntax highlight
-* Rename-refactor
-* Automatic backgroud gtags updating
+* Rename-refactor(experimental)
+* Automatic backgroud gtags updating(on current folder)
 * Intelligent compilation database supporting
 * clang-format integration
-* A beautiful color scheme
+* Awesome color scheme
 
 # Requirements
 Clighter8 requires the following things:
@@ -49,7 +49,8 @@ Restart Clighter8.
 
 ## ClToggleHighlight
 
-Toggle highlight function.
+Toggle highlight function. It is useful when libclang run slow.(ex: include
+boost library)
 
 ## ClShowCursorInfo
 
@@ -94,9 +95,10 @@ database, please reference [Compilation Database][cdb].
 ## FAQ
 
 ## Highlight feature doesn't work?
-Check the [Requirements](#requirements) and [Installation](#installation) ,
-and check if a valid libclang path is given. Also, you can check
-/tmp/clighter8.log.
+Check the [Requirements](#requirements) and [Installation](#installation), and
+check if a valid libclang path is given, also, you can check
+/tmp/clighter8.log. Remember to set g:clighter8_global_compile_args or provide
+the compilation database to get the better highlight result.
 
 ## Gtags feature doesn't work?
 Check if both 'gtags' and 'global' are installed and the execute path are
