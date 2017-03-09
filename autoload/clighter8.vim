@@ -26,7 +26,7 @@ fun! clighter8#start()
         return
     endif
 
-    call clighter8#engine#parse_async(s:channel, expand('%:p'), getbufline(expand('%:p'), 1,'$'), {channel, msg->s:on_parse(channel, msg)})
+    call clighter8#engine#parse_async(s:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
 
     if g:clighter8_auto_gtags == 1
         call s:update_gtags()
@@ -101,7 +101,7 @@ fun! clighter8#load_cdb()
             continue
         endif
 
-        let l:result = clighter8#engine#parse(s:channel, bufname, getbufline(bufname, 1,'$'))
+        let l:result = clighter8#engine#parse(s:channel, bufname, join(getbufline(bufname, 1,'$'), "\n"))
         if empty(l:result)
             continue
         endif
@@ -128,7 +128,7 @@ fun s:rename(row, col)
         return
     endif
 
-    if empty(clighter8#engine#parse(s:channel, expand('%:p'), getbufline(expand('%:p'), 1,'$')))
+    if empty(clighter8#engine#parse(s:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n")))
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
         return
     endif
@@ -186,7 +186,7 @@ fun s:rename(row, col)
             continue
         endif
 
-        if empty(clighter8#engine#parse(s:channel, info.name, getbufline(info.name, 1,'$')))
+        if empty(clighter8#engine#parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n")))
             continue
         endif
 
@@ -205,7 +205,7 @@ fun s:rename(row, col)
 
         silent! call s:replace(l:usage, l:old, l:new, l:qflist)
 
-        call clighter8#engine#parse(s:channel, info.name, getbufline(info.name, 1,'$'))
+        call clighter8#engine#parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n"))
 
         let l:count += 1
         let l:percent = 100.0 * l:count / l:all
@@ -307,7 +307,12 @@ func s:on_req_parse(channel, msg)
         return
     endif
 
-    call clighter8#engine#parse_async(a:channel, a:msg, getbufline(a:msg, 1,'$'), {channel, msg->s:on_parse(channel, msg)})
+    let l:content = v:null
+    if bufloaded(a:msg)
+        let l:content = join(getbufline(a:msg, 1,'$'), "\n")
+    endif
+
+    call clighter8#engine#parse_async(a:channel, a:msg, l:content, {channel, msg->s:on_parse(channel, msg)})
 endfunc
 
 func s:on_req_get_hlt(channel, msg)
@@ -414,7 +419,7 @@ fun! s:toggle_highlight()
         autocmd!
         let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight
         if g:clighter8_syntax_highlight == 1
-            call clighter8#engine#parse_async(s:channel, expand('%:p'), getbufline(expand('%:p'), 1,'$'), {channel, msg->s:on_parse(channel, msg)})
+            call clighter8#engine#parse_async(s:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
 
             au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
             au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
