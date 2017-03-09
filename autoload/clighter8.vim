@@ -389,6 +389,10 @@ func! s:timer_parse(bufname)
         call timer_stop(s:timer)
     endif
 
+    if !exists('s:channel')
+        return
+    endif
+
     let s:timer = timer_start(800, {->clighter8#engine#req_parse_async(s:channel, a:bufname, {channel, msg->s:on_req_parse(channel, msg)})})
 endf
 
