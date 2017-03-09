@@ -33,8 +33,8 @@ func clighter8#engine#parse_async(channel, bufname, bufline, callback)
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
-func clighter8#engine#parse(channel, bufname, content)
-    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : a:content}}
+func clighter8#engine#parse(channel, bufname, bufline)
+    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'bufline' : a:bufline}}
     return ch_evalexpr(a:channel, l:expr, {'timeout' : 10000})
 endf
 

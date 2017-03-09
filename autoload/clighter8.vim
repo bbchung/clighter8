@@ -101,7 +101,7 @@ fun! clighter8#load_cdb()
             continue
         endif
 
-        let l:result = clighter8#engine#parse(s:channel, bufname, join(getbufline(bufname, 1,'$'), "\n"))
+        let l:result = clighter8#engine#parse(s:channel, bufname, getbufline(bufname, 1,'$'))
         if empty(l:result)
             continue
         endif
@@ -128,7 +128,7 @@ fun s:rename(row, col)
         return
     endif
 
-    if empty(clighter8#engine#parse(s:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n")))
+    if empty(clighter8#engine#parse(s:channel, expand('%:p'), getbufline(expand('%:p'), 1,'$')))
         echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
         return
     endif
@@ -186,7 +186,7 @@ fun s:rename(row, col)
             continue
         endif
 
-        if empty(clighter8#engine#parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n")))
+        if empty(clighter8#engine#parse(s:channel, info.name, getbufline(info.name, 1,'$')))
             continue
         endif
 
@@ -205,7 +205,7 @@ fun s:rename(row, col)
 
         silent! call s:replace(l:usage, l:old, l:new, l:qflist)
 
-        call clighter8#engine#parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n"))
+        call clighter8#engine#parse(s:channel, info.name, getbufline(info.name, 1,'$'))
 
         let l:count += 1
         let l:percent = 100.0 * l:count / l:all
