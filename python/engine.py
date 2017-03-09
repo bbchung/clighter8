@@ -100,7 +100,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         elif msg['cmd'] == 'parse':
             bufname = msg['params']['bufname']
-            content = msg['params']['content']
+            bufline = msg['params']['bufline']
 
             if not bufname:
                 self.__safe_sendall(json.dumps([sn, None]))
@@ -108,8 +108,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             bufname = bufname.encode('utf-8')
 
-            if content is not None:
-                self.__update_unsaved(bufname, content.encode('utf-8'))
+            if bufline:
+                self.__update_unsaved(bufname, '\n'.join(bufline))
 
             if not self.__parse(bufname):
                 self.__safe_sendall(json.dumps([sn, None]))

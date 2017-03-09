@@ -307,12 +307,7 @@ func s:on_req_parse(channel, msg)
         return
     endif
 
-    let l:content = v:null
-    if bufloaded(a:msg)
-        let l:content = join(getbufline(a:msg, 1,'$'), "\n")
-    endif
-
-    call clighter8#engine#parse_async(a:channel, a:msg, l:content, {channel, msg->s:on_parse(channel, msg)})
+    call clighter8#engine#parse_async(a:channel, a:msg, getbufline(a:msg, 1,'$'), {channel, msg->s:on_parse(channel, msg)})
 endfunc
 
 func s:on_req_get_hlt(channel, msg)

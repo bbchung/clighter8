@@ -28,8 +28,8 @@ func clighter8#engine#req_get_hlt_async(channel, bufname, callback)
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
-func clighter8#engine#parse_async(channel, bufname, content, callback)
-    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'content' : a:content}}
+func clighter8#engine#parse_async(channel, bufname, bufline, callback)
+    let l:expr = {'cmd' : 'parse', 'params' : {'bufname' : a:bufname, 'bufline' : a:bufline}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
