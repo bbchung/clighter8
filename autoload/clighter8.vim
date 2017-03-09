@@ -26,7 +26,7 @@ fun! clighter8#start()
         return
     endif
 
-    call clighter8#engine#req_parse_async(s:channel, expand('%:p'), {channel, msg->s:on_req_parse(channel, msg)})
+    call clighter8#engine#parse_async(s:channel, expand('%:p'), getbufline(expand('%:p'), 1,'$'), {channel, msg->s:on_parse(channel, msg)})
 
     if g:clighter8_auto_gtags == 1
         call s:update_gtags()
@@ -414,7 +414,7 @@ fun! s:toggle_highlight()
         autocmd!
         let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight
         if g:clighter8_syntax_highlight == 1
-            call clighter8#engine#req_parse_async(s:channel, expand('%:p'), {channel, msg->s:on_req_parse(channel, msg)})
+            call clighter8#engine#parse_async(s:channel, expand('%:p'), getbufline(expand('%:p'), 1,'$'), {channel, msg->s:on_parse(channel, msg)})
 
             au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
             au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])

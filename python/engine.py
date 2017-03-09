@@ -78,7 +78,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.request.sendall(msg)
         except Exception as e:
             logging.warn(str(e))
-            pass
 
     def __handle_msg(self, sn, msg):
         if msg['cmd'] == 'init':
@@ -109,7 +108,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             bufname = bufname.encode('utf-8')
 
             if bufline:
-                self.__update_unsaved(bufname, '\n'.join(bufline))
+                self.__update_unsaved(bufname, '\n'.join(bufline).encode('utf-8'))
 
             if not self.__parse(bufname):
                 self.__safe_sendall(json.dumps([sn, None]))
@@ -385,9 +384,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     0x01 | 0x100 | 0x200 | 0x2)
 
             return True
-        except:
+        except Exception as e:
             del self.buffer_data[bufname]
-            logging.warn('libclang failed to parse', bufname)
+            logging.warn(str(e))
             return False
 
     def __update_inc_compile_args(self, includes, args):
