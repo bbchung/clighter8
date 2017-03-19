@@ -296,7 +296,7 @@ func s:on_parse(channel, msg)
         return
     endif
 
-    call s:clear_matches([g:clighter8_usage_priority])
+    "call s:clear_matches([g:clighter8_usage_priority])
     if g:clighter8_syntax_highlight == 1
         call clighter8#engine#req_get_hlt_async(a:channel, a:msg['bufname'], {channel, msg->s:on_req_get_hlt(channel, msg)})
     endif
