@@ -17,9 +17,8 @@ provides following features currently:
 Clighter8 requires the following things:
 
 * Vim with +job and +channel features
-* [libclang][libclang] and compatible [clang python bindings][cpb], (3.9 is
-  recommended)
-* clang-format-3.9
+* [libclang][libclang] and compatible [clang python bindings][cpb]
+* clang-format
 * [GNU Global][GNU Global]
 
 # Installation
