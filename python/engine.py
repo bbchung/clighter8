@@ -431,8 +431,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if token.kind.value != 2:  # no keyword, comment
                 continue
 
-            cursor = clighter8_helper.get_cursor(
-                tu, bufname, token.location.line, token.location.column)
+            # cursor = clighter8_helper.get_cursor(
+                # tu, bufname, token.location.line, token.location.column)
+
+            cursor = token.cursor
+            cursor._tu = tu
 
             pos = [
                 token.location.line, token.location.column, len(
