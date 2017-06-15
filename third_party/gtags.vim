@@ -25,7 +25,7 @@
 "
 " Overview
 " --------
-" The gtags.vim plug-in script integrates the GNU GLOBAL source code tag system
+" The gtags.vim plug-in script integrates the GNU GLOBAL source code tagging system
 " with Vim. About the details, see http://www.gnu.org/software/global/.
 "
 " Installation
