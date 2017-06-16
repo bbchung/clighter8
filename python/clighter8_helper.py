@@ -273,9 +273,9 @@ KindToGroup = {
     # Represents the "self" expression in a ObjC method.
     cindex.CursorKind.OBJ_SELF_EXPR                                                 : 'clighter8ObjSelfExpr',
     # OpenMP 4.0 [2.4, Array Section].
-    cindex.CursorKind.OMP_ARRAY_SECTION_EXPR                                        : 'clighter8OmpArraySectionExpr',
+    #cindex.CursorKind.OMP_ARRAY_SECTION_EXPR                                        : 'clighter8OmpArraySectionExpr',
     # Represents an @available(...) check.
-    cindex.CursorKind.OBJC_AVAILABILITY_CHECK_EXPR                                  : 'clighter8ObjcAvailabilityCheckExpr',
+    #cindex.CursorKind.OBJC_AVAILABILITY_CHECK_EXPR                                  : 'clighter8ObjcAvailabilityCheckExpr',
     # A statement whose specific kind is not exposed via this interface.
     #
     # Unexposed statements have the same operations as any other kind of statement;
@@ -345,85 +345,85 @@ KindToGroup = {
     # Adaptor class for mixing declarations with statements and expressions.
     cindex.CursorKind.DECL_STMT                                                     : 'clighter8DeclStmt',
     # OpenMP parallel directive.
-    cindex.CursorKind.OMP_PARALLEL_DIRECTIVE                                        : 'clighter8OmpParallelDirective',
+    #cindex.CursorKind.OMP_PARALLEL_DIRECTIVE                                        : 'clighter8OmpParallelDirective',
     # OpenMP SIMD directive.
-    cindex.CursorKind.OMP_SIMD_DIRECTIVE                                            : 'clighter8OmpSimdDirective',
+    #cindex.CursorKind.OMP_SIMD_DIRECTIVE                                            : 'clighter8OmpSimdDirective',
     # OpenMP for directive.
-    cindex.CursorKind.OMP_FOR_DIRECTIVE                                             : 'clighter8OmpForDirective',
+    #cindex.CursorKind.OMP_FOR_DIRECTIVE                                             : 'clighter8OmpForDirective',
     # OpenMP sections directive.
-    cindex.CursorKind.OMP_SECTIONS_DIRECTIVE                                        : 'clighter8OmpSectionsDirective',
+    #cindex.CursorKind.OMP_SECTIONS_DIRECTIVE                                        : 'clighter8OmpSectionsDirective',
     # OpenMP section directive.
-    cindex.CursorKind.OMP_SECTION_DIRECTIVE                                         : 'clighter8OmpSectionDirective',
+    #cindex.CursorKind.OMP_SECTION_DIRECTIVE                                         : 'clighter8OmpSectionDirective',
     # OpenMP single directive.
-    cindex.CursorKind.OMP_SINGLE_DIRECTIVE                                          : 'clighter8OmpSingleDirective',
+    #cindex.CursorKind.OMP_SINGLE_DIRECTIVE                                          : 'clighter8OmpSingleDirective',
     # OpenMP parallel for directive.
-    cindex.CursorKind.OMP_PARALLEL_FOR_DIRECTIVE                                    : 'clighter8OmpParallelForDirective',
+    #cindex.CursorKind.OMP_PARALLEL_FOR_DIRECTIVE                                    : 'clighter8OmpParallelForDirective',
     # OpenMP parallel sections directive.
-    cindex.CursorKind.OMP_PARALLEL_SECTIONS_DIRECTIVE                               : 'clighter8OmpParallelSectionsDirective',
+    #cindex.CursorKind.OMP_PARALLEL_SECTIONS_DIRECTIVE                               : 'clighter8OmpParallelSectionsDirective',
     # OpenMP task directive.
-    cindex.CursorKind.OMP_TASK_DIRECTIVE                                            : 'clighter8OmpTaskDirective',
+    #cindex.CursorKind.OMP_TASK_DIRECTIVE                                            : 'clighter8OmpTaskDirective',
     # OpenMP master directive.
-    cindex.CursorKind.OMP_MASTER_DIRECTIVE                                          : 'clighter8OmpMasterDirective',
+    #cindex.CursorKind.OMP_MASTER_DIRECTIVE                                          : 'clighter8OmpMasterDirective',
     # OpenMP critical directive.
-    cindex.CursorKind.OMP_CRITICAL_DIRECTIVE                                        : 'clighter8OmpCriticalDirective',
+    #cindex.CursorKind.OMP_CRITICAL_DIRECTIVE                                        : 'clighter8OmpCriticalDirective',
     # OpenMP taskyield directive.
-    cindex.CursorKind.OMP_TASKYIELD_DIRECTIVE                                       : 'clighter8OmpTaskyieldDirective',
+    #cindex.CursorKind.OMP_TASKYIELD_DIRECTIVE                                       : 'clighter8OmpTaskyieldDirective',
     # OpenMP barrier directive.
-    cindex.CursorKind.OMP_BARRIER_DIRECTIVE                                         : 'clighter8OmpBarrierDirective',
+    #cindex.CursorKind.OMP_BARRIER_DIRECTIVE                                         : 'clighter8OmpBarrierDirective',
     # OpenMP taskwait directive.
-    cindex.CursorKind.OMP_TASKWAIT_DIRECTIVE                                        : 'clighter8OmpTaskwaitDirective',
+    #cindex.CursorKind.OMP_TASKWAIT_DIRECTIVE                                        : 'clighter8OmpTaskwaitDirective',
     # OpenMP flush directive.
-    cindex.CursorKind.OMP_FLUSH_DIRECTIVE                                           : 'clighter8OmpFlushDirective',
+    #cindex.CursorKind.OMP_FLUSH_DIRECTIVE                                           : 'clighter8OmpFlushDirective',
     # Windows Structured Exception Handling's leave statement.
-    cindex.CursorKind.SEH_LEAVE_STMT                                                : 'clighter8SehLeaveStmt',
+    #cindex.CursorKind.SEH_LEAVE_STMT                                                : 'clighter8SehLeaveStmt',
     # OpenMP ordered directive.
-    cindex.CursorKind.OMP_ORDERED_DIRECTIVE                                         : 'clighter8OmpOrderedDirective',
+    #cindex.CursorKind.OMP_ORDERED_DIRECTIVE                                         : 'clighter8OmpOrderedDirective',
     # OpenMP atomic directive.
-    cindex.CursorKind.OMP_ATOMIC_DIRECTIVE                                          : 'clighter8OmpAtomicDirective',
+    #cindex.CursorKind.OMP_ATOMIC_DIRECTIVE                                          : 'clighter8OmpAtomicDirective',
     # OpenMP for SIMD directive.
-    cindex.CursorKind.OMP_FOR_SIMD_DIRECTIVE                                        : 'clighter8OmpForSimdDirective',
+    #cindex.CursorKind.OMP_FOR_SIMD_DIRECTIVE                                        : 'clighter8OmpForSimdDirective',
     # OpenMP parallel for SIMD directive.
-    cindex.CursorKind.OMP_PARALLELFORSIMD_DIRECTIVE                                 : 'clighter8OmpParallelforsimdDirective',
+    #cindex.CursorKind.OMP_PARALLELFORSIMD_DIRECTIVE                                 : 'clighter8OmpParallelforsimdDirective',
     # OpenMP target directive.
-    cindex.CursorKind.OMP_TARGET_DIRECTIVE                                          : 'clighter8OmpTargetDirective',
+    #cindex.CursorKind.OMP_TARGET_DIRECTIVE                                          : 'clighter8OmpTargetDirective',
     # OpenMP teams directive.
-    cindex.CursorKind.OMP_TEAMS_DIRECTIVE                                           : 'clighter8OmpTeamsDirective',
+    #cindex.CursorKind.OMP_TEAMS_DIRECTIVE                                           : 'clighter8OmpTeamsDirective',
     # OpenMP taskgroup directive.
-    cindex.CursorKind.OMP_TASKGROUP_DIRECTIVE                                       : 'clighter8OmpTaskgroupDirective',
+    #cindex.CursorKind.OMP_TASKGROUP_DIRECTIVE                                       : 'clighter8OmpTaskgroupDirective',
     # OpenMP cancellation point directive.
-    cindex.CursorKind.OMP_CANCELLATION_POINT_DIRECTIVE                              : 'clighter8OmpCancellationPointDirective',
+    #cindex.CursorKind.OMP_CANCELLATION_POINT_DIRECTIVE                              : 'clighter8OmpCancellationPointDirective',
     # OpenMP cancel directive.
-    cindex.CursorKind.OMP_CANCEL_DIRECTIVE                                          : 'clighter8OmpCancelDirective',
+    #cindex.CursorKind.OMP_CANCEL_DIRECTIVE                                          : 'clighter8OmpCancelDirective',
     # OpenMP target data directive.
-    cindex.CursorKind.OMP_TARGET_DATA_DIRECTIVE                                     : 'clighter8OmpTargetDataDirective',
+    #cindex.CursorKind.OMP_TARGET_DATA_DIRECTIVE                                     : 'clighter8OmpTargetDataDirective',
     # OpenMP taskloop directive.
-    cindex.CursorKind.OMP_TASK_LOOP_DIRECTIVE                                       : 'clighter8OmpTaskLoopDirective',
+    #cindex.CursorKind.OMP_TASK_LOOP_DIRECTIVE                                       : 'clighter8OmpTaskLoopDirective',
     # OpenMP taskloop simd directive.
-    cindex.CursorKind.OMP_TASK_LOOP_SIMD_DIRECTIVE                                  : 'clighter8OmpTaskLoopSimdDirective',
+    #cindex.CursorKind.OMP_TASK_LOOP_SIMD_DIRECTIVE                                  : 'clighter8OmpTaskLoopSimdDirective',
     # OpenMP distribute directive.
-    cindex.CursorKind.OMP_DISTRIBUTE_DIRECTIVE                                      : 'clighter8OmpDistributeDirective',
+    #cindex.CursorKind.OMP_DISTRIBUTE_DIRECTIVE                                      : 'clighter8OmpDistributeDirective',
     # OpenMP target enter data directive.
-    cindex.CursorKind.OMP_TARGET_ENTER_DATA_DIRECTIVE                               : 'clighter8OmpTargetEnterDataDirective',
+    #cindex.CursorKind.OMP_TARGET_ENTER_DATA_DIRECTIVE                               : 'clighter8OmpTargetEnterDataDirective',
     # OpenMP target exit data directive.
-    cindex.CursorKind.OMP_TARGET_EXIT_DATA_DIRECTIVE                                : 'clighter8OmpTargetExitDataDirective',
+    #cindex.CursorKind.OMP_TARGET_EXIT_DATA_DIRECTIVE                                : 'clighter8OmpTargetExitDataDirective',
     # OpenMP target parallel directive.
-    cindex.CursorKind.OMP_TARGET_PARALLEL_DIRECTIVE                                 : 'clighter8OmpTargetParallelDirective',
+    #cindex.CursorKind.OMP_TARGET_PARALLEL_DIRECTIVE                                 : 'clighter8OmpTargetParallelDirective',
     # OpenMP target parallel for directive.
-    cindex.CursorKind.OMP_TARGET_PARALLELFOR_DIRECTIVE                              : 'clighter8OmpTargetParallelforDirective',
+    #cindex.CursorKind.OMP_TARGET_PARALLELFOR_DIRECTIVE                              : 'clighter8OmpTargetParallelforDirective',
     # OpenMP target update directive.
-    cindex.CursorKind.OMP_TARGET_UPDATE_DIRECTIVE                                   : 'clighter8OmpTargetUpdateDirective',
+    #cindex.CursorKind.OMP_TARGET_UPDATE_DIRECTIVE                                   : 'clighter8OmpTargetUpdateDirective',
     # OpenMP distribute parallel for directive.
-    cindex.CursorKind.OMP_DISTRIBUTE_PARALLELFOR_DIRECTIVE                          : 'clighter8OmpDistributeParallelforDirective',
+    #cindex.CursorKind.OMP_DISTRIBUTE_PARALLELFOR_DIRECTIVE                          : 'clighter8OmpDistributeParallelforDirective',
     # OpenMP distribute parallel for simd directive.
-    cindex.CursorKind.OMP_DISTRIBUTE_PARALLEL_FOR_SIMD_DIRECTIVE                    : 'clighter8OmpDistributeParallelForSimdDirective',
+    #cindex.CursorKind.OMP_DISTRIBUTE_PARALLEL_FOR_SIMD_DIRECTIVE                    : 'clighter8OmpDistributeParallelForSimdDirective',
     # OpenMP distribute simd directive.
-    cindex.CursorKind.OMP_DISTRIBUTE_SIMD_DIRECTIVE                                 : 'clighter8OmpDistributeSimdDirective',
+    #cindex.CursorKind.OMP_DISTRIBUTE_SIMD_DIRECTIVE                                 : 'clighter8OmpDistributeSimdDirective',
     # OpenMP target parallel for simd directive.
-    cindex.CursorKind.OMP_TARGET_PARALLEL_FOR_SIMD_DIRECTIVE                        : 'clighter8OmpTargetParallelForSimdDirective',
+    #cindex.CursorKind.OMP_TARGET_PARALLEL_FOR_SIMD_DIRECTIVE                        : 'clighter8OmpTargetParallelForSimdDirective',
     # OpenMP target simd directive.
-    cindex.CursorKind.OMP_TARGET_SIMD_DIRECTIVE                                     : 'clighter8OmpTargetSimdDirective',
+    #cindex.CursorKind.OMP_TARGET_SIMD_DIRECTIVE                                     : 'clighter8OmpTargetSimdDirective',
     # OpenMP teams distribute directive.
-    cindex.CursorKind.OMP_TEAMS_DISTRIBUTE_DIRECTIVE                                : 'clighter8OmpTeamsDistributeDirective',
+    #cindex.CursorKind.OMP_TEAMS_DISTRIBUTE_DIRECTIVE                                : 'clighter8OmpTeamsDistributeDirective',
     ###
     # Other Kinds
     # Cursor that represents the translation unit itself.
@@ -467,9 +467,9 @@ KindToGroup = {
     # A type alias template declaration
     cindex.CursorKind.TYPE_ALIAS_TEMPLATE_DECL                                      : 'clighter8TypeAliasTemplateDecl',
     # A staticAssert or _StaticAssert node
-    cindex.CursorKind.STATIC_ASSERT                                                 : 'clighter8StaticAssert',
+    #cindex.CursorKind.STATIC_ASSERT                                                 : 'clighter8StaticAssert',
     # A friend declaration
-    cindex.CursorKind.FRIEND_DECL                                                   : 'clighter8FriendDecl',
+    #cindex.CursorKind.FRIEND_DECL                                                   : 'clighter8FriendDecl',
     # A code completion overload candidate.
     cindex.CursorKind.OVERLOAD_CANDIDATE                                            : 'clighter8OverloadCandidate',
 }
