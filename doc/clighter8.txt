@@ -22,7 +22,6 @@ features currently:
 
 * On-the-fly, highly customized syntax highlight
 * Rename-refactor(experimental)
-* Automatic backgroud gtags updating(on current folder)
 * Intelligent compilation database supporting
 * clang-format integration
 * Awesome color scheme
@@ -65,7 +64,6 @@ Vundle Install~
 |g:clighter8_highlight_blacklist|
 |g:clighter8_global_compile_args|
 |g:clighter8_logfile|
-|g:clighter8_auto_gtags|
 |g:clighter8_highlight|
 |g:clighter8_format_on_save|
 
@@ -136,13 +134,6 @@ clighter server restart.
 
 Default: `'/tmp/clighter8.log'`
 >
-------------------------------------------------------------------------------
-*g:clighter8_auto_gtags*
-
-Enable auto gtags feature or not.
-
-Default: `1`
-
 ------------------------------------------------------------------------------
 *g:clighter8_highlight*
 
@@ -309,12 +300,6 @@ Check |clighter8-requirements| and |clighter8-installation|, and check if a
 valid libclang path is given, also, you can check /tmp/clighter8.log.
 Remember to set |g:clighter8_global_compile_args| or provide the compilation
 database to get the better highlight result.
-
-------------------------------------------------------------------------------
-
-## Gtags feature doesn't work?
-Check if both 'gtags' and 'global' are installed and the execute path are
-under system PATH.
 
 ------------------------------------------------------------------------------
 

@@ -4,7 +4,6 @@ endif
 
 
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
-execute('source '. s:script_folder_path . '/../third_party/gtags.vim')
 
 fun! ClFormat()
     if !executable(g:clang_format_path)
@@ -33,7 +32,6 @@ let g:clighter8_highlight_blacklist = get(g:, 'clighter8_highlight_blacklist', [
 let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [])
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++', '-std=c++0x'])
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
-let g:clighter8_auto_gtags = get(g:, 'clighter8_auto_gtags', 1)
 let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 1)
 let g:clighter8_format_on_save = get(g:, 'clighter8_format_on_save', 0)
 let g:clang_format_path = get(g:, 'clang_format_path', 'clang-format')

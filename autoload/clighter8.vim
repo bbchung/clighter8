@@ -28,18 +28,10 @@ fun! clighter8#start()
 
     call clighter8#engine#parse_async(s:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
 
-    if g:clighter8_auto_gtags == 1
-        call s:update_gtags()
-    endif
-
     augroup Clighter8
         autocmd!
         let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight " a trick to reuse next function
         call s:toggle_highlight()
-
-        if g:clighter8_auto_gtags == 1
-            au BufWritePost,BufEnter * call s:update_gtags()
-        endif
 
         if g:clighter8_format_on_save == 1
             au BufWritePre * call ClFormat()
@@ -257,37 +249,6 @@ fun! s:get_word()
         return expand("<cword>")
     else
         return ''
-    endif
-endf
-
-fun! s:on_gtags_finish()
-    if exists('s:gtags_need_update') && s:gtags_need_update == 1
-        call s:update_gtags()
-    endif
-endf
-
-fun! s:update_gtags()
-    if &diff
-        return
-    endif
-
-    if exists('s:gtags_job') && job_status(s:gtags_job) ==# 'run'
-        let s:gtags_need_update = 1
-    else
-        let s:gtags_need_update = 0
-
-        if filereadable('GPATH') && filereadable('GRTAGS') && filereadable('GTAGS')
-            if executable('global')
-                let s:gtags_need_update = 0
-                "let l:cmd = 'global -u --single-update="' . expand('%') . '"'
-                let l:cmd = 'global -u'
-                let s:gtags_job = job_start(l:cmd, {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {->s:on_gtags_finish()}})
-            endif
-        else
-            if executable('gtags')
-                let s:gtags_job = job_start('gtags', {'stoponexit': '', 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'exit_cb' : {->s:on_gtags_finish()}})
-            endif
-        endif
     endif
 endf
 

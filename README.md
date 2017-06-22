@@ -8,7 +8,6 @@ provides following features currently:
 
 * On-the-fly, highly customized syntax highlight
 * Rename-refactor(experimental)
-* Automatic backgroud gtags updating(on current folder)
 * Intelligent compilation database supporting
 * clang-format integration
 * Awesome color scheme
@@ -98,10 +97,6 @@ Check the [Requirements](#requirements) and [Installation](#installation), and
 check if a valid libclang path is given, also, you can check
 /tmp/clighter8.log. Remember to set g:clighter8_global_compile_args or provide
 the compilation database to get the better highlight result.
-
-## Gtags feature doesn't work?
-Check if both 'gtags' and 'global' are installed and the execute path are
-under system PATH.
 
 ## Clang format integration doesn't work?
 Check 'clang-format-3.9' is executable and set g:clang_format_path if need.
