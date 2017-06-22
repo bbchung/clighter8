@@ -9,7 +9,6 @@ provides following features currently:
 * On-the-fly, highly customized syntax highlight
 * Rename-refactor(experimental)
 * Intelligent compilation database supporting
-* clang-format integration
 * Awesome color scheme
 
 # Requirements
@@ -17,7 +16,6 @@ Clighter8 requires the following things:
 
 * Vim with +job and +channel features
 * [libclang][libclang] and compatible [clang python bindings][cpb]
-* clang-format
 * [GNU Global][GNU Global]
 
 # Installation
@@ -97,9 +95,6 @@ Check the [Requirements](#requirements) and [Installation](#installation), and
 check if a valid libclang path is given, also, you can check
 /tmp/clighter8.log. Remember to set g:clighter8_global_compile_args or provide
 the compilation database to get the better highlight result.
-
-## Clang format integration doesn't work?
-Check 'clang-format-3.9' is executable and set g:clang_format_path if need.
 
 ## ClRenameCursor is experimental?
 Due to the many restrictions, it's hard to do rename-refactor of c++ code.

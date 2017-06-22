@@ -23,7 +23,6 @@ features currently:
 * On-the-fly, highly customized syntax highlight
 * Rename-refactor(experimental)
 * Intelligent compilation database supporting
-* clang-format integration
 * Awesome color scheme
 
 Github~
@@ -38,7 +37,6 @@ Clighter8 requires the following things:
 
 * Vim with +job and +channel features
 * libclang and compatible clang python bindings, (3.9 is recommended)
-* clang-format-3.9
 * GNU Global, https://www.gnu.org/software/global/download.html
 
 ==============================================================================
@@ -65,7 +63,6 @@ Vundle Install~
 |g:clighter8_global_compile_args|
 |g:clighter8_logfile|
 |g:clighter8_highlight|
-|g:clighter8_format_on_save|
 
 ------------------------------------------------------------------------------
 *g:clighter8_autostart*
@@ -142,13 +139,6 @@ you must set |g:clighter8_global_compile_args| or provide compilation database
 under working folder.
 
 Default: `1`
-
-------------------------------------------------------------------------------
-*g:clighter8_format_on_save*
-
-Format code after file save.
-
-Default: `0`
 
 ==============================================================================
 						*clighter8-usage*
@@ -300,11 +290,6 @@ Check |clighter8-requirements| and |clighter8-installation|, and check if a
 valid libclang path is given, also, you can check /tmp/clighter8.log.
 Remember to set |g:clighter8_global_compile_args| or provide the compilation
 database to get the better highlight result.
-
-------------------------------------------------------------------------------
-
-## Clang format integration doesn't work?
-Check 'clang-format-3.9' is executable and set g:clang_format_path if need.
 
 ------------------------------------------------------------------------------
 
