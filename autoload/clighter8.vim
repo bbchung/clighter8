@@ -33,9 +33,6 @@ fun! clighter8#start()
         let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight " a trick to reuse next function
         call s:toggle_highlight()
 
-        if g:clighter8_format_on_save == 1
-            au BufWritePre * call ClFormat()
-        endif
     augroup END
 
     command! ClShowCursorInfo if exists ('s:channel') | echo clighter8#engine#cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif

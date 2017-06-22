@@ -5,20 +5,6 @@ endif
 
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 
-fun! ClFormat()
-    if !executable(g:clang_format_path)
-        return
-    endif
-
-    if v:count == 0
-        let l:lines='all'
-    else
-        let l:lines=printf('%s:%s', v:lnum, v:lnum+v:count-1)
-    endif
-
-    execute('pyf '.s:script_folder_path.'/../third_party/clang-format.py')
-endf
-
 command! ClStart call clighter8#start()
 command! ClStop call clighter8#stop()
 command! ClRestart call clighter8#stop() | call clighter8#start()
@@ -33,8 +19,6 @@ let g:clighter8_highlight_whitelist = get(g:, 'clighter8_highlight_whitelist', [
 let g:clighter8_global_compile_args = get(g:, 'clighter8_global_compile_args', ['-x', 'c++', '-std=c++0x'])
 let g:clighter8_logfile = get(g:, 'clighter8_logfile', '/tmp/clighter8.log')
 let g:clighter8_syntax_highlight = get(g:, 'clighter8_syntax_highlight', 1)
-let g:clighter8_format_on_save = get(g:, 'clighter8_format_on_save', 0)
-let g:clang_format_path = get(g:, 'clang_format_path', 'clang-format')
 
 
 if g:clighter8_autostart
