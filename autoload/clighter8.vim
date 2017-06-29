@@ -186,8 +186,6 @@ fun s:timer_highlight(bufname)
         call timer_stop(s:hlt_timer)
     endif
 
-    call s:clear_matches([g:clighter8_usage_priority])
-
     if index(['c', 'cpp'], &filetype) == -1
         return
     endif
