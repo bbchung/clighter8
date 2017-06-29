@@ -2,12 +2,11 @@
 
 # Intro
 
-Clighter8 is a server-client architecture Vim plugin, implemented with Vim
-channel api. Clighter8 integrates [clang][clang], [GNU Global][GNU Global] and
-provides following features currently:
+Clighter8 is a server-client Vim syntax highlight plugin, provides following
+features:
 
 * On-the-fly, highly customized syntax highlight
-* Intelligent compilation database supporting
+* Compilation database supporting
 * Awesome color scheme
 
 # Requirements
@@ -15,7 +14,6 @@ Clighter8 requires the following things:
 
 * Vim with +job and +channel features
 * [libclang][libclang] and compatible [clang python bindings][cpb]
-* [GNU Global][GNU Global]
 
 # Installation
 
@@ -67,7 +65,7 @@ Disable log.
 
 It will start clighter8 and open source files described in compilation
 database and all referenced header files under current working folder of Vim.
-Notice that it will take much time if the compilation database is big.
+Notice that it may take long time if the compilation database is big.
 
 ## Compilation Database
 
@@ -94,9 +92,8 @@ affect the correctness of highlight.
 
 This software is licensed under the [GPL v3 license][gpl].
 
-Note: This license does not cover the files that come from the LLVM and GNU
-Global or other third party libraries.
-
+Note: This license does not cover the files that come from the LLVM or other
+third party libraries.
 
 [libclang]: http://llvm.org/apt/
 [gpl]: http://www.gnu.org/copyleft/gpl.html
