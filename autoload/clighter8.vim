@@ -138,31 +138,10 @@ func s:on_parse(channel, msg)
         return
     endif
 
-    "call s:clear_matches([g:clighter8_usage_priority])
     if g:clighter8_syntax_highlight == 1
-        call clighter8#engine#req_get_hlt_async(a:channel, a:msg['bufname'], {channel, msg->s:on_req_get_hlt(channel, msg)})
+
+        call clighter8#engine#get_hlt_async(a:channel, a:msg['bufname'], line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})
     endif
-endfunc
-
-func s:on_req_parse(channel, msg)
-    if empty(a:msg)
-        return
-    endif
-
-    let l:content = v:null
-    if bufloaded(a:msg)
-        let l:content = join(getbufline(a:msg, 1,'$'), "\n")
-    endif
-
-    call clighter8#engine#parse_async(a:channel, a:msg, l:content, {channel, msg->s:on_parse(channel, msg)})
-endfunc
-
-func s:on_req_get_hlt(channel, msg)
-    if empty(a:msg)
-        return
-    endif
-
-    call clighter8#engine#get_hlt_async(a:channel, a:msg, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})
 endfunc
 
 func s:on_get_hlt(channel, msg)
@@ -187,32 +166,37 @@ fun! s:clear_matches(priorities)
 endf
 
 func! s:timer_parse(bufname)
-    if index(['c', 'cpp'], &filetype) == -1
-        return
+    if exists('s:parse_timer')
+        call timer_stop(s:parse_timer)
     endif
 
-    if exists('s:timer')
-        call timer_stop(s:timer)
+    if index(['c', 'cpp'], &filetype) == -1
+        return
     endif
 
     if !exists('s:channel')
         return
     endif
 
-    let s:timer = timer_start(800, {->clighter8#engine#req_parse_async(s:channel, a:bufname, {channel, msg->s:on_req_parse(channel, msg)})})
+    let s:parse_timer = timer_start(800, {->clighter8#engine#parse_async(s:channel, a:bufname, join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})})
 endf
 
-fun s:req_get_hlt(bufname)
-    if !exists('s:channel')
-        return
-    endif
-
-    if index(['c', 'cpp'], &filetype) == -1
-        return
+fun s:timer_highlight(bufname)
+    if exists('s:hlt_timer')
+        call timer_stop(s:hlt_timer)
     endif
 
     call s:clear_matches([g:clighter8_usage_priority])
-    call clighter8#engine#req_get_hlt_async(s:channel, a:bufname, {channel, msg->s:on_req_get_hlt(channel, msg)})
+
+    if index(['c', 'cpp'], &filetype) == -1
+        return
+    endif
+
+    if !exists('s:channel')
+        return
+    endif
+
+    let s:hlt_timer = timer_start(800, {->clighter8#engine#get_hlt_async(s:channel, a:bufname, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})})
 endf
 
 fun! s:toggle_highlight()
@@ -226,7 +210,7 @@ fun! s:toggle_highlight()
             au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
             "au BufDelete * call clighter8#engine#delete_buffer(s:channel, expand('%:p'))
             au VimLeave * call clighter8#stop()
-            au CursorMoved,CursorMovedI * call s:req_get_hlt(expand('%:p'))
+            au CursorMoved,CursorMovedI * call s:timer_highlight(expand('%:p'))
         else
             let l:wnr = winnr()
             windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])

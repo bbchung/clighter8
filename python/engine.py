@@ -122,38 +122,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.__safe_sendall(json.dumps(
                 [sn, {'bufname': bufname}]))
 
-        elif msg['cmd'] == 'req_parse':
-            bufname = msg['params']['bufname']
-
-            if not bufname:
-                self.__safe_sendall(json.dumps([sn, None]))
-                return
-
-            bufname = bufname.encode('utf-8')
-
-            if self.__is_parse_busy(bufname):
-                self.__safe_sendall(json.dumps([sn, None]))
-                return
-
-            self.__set_parse_busy(bufname)
-            self.__safe_sendall(json.dumps([sn, bufname]))
-
-        elif msg['cmd'] == 'req_get_hlt':
-            bufname = msg['params']['bufname']
-
-            if not bufname:
-                self.__safe_sendall(json.dumps([sn, None]))
-                return
-
-            bufname = bufname.encode('utf-8')
-
-            if self.__is_hlt_busy(bufname):
-                self.__safe_sendall(json.dumps([sn, None]))
-                return
-
-            self.__set_hlt_busy(bufname)
-            self.__safe_sendall(json.dumps([sn, bufname]))
-
         elif msg['cmd'] == 'get_hlt':
             bufname = msg['params']['bufname']
             begin_line = msg['params']['begin_line']
