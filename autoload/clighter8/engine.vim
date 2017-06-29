@@ -53,11 +53,6 @@ fun! clighter8#engine#get_usr_info(channel, bufname, row, col, word)
     return ch_evalexpr(a:channel, l:expr)
 endf
 
-fun! clighter8#engine#rename(channel, bufname, usr)
-    let l:expr = {'cmd' : 'rename', 'params' : {'bufname' : a:bufname, 'usr' : a:usr}}
-    return ch_evalexpr(a:channel, l:expr, {'timeout' : 10000})
-endf
-
 fun! clighter8#engine#get_cdb_files(channel)
     let l:expr = {'cmd' : 'get_cdb_files', 'params' : {}}
     return ch_evalexpr(a:channel, l:expr, {'timeout' : 10000})

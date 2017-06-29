@@ -120,7 +120,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 includes, self.buffer_data[bufname].compile_args)
 
             self.__safe_sendall(json.dumps(
-                [sn, {'bufname': bufname, 'includes': includes}]))
+                [sn, {'bufname': bufname}]))
 
         elif msg['cmd'] == 'req_parse':
             bufname = msg['params']['bufname']
@@ -215,26 +215,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.__safe_sendall(json.dumps(
                 [sn, [symbol.spelling, symbol.get_usr()]]))
 
-        elif msg['cmd'] == 'rename':
-            bufname = msg['params']['bufname']
-            usr = msg['params']['usr']
-
-            if not bufname:
-                self.__safe_sendall(json.dumps([sn, None]))
-                return
-
-            bufname = bufname.encode('utf-8')
-
-            buffer_data = self.buffer_data.get(bufname)
-            if not buffer_data:
-                self.__safe_sendall(json.dumps([sn, None]))
-                return
-
-            usage = []
-            clighter8_helper.search_by_usr(
-                self.buffer_data.get(bufname).tu, bufname, usr, usage)
-
-            self.__safe_sendall(json.dumps([sn, usage]))
 
         elif msg['cmd'] == 'cursor_info':
             bufname = msg['params']['bufname']

@@ -39,7 +39,6 @@ fun! clighter8#start()
     command! ClShowCompileInfo if exists ('s:channel') | echo clighter8#engine#compile_info(s:channel, expand('%:p')) | endif
     command! ClEnableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:true) | endif
     command! ClDisableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:false) | endif
-    command! ClRenameCursor if exists ('s:channel') | call s:rename(line('.'), col('.')) | endif
     command! ClToggleHighlight if exists ('s:channel') | call s:toggle_highlight() | endif
 endf
 
@@ -81,7 +80,7 @@ fun! clighter8#load_cdb()
     let l:chk = 10
     let l:count = 0
 
-    let l:incs = []
+    let l:extra_inc = []
     echohl MoreMsg
     for bufname in l:cdb_files
         execute('silent! e! '. bufname)
@@ -89,13 +88,6 @@ fun! clighter8#load_cdb()
         if index(['c', 'cpp'], &filetype) == -1
             continue
         endif
-
-        let l:result = clighter8#engine#parse(s:channel, bufname, join(getbufline(bufname, 1,'$'), "\n"))
-        if empty(l:result)
-            continue
-        endif
-
-        let l:incs += l:result['includes']
 
         let l:count += 1
         let l:percent = 100.0 * l:count / l:all
@@ -107,118 +99,10 @@ fun! clighter8#load_cdb()
     endfor
     echohl None
 
-    if !empty(l:incs)
-        execute('n! ' . join(l:incs, ' '))
+    if !empty(l:extra_inc)
+        execute('n! ' . join(l:extra_inc, ' '))
     endif
 endf
-
-fun s:rename(row, col)
-    if index(['c', 'cpp'], &filetype) == -1
-        return
-    endif
-
-    if empty(clighter8#engine#parse(s:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n")))
-        echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
-        return
-    endif
-
-    let l:usr_info = clighter8#engine#get_usr_info(s:channel, expand('%:p'), a:row, a:col, s:get_word())
-
-    if empty(l:usr_info)
-        echohl WarningMsg | echo '[clighter8] unable to rename' | echohl None
-        return
-    endif
-
-    let [l:old, l:usr] = l:usr_info
-    echohl Question | let l:new = input('Rename ' . l:old . ' to : ', l:old) | echohl None
-    if (empty(l:new) || l:old ==# l:new)
-        return
-    endif
-
-    let l:qflist = []
-    let l:wnr = winnr()
-    let l:bufnr = bufnr('%')
-    let l:pos = getpos('.')
-
-    let l:title = '[clighter8] rename "' . l:old . '" to "' . l:new. '"'
-    let l:prompt = confirm(l:title . '?', "&Yes\n&All\n&No", 1)
-    if (l:prompt == 3 || l:prompt == 0)
-        return
-    endif
-
-    let l:start = reltime()
-
-    let l:buffers = getbufinfo()
-    let l:all = len(l:buffers)
-
-    let l:count = 0
-    let l:chk = 10
-    echohl MoreMsg
-    echo l:title. '... 0%'
-
-    " to sort the buffers
-    let l:sources = []
-    let l:headers = []
-
-    for info in l:buffers
-        if s:is_header(info.name) == 1
-            call add(l:headers, info)
-        else
-            call add(l:sources, info)
-        endif
-    endfor
-
-    for info in l:sources + l:headers
-        execute('silent! buffer! '. info.bufnr)
-
-        if index(['c', 'cpp'], &filetype) == -1
-            continue
-        endif
-
-        if empty(clighter8#engine#parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n")))
-            continue
-        endif
-
-        let l:usage = clighter8#engine#rename(s:channel, info.name, l:usr)
-
-        if empty(l:usage) 
-            continue
-        endif
-
-        if (l:prompt == 1)
-            let l:yn = confirm("rename '". l:old ."' to '" .l:new. "' in " .info.name. '?', "&Yes\n&No", 1)
-            if (l:yn == 2 || l:yn == 0)
-                continue
-            endif
-        endif
-
-        silent! call s:replace(l:usage, l:old, l:new, l:qflist)
-
-        call clighter8#engine#parse(s:channel, info.name, join(getbufline(info.name, 1,'$'), "\n"))
-
-        let l:count += 1
-        let l:percent = 100.0 * l:count / l:all
-
-        if l:percent >= l:chk
-            redraw | echo l:title. ' ...' . float2nr(l:percent) . '%'
-            let l:chk = l:percent + 10
-        endif
-    endfor
-
-    call setqflist(l:qflist)
-    exe 'buffer! '.l:bufnr
-    call setpos('.', l:pos)
-    copen
-    exe l:wnr.'wincmd w'
-
-    if l:prompt == 2
-        let l:seconds = reltimefloat(reltime(l:start))
-        echo printf('[clighter8] time usage: %f seconds', l:seconds)
-    endif
-
-    echohl None
-endf
-
 
 func s:highlight(matches)
     for [group, all_pos] in items(a:matches)
@@ -294,53 +178,12 @@ func s:on_get_hlt(channel, msg)
     call s:highlight(a:msg['hlt'])
 endfunc
 
-
-fun! s:replace(usage, old, new, qflist)
-    let l:pattern = ''
-    for [row, column] in a:usage
-        if (!empty(l:pattern))
-            let l:pattern = l:pattern . '\|'
-        endif
-
-        let l:pattern = l:pattern . '\%' . row . 'l' . '\%>' . (column - 1) . 'c\%<' . (column + strlen(a:old)) . 'c' . a:old
-        call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':row, 'col':column, 'type' : 'I', 'text':"'".a:old."' was renamed to '".a:new."'"})
-    endfor
-
-    let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
-
-    execute(l:cmd)
-endf
-
 fun! s:clear_matches(priorities)
     for m in getmatches()
         if index(a:priorities, m['priority']) >= 0
             call matchdelete(m['id'])
         endif
     endfor
-endf
-
-fun! s:is_header(bufname)
-    if empty(a:bufname)
-        return ''
-    endif
-
-    let l:dot = -1
-    let l:offset = 0
-    let len = len(a:bufname)
-
-    while l:offset < len
-        if a:bufname[l:offset] ==# '.'
-            let l:dot = l:offset
-        endif
-
-        let l:offset += 1
-    endwhile
-
-    if l:dot == -1 || l:dot == len(a:bufname) - 1
-        return 0
-    endif
-
-    return a:bufname[l:dot + 1] ==? 'h'
 endf
 
 func! s:timer_parse(bufname)

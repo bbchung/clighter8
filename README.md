@@ -7,7 +7,6 @@ channel api. Clighter8 integrates [clang][clang], [GNU Global][GNU Global] and
 provides following features currently:
 
 * On-the-fly, highly customized syntax highlight
-* Rename-refactor(experimental)
 * Intelligent compilation database supporting
 * Awesome color scheme
 
@@ -70,22 +69,12 @@ It will start clighter8 and open source files described in compilation
 database and all referenced header files under current working folder of Vim.
 Notice that it will take much time if the compilation database is big.
 
-## ClRenameCursor (Experimental)
-
-Refactor-rename the current cursor of the buffer. Notice that the search scope
-is Vim opened buffers and it's will take much time if there are many opened
-buffers. For convenience, you can add the key mapping in your vimrc:
-
-```vim
-nmap <silent> <Leader>r :ClRenameCursor<CR>
-```
-
 ## Compilation Database
 
 Clighter8 supports compilation database, and it will load the compilation
 database in the current working directory. It's strongly recommended to
 provide a compilation database for Clighter8 to get the better result of
-syntax highlight and refactor-rename. For more information about compilation
+syntax highlight. For more information about compilation
 database, please reference [Compilation Database][cdb].
 
 ## FAQ
@@ -96,15 +85,10 @@ check if a valid libclang path is given, also, you can check
 /tmp/clighter8.log. Remember to set g:clighter8_global_compile_args or provide
 the compilation database to get the better highlight result.
 
-## ClRenameCursor is experimental?
-Due to the many restrictions, it's hard to do rename-refactor of c++ code.
-Clighter8 only searches opened buffers in Vim to do renaming and it can't
-guarantee the correctness.
-
 ## How to set compile args?
 Clighter8 sets the compile args for each file with
 (g:clighter8_global_compile_args + "compilation database"). Compile args will
-affect the correctness of highlight and rename-refactor.
+affect the correctness of highlight.
 
 # LICENSE
 
