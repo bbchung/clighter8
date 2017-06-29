@@ -178,7 +178,7 @@ func! s:timer_parse(bufname)
         return
     endif
 
-    let s:parse_timer = timer_start(800, {->clighter8#engine#parse_async(s:channel, a:bufname, join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})})
+    let s:parse_timer = timer_start(500, {->clighter8#engine#parse_async(s:channel, a:bufname, join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})})
 endf
 
 fun s:timer_highlight(bufname)
@@ -196,7 +196,7 @@ fun s:timer_highlight(bufname)
         return
     endif
 
-    let s:hlt_timer = timer_start(800, {->clighter8#engine#get_hlt_async(s:channel, a:bufname, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})})
+    let s:hlt_timer = timer_start(500, {->clighter8#engine#get_hlt_async(s:channel, a:bufname, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})})
 endf
 
 fun! s:toggle_highlight()
