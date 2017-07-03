@@ -1,6 +1,9 @@
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
+let s:parse_busy=0
+let s:need_parse=0
+
 fun! clighter8#start()
     if exists('s:channel')
         return
@@ -26,7 +29,7 @@ fun! clighter8#start()
         return
     endif
 
-    call clighter8#engine#parse_async(s:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
+    call s:sche_parse(expand('%:p'))
 
     augroup Clighter8
         autocmd!
@@ -134,13 +137,18 @@ fun! s:get_word()
 endf
 
 func s:on_parse(channel, msg)
-    if empty(a:msg)
-        return
+    let s:parse_busy=0
+    if !empty(a:msg)
+        if g:clighter8_syntax_highlight == 1
+
+            call clighter8#engine#get_hlt_async(a:channel, a:msg['bufname'], line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})
+        endif
     endif
 
-    if g:clighter8_syntax_highlight == 1
-
-        call clighter8#engine#get_hlt_async(a:channel, a:msg['bufname'], line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})
+    if s:need_parse == 1
+        let s:need_parse=0
+        let s:parse_busy=1
+        call clighter8#engine#parse_async(a:channel, a:msg['bufname'], join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
     endif
 endfunc
 
@@ -178,7 +186,16 @@ func! s:timer_parse(bufname)
         return
     endif
 
-    let s:parse_timer = timer_start(500, {->clighter8#engine#parse_async(s:channel, a:bufname, join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})})
+    let s:parse_timer = timer_start(500, {->s:sche_parse(a:bufname)})
+endf
+
+fun! s:sche_parse(bufname)
+    if s:parse_busy == 0
+        let s:parse_busy=1
+        call clighter8#engine#parse_async(s:channel, a:bufname, join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
+    else
+        let s:need_parse=1
+    endif
 endf
 
 fun s:timer_highlight(bufname)
@@ -202,7 +219,7 @@ fun! s:toggle_highlight()
         autocmd!
         let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight
         if g:clighter8_syntax_highlight == 1
-            call clighter8#engine#parse_async(s:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
+            call s:sche_parse(expand('%:p'))
 
             au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
             au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])

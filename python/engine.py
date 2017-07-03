@@ -19,7 +19,6 @@ class BufferData:
     def __init__(self):
         self.tu = None
         self.compile_args = None
-        self.parse_busy = False
         self.hlt_busy = False
 
 
@@ -259,16 +258,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if bufname in self.buffer_data:
             del self.buffer_data[bufname]
 
-    def __set_parse_busy(self, bufname):
-        if bufname in self.buffer_data:
-            self.buffer_data[bufname].parse_busy = True
-
-    def __is_parse_busy(self, bufname):
-        if bufname in self.buffer_data:
-            return self.buffer_data[bufname].parse_busy
-
-        return False
-
     def __set_hlt_busy(self, bufname):
         if bufname in self.buffer_data:
             self.buffer_data[bufname].hlt_busy = True
@@ -316,8 +305,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.buffer_data[bufname] = BufferData()
             self.buffer_data[bufname].compile_args = self.global_compile_args + \
                 clighter8_helper.get_compile_args_from_cdb(self.cdb, bufname)
-
-        self.buffer_data[bufname].parse_busy = False
 
         try:
             if self.buffer_data[bufname].tu:
