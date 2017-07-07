@@ -1,4 +1,4 @@
-# Clighter8: Vim plugin for c/c++ developers and Vim lovers
+# Clighter8: Vim C++ syntax highlight plugin by libclang
 
 # Intro
 
@@ -7,7 +7,7 @@ features:
 
 * On-the-fly, highly customized syntax highlight
 * Compilation database supporting
-* Awesome color scheme
+* An awesome color scheme
 
 # Requirements
 Clighter8 requires the following things:
