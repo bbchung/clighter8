@@ -310,13 +310,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if self.buffer_data[bufname].tu:
                 self.buffer_data[bufname].tu.reparse(
                     self.unsaved,
-                    0x01 | 0x100 | 0x200 | 0x2)
+                    0x01 | 0x04 | 0x100 | 0x200 | 0x2)
             else:
                 self.buffer_data[bufname].tu = self.idx.parse(
                     bufname,
                     self.buffer_data[bufname].compile_args,
                     self.unsaved,
-                    0x01 | 0x100 | 0x200 | 0x2)
+                    0x01 | 0x04 | 0x100 | 0x200 | 0x2)
 
             return True
         except Exception as e:

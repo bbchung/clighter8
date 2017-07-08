@@ -109,6 +109,26 @@ fun! clighter8#load_cdb()
     endif
 endf
 
+fun! s:toggle_highlight()
+    augroup Clighter8Highlight
+        autocmd!
+        let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight
+        if g:clighter8_syntax_highlight == 1
+            call s:sched_parse(expand('%:p'))
+
+            au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
+            au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+            "au BufDelete * call clighter8#engine#delete_buffer(s:channel, expand('%:p'))
+            au VimLeave * call clighter8#stop()
+            au CursorHold,CursorHoldI * call s:sched_highlight(expand('%:p'))
+        else
+            let l:wnr = winnr()
+            windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+            exe l:wnr.'wincmd w'
+        endif
+    augroup END
+endf
+
 func s:highlight(matches)
     for [group, all_pos] in items(a:matches)
         let l:count = 0
@@ -137,42 +157,6 @@ fun! s:get_word()
         return ''
     endif
 endf
-
-func s:on_parse(channel, msg)
-    let s:parse_busy=0
-    if !empty(a:msg)
-        if g:clighter8_syntax_highlight == 1
-            call s:sched_highlight(a:msg['bufname'])
-        endif
-    endif
-
-    if s:need_parse == 1
-        let s:need_parse=0
-        let s:parse_busy=1
-        call clighter8#engine#parse_async(a:channel, a:msg['bufname'], join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
-    endif
-endfunc
-
-func s:on_get_hlt(channel, msg)
-    let s:hlt_busy=0
-    
-    if empty(a:msg)
-        return
-    endif
-
-    if a:msg['bufname'] != expand('%:p')
-        return
-    endif
-
-    call s:clear_matches([g:clighter8_syntax_priority, g:clighter8_usage_priority])
-    call s:highlight(a:msg['hlt'])
-
-    if s:need_hlt == 1 
-        let s:need_hlt=0
-        let s:hlt_busy=1
-        call clighter8#engine#get_hlt_async(a:channel, a:msg['bufname'], line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})
-    endif
-endfunc
 
 fun! s:clear_matches(priorities)
     for m in getmatches()
@@ -207,14 +191,20 @@ fun! s:sched_parse(bufname)
     endif
 endf
 
-fun! s:sched_highlight(bufname)
-    if s:hlt_busy == 0
-        let s:hlt_busy=1
-        call clighter8#engine#get_hlt_async(s:channel, a:bufname, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})
-    else
-        let s:need_hlt=1
+func s:on_parse(channel, msg)
+    let s:parse_busy=0
+    if !empty(a:msg)
+        if g:clighter8_syntax_highlight == 1
+            call s:sched_highlight(a:msg['bufname'])
+        endif
     endif
-endf
+
+    if s:need_parse == 1
+        let s:need_parse=0
+        let s:parse_busy=1
+        call clighter8#engine#parse_async(a:channel, a:msg['bufname'], join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
+    endif
+endfunc
 
 fun s:timer_highlight(bufname)
     if exists('s:hlt_timer')
@@ -232,22 +222,32 @@ fun s:timer_highlight(bufname)
     let s:hlt_timer = timer_start(500, {->s:sched_highlight(a:bufname)})
 endf
 
-fun! s:toggle_highlight()
-    augroup Clighter8Highlight
-        autocmd!
-        let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight
-        if g:clighter8_syntax_highlight == 1
-            call s:sched_parse(expand('%:p'))
-
-            au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
-            au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-            "au BufDelete * call clighter8#engine#delete_buffer(s:channel, expand('%:p'))
-            au VimLeave * call clighter8#stop()
-            au CursorMoved,CursorMovedI * call s:timer_highlight(expand('%:p'))
-        else
-            let l:wnr = winnr()
-            windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-            exe l:wnr.'wincmd w'
-        endif
-    augroup END
+fun! s:sched_highlight(bufname)
+    if s:hlt_busy == 0
+        let s:hlt_busy=1
+        call clighter8#engine#get_hlt_async(s:channel, a:bufname, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})
+    else
+        let s:need_hlt=1
+    endif
 endf
+
+func s:on_get_hlt(channel, msg)
+    let s:hlt_busy=0
+    
+    if empty(a:msg)
+        return
+    endif
+
+    if a:msg['bufname'] != expand('%:p')
+        return
+    endif
+
+    call s:clear_matches([g:clighter8_syntax_priority, g:clighter8_usage_priority])
+    call s:highlight(a:msg['hlt'])
+
+    if s:need_hlt == 1 
+        let s:need_hlt=0
+        let s:hlt_busy=1
+        call clighter8#engine#get_hlt_async(a:channel, a:msg['bufname'], line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_get_hlt(channel, msg)})
+    endif
+endfunc
