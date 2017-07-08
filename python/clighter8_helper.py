@@ -475,19 +475,19 @@ KindToGroup = {
 }
 
 
-def get_hlt_group(cursor, whitelist, blacklist):
-    group = KindToGroup.get(cursor.kind)
+def get_hlt_group(kind, whitelist, blacklist):
+    group = KindToGroup.get(kind)
 
     if not group:
-        if cursor.kind.is_declaration():
+        if kind.is_declaration():
             group = 'clighter8Decl'
-        elif cursor.kind.is_reference():
+        elif kind.is_reference():
             group = 'clighter8Ref'
-        elif cursor.kind.is_expression():
+        elif kind.is_expression():
             group = 'clighter8Expr'
-        elif cursor.kind.is_statement():
+        elif kind.is_statement():
             group = 'clighter8Stat'
-        elif cursor.kind.is_preprocessing():
+        elif kind.is_preprocessing():
             group = 'clighter8Prepro'
 
     if whitelist:

@@ -360,7 +360,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 token.location.line, token.location.column, len(
                     token.spelling)]
             group = clighter8_helper.get_hlt_group(
-                cursor, self.whitelist, self.blacklist)
+                cursor.kind, self.whitelist, self.blacklist)
 
             if group:
                 if group not in result:
