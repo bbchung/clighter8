@@ -120,7 +120,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.__safe_sendall(json.dumps(
                 [sn, {'bufname': bufname}]))
 
-        elif msg['cmd'] == 'get_hlt':
+        elif msg['cmd'] == 'highlight':
             bufname = msg['params']['bufname']
             begin_line = msg['params']['begin_line']
             end_line = msg['params']['end_line']
@@ -134,7 +134,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             bufname = bufname.encode('utf-8')
 
-            hlt = self.__get_hlt(
+            hlt = self.__highlight(
                 bufname, begin_line, end_line, row, col, word)
 
             result = {'bufname': bufname, 'hlt': hlt}
@@ -315,7 +315,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             self.buffer_data[bufname].compile_args = args
 
-    def __get_hlt(self, bufname, begin_line, end_line, row, col, word):
+    def __highlight(self, bufname, begin_line, end_line, row, col, word):
         if bufname not in self.buffer_data:
             return {}
 

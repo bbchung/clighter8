@@ -3,8 +3,8 @@ fun! clighter8#engine#init(channel, libclang_path, compile_args, cwd, hlt_whitel
     return ch_evalexpr(a:channel, l:expr)
 endf
 
-fun! clighter8#engine#get_hlt_async(channel, bufname, begin, end, row, col, word, callback)
-    let l:expr = {'cmd' : 'get_hlt', 'params' : {'bufname' : a:bufname, 'begin_line' : a:begin, 'end_line' : a:end, 'row' : a:row, 'col': a:col, 'word' : a:word}}
+fun! clighter8#engine#highlight_async(channel, bufname, begin, end, row, col, word, callback)
+    let l:expr = {'cmd' : 'highlight', 'params' : {'bufname' : a:bufname, 'begin_line' : a:begin, 'end_line' : a:end, 'row' : a:row, 'col': a:col, 'word' : a:word}}
     call ch_sendexpr(a:channel, l:expr, {'callback': a:callback})
 endf
 
