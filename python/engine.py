@@ -19,7 +19,6 @@ class BufferData:
     def __init__(self):
         self.tu = None
         self.compile_args = None
-        self.hlt_busy = False
 
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
@@ -135,7 +134,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
             bufname = bufname.encode('utf-8')
 
-            self.__unset_hlt_busy(bufname)
             hlt = self.__get_hlt(
                 bufname, begin_line, end_line, row, col, word)
 
@@ -257,20 +255,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def __delete_buffer_data(self, bufname):
         if bufname in self.buffer_data:
             del self.buffer_data[bufname]
-
-    def __set_hlt_busy(self, bufname):
-        if bufname in self.buffer_data:
-            self.buffer_data[bufname].hlt_busy = True
-
-    def __unset_hlt_busy(self, bufname):
-        if bufname in self.buffer_data:
-            self.buffer_data[bufname].hlt_busy = False
-
-    def __is_hlt_busy(self, bufname):
-        if bufname in self.buffer_data:
-            return self.buffer_data[bufname].hlt_busy
-
-        return False
 
     def __init(self, cwd, global_compile_args, whitelist, blacklist):
         try:
