@@ -563,16 +563,7 @@ def get_semantic_symbol_from_location(tu, bufname, row, col):
     if not cursor:
         return None
 
-    symbol = get_semantic_symbol(cursor)
-
-    if not symbol:
-        return None
-
-    # if cursor.location.line != row or col < cursor.location.column or col >= cursor.location.column + \
-        # len(symbol.spelling):
-        # return None
-
-    return symbol
+    return get_semantic_symbol(cursor)
 
 
 def get_semantic_symbol(cursor):
