@@ -5,7 +5,7 @@
 Clighter8 is a server-client Vim syntax highlight plugin, provides following
 features:
 
-* On-the-fly, highly customized syntax highlight
+* On-the-fly, highly customized semantic syntax highlight
 * Compilation database supporting
 * An awesome color scheme
 
