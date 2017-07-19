@@ -202,7 +202,7 @@ func s:on_parse(channel, msg)
     if s:need_parse == 1
         let s:need_parse=0
         let s:parse_busy=1
-        call clighter8#engine#parse_async(a:channel, a:msg['bufname'], join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
+        call clighter8#engine#parse_async(a:channel, expand('%:p'), join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
     endif
 endfunc
 
@@ -248,6 +248,6 @@ func s:on_highlight(channel, msg)
     if s:need_hlt == 1 
         let s:need_hlt=0
         let s:hlt_busy=1
-        call clighter8#engine#highlight_async(a:channel, a:msg['bufname'], line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_highlight(channel, msg)})
+        call clighter8#engine#highlight_async(a:channel, expand('%:p'), line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_highlight(channel, msg)})
     endif
 endfunc
