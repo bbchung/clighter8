@@ -223,7 +223,6 @@ fun s:timer_highlight(bufname)
 endf
 
 fun! s:sched_highlight(bufname)
-    call s:clear_matches([g:clighter8_syntax_priority, g:clighter8_usage_priority])
     if s:hlt_busy == 0
         let s:hlt_busy=1
         call clighter8#engine#highlight_async(s:channel, a:bufname, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_highlight(channel, msg)})
@@ -233,6 +232,7 @@ fun! s:sched_highlight(bufname)
 endf
 
 func s:on_highlight(channel, msg)
+    call s:clear_matches([g:clighter8_syntax_priority, g:clighter8_usage_priority])
     let s:hlt_busy=0
     
     if empty(a:msg)
