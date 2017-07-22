@@ -5,6 +5,7 @@ let s:parse_busy=0
 let s:need_parse=0
 let s:hlt_busy=0
 let s:need_hlt=0
+let s:enable=0
 
 fun! clighter8#start()
     if exists('s:channel')
@@ -31,14 +32,8 @@ fun! clighter8#start()
         return
     endif
 
+    call s:toggle_highlight()
     call s:sched_parse(expand('%:p'))
-
-    augroup Clighter8
-        autocmd!
-        let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight " a trick to reuse next function
-        call s:toggle_highlight()
-
-    augroup END
 
     command! ClShowCursorInfo if exists ('s:channel') | echo clighter8#engine#cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif
     command! ClShowCompileInfo if exists ('s:channel') | echo clighter8#engine#compile_info(s:channel, expand('%:p')) | endif
@@ -112,8 +107,8 @@ endf
 fun! s:toggle_highlight()
     augroup Clighter8Highlight
         autocmd!
-        let g:clighter8_syntax_highlight = !g:clighter8_syntax_highlight
-        if g:clighter8_syntax_highlight == 1
+        let s:enable = !s:enable
+        if s:enable == 1
             call s:sched_parse(expand('%:p'))
 
             au BufEnter,TextChanged,TextChangedI * call s:timer_parse(expand('%:p'))
@@ -194,7 +189,7 @@ endf
 func s:on_parse(channel, msg)
     let s:parse_busy=0
     if !empty(a:msg)
-        if g:clighter8_syntax_highlight == 1
+        if a:msg['bufname'] == expand('%:p')
             call s:sched_highlight(a:msg['bufname'])
         endif
     endif
@@ -248,6 +243,6 @@ func s:on_highlight(channel, msg)
     if s:need_hlt == 1 
         let s:need_hlt=0
         let s:hlt_busy=1
-        call clighter8#engine#highlight_async(a:channel, expand('%:p'), line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_highlight(channel, msg)})
+        call clighter8#engine#highlight_async(a:channel, a:msg['bufname'], line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_highlight(channel, msg)})
     endif
 endfunc
