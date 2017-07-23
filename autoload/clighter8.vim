@@ -178,6 +178,10 @@ func! s:timer_parse(bufname)
 endf
 
 fun! s:sched_parse(bufname)
+    if index(['c', 'cpp'], &filetype) == -1
+        return
+    endif
+
     if s:parse_busy == 0
         let s:parse_busy=1
         call clighter8#engine#parse_async(s:channel, a:bufname, join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
@@ -218,6 +222,10 @@ fun s:timer_highlight(bufname)
 endf
 
 fun! s:sched_highlight(bufname)
+    if index(['c', 'cpp'], &filetype) == -1
+        return
+    endif
+
     if s:hlt_busy == 0
         let s:hlt_busy=1
         call clighter8#engine#highlight_async(s:channel, a:bufname, line('w0'), line('w$'), line('.'), col('.'), s:get_word(), {channel, msg->s:on_highlight(channel, msg)})
