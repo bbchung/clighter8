@@ -184,7 +184,7 @@ fun! s:sched_parse(bufname)
 
     if s:parse_busy == 0
         let s:parse_busy=1
-        call clighter8#engine#parse_async(s:channel, a:bufname, join(getbufline(expand('%:p'), 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
+        call clighter8#engine#parse_async(s:channel, a:bufname, join(getbufline(a:bufname, 1,'$'), "\n"), {channel, msg->s:on_parse(channel, msg)})
     else
         let s:need_parse=1
     endif
