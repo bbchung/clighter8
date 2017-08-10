@@ -48,10 +48,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 break
 
             # print("received: {0}{1}".format(data, len(data)))
-            if data == '':
+            if not data:
                 break
 
-            if remain != '':
+            if remain:
                 data = remain + data
 
             remain = clighter8_helper.parse_line_delimited(
