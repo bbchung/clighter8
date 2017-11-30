@@ -1,3 +1,4 @@
+import os
 from clang import cindex
 
 KindToGroup = {
