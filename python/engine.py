@@ -287,8 +287,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def __parse(self, bufname):
         if bufname not in self.buffer_data:
             self.buffer_data[bufname] = BufferData()
-            self.buffer_data[bufname].compile_args = self.global_compile_args + \
-                clighter8_helper.get_compile_args_from_cdb(self.cdb, bufname)
+
+            if not self.buffer_data[bufname].compile_args:
+                self.buffer_data[bufname].compile_args = self.global_compile_args + \
+                    clighter8_helper.get_compile_args_from_cdb(self.cdb, bufname)
 
         try:
             if self.buffer_data[bufname].tu:

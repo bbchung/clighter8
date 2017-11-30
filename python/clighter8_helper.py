@@ -608,8 +608,12 @@ def get_compile_args_from_cdb(cdb, bufname):
         return[]
 
     cmds = cdb.getCompileCommands(bufname)
-    if cmds is None:
-        return []
+    if not cmds:
+        cmds = cdb.getCompileCommands(os.path.splitext(bufname)[0] + ".cpp")
+        if not cmds:
+            cmds = cdb.getCompileCommands(os.path.splitext(bufname)[0] + ".c")
+            if not cmds:
+                return []
 
     result = list(cmds[0].arguments)
     result.pop()
