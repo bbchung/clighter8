@@ -6,6 +6,8 @@ let s:need_parse=0
 let s:hlt_busy=0
 let s:need_hlt=0
 let s:enable=0
+let s:hlt_timer=0
+let s:parse_timer=0
 
 fun! clighter8#start()
     if exists('s:channel')
@@ -47,9 +49,8 @@ fun! clighter8#stop()
         autocmd!
     augroup END
 
-    if exists('s:timer')
-        call timer_stop(s:timer)
-    endif
+    call timer_stop(s:parse_timer)
+    call timer_stop(s:hlt_timer)
 
     if exists('s:channel') && ch_status(s:channel) ==# 'open'
         call ch_close(s:channel)
@@ -166,9 +167,7 @@ func! s:timer_parse()
         return
     endif
 
-    if exists('s:parse_timer')
-        call timer_stop(s:parse_timer)
-    endif
+    call timer_stop(s:parse_timer)
 
     if !exists('s:channel')
         return
@@ -209,9 +208,7 @@ fun s:timer_highlight(bufname)
         return
     endif
 
-    if exists('s:hlt_timer')
-        call timer_stop(s:hlt_timer)
-    endif
+    call timer_stop(s:hlt_timer)
 
     if !exists('s:channel')
         return
