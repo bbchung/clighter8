@@ -146,7 +146,6 @@ Clighter8 provides these commands and functions.
 |ClStart|
 |ClStop|
 |ClRestart|
-|ClToggleHighlight|
 |ClShowCursorInfo|
 |ClShowCompileInfo|
 |ClEnableLog|
@@ -170,13 +169,6 @@ Stop Clighter8.
 ClRestart~
 
 Restart Clighter8.
-
-------------------------------------------------------------------------------
-						*ClToggleHighlight*
-ClToggleHighlight~
-
-Toggle highlight function. It is useful when libclang run slow.(ex: include
-boost library)
 
 ------------------------------------------------------------------------------
 						*ShowCursorInfo*

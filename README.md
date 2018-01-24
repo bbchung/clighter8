@@ -40,11 +40,6 @@ Stop Clighter8.
 
 Restart Clighter8.
 
-## ClToggleHighlight
-
-Toggle highlight function. It is useful when libclang run slow.(ex: include
-boost library)
-
 ## ClShowCursorInfo
 
 Show cursor informations from libclang. It's useful when debugging.

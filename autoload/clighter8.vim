@@ -1,18 +1,18 @@
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clighter8.vim')
 
-let s:parse_busy=0
-let s:need_parse=0
-let s:hlt_busy=0
-let s:need_hlt=0
-let s:enable=0
-let s:hlt_timer=0
-let s:parse_timer=0
-
 fun! clighter8#start()
     if exists('s:channel')
         return
     endif
+
+    let s:parse_busy=0
+    let s:need_parse=0
+    let s:hlt_busy=0
+    let s:need_hlt=0
+    let s:enable=0
+    let s:hlt_timer=0
+    let s:parse_timer=0
 
     let s:channel = ch_open('localhost:8787')
     if ch_status(s:channel) ==# 'fail'
@@ -34,39 +34,46 @@ fun! clighter8#start()
         return
     endif
 
-    call s:toggle_highlight()
     call s:sched_parse()
+
+    augroup Clighter8Highlight
+        autocmd!
+        au BufEnter,TextChanged,TextChangedI * call s:timer_parse()
+        au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+        "au BufDelete * call clighter8#engine#delete_buffer(s:channel, expand('%:p'))
+        au VimLeave * call clighter8#stop()
+        au CursorHold,CursorHoldI * call s:sched_highlight()
+    augroup END
 
     command! ClShowCursorInfo if exists ('s:channel') | echo clighter8#engine#cursor_info(s:channel, expand('%:p'), getpos('.')[1], getpos('.')[2]) | endif
     command! ClShowCompileInfo if exists ('s:channel') | echo clighter8#engine#compile_info(s:channel, expand('%:p')) | endif
     command! ClEnableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:true) | endif
     command! ClDisableLog if exists ('s:channel') | call clighter8#engine#enable_log(s:channel, v:false) | endif
-    command! ClToggleHighlight if exists ('s:channel') | call s:toggle_highlight() | endif
 endf
 
 fun! clighter8#stop()
-    augroup Clighter8
+    augroup Clighter8Highlight
         autocmd!
     augroup END
+
+    let l:wnr = winnr()
+    windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
+    exe l:wnr.'wincmd w'
 
     call timer_stop(s:parse_timer)
     call timer_stop(s:hlt_timer)
 
     if exists('s:channel') && ch_status(s:channel) ==# 'open'
         call ch_close(s:channel)
-        unlet s:channel
     endif
 
-    let l:wnr = winnr()
-    windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-    exe l:wnr.'wincmd w'
-
+    unlet s:channel
+    
     silent! delc ClShowCursorInfo
     silent! delc ClShowCompileInfo
     silent! delc ClEnableLog
     silent! delc ClDisableLog
     silent! delc ClRenameCursor
-    silent! delc ClToggleHighlight
 endf
 
 fun! clighter8#load_cdb()
@@ -103,26 +110,6 @@ fun! clighter8#load_cdb()
     if !empty(l:extra_inc)
         execute('n! ' . join(l:extra_inc, ' '))
     endif
-endf
-
-fun! s:toggle_highlight()
-    augroup Clighter8Highlight
-        autocmd!
-        let s:enable = !s:enable
-        if s:enable == 1
-            call s:sched_parse()
-
-            au BufEnter,TextChanged,TextChangedI * call s:timer_parse()
-            au BufEnter * call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-            "au BufDelete * call clighter8#engine#delete_buffer(s:channel, expand('%:p'))
-            au VimLeave * call clighter8#stop()
-            au CursorHold,CursorHoldI * call s:sched_highlight()
-        else
-            let l:wnr = winnr()
-            windo call s:clear_matches([g:clighter8_usage_priority, g:clighter8_syntax_priority])
-            exe l:wnr.'wincmd w'
-        endif
-    augroup END
 endf
 
 func s:render(matches)
@@ -218,6 +205,10 @@ fun s:timer_highlight(bufname)
 endf
 
 fun! s:sched_highlight()
+    if !exists('s:channel')
+        return
+    endif
+        
     if index(['c', 'cpp'], &filetype) == -1
         return
     endif
