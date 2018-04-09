@@ -356,7 +356,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 # tu, bufname, token.location.line, token.location.column)
 
             cursor = token.cursor
-            cursor._tu = tu
 
             pos = [
                 token.location.line, token.location.column, len(
