@@ -180,7 +180,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             self.__safe_sendall(json.dumps(
                 [sn, [symbol.spelling, symbol.get_usr()]]))
 
-
         elif msg['cmd'] == 'cursor_info':
             bufname = msg['params']['bufname']
             row = msg['params']['row']
@@ -197,8 +196,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 self.__safe_sendall(json.dumps([sn, None]))
                 return
 
-            tu = bufdata.tu
-            cursor = clighter8_helper.get_cursor(tu, bufname, row, col)
+            cursor = clighter8_helper.get_cursor(bufdata.tu, bufname, row, col)
 
             if not cursor:
                 self.__safe_sendall(json.dumps([sn, None]))
@@ -296,13 +294,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if self.buffer_data[bufname].tu:
                 self.buffer_data[bufname].tu.reparse(
                     self.unsaved,
-                    0x01 | 0x04 | 0x100 | 0x200 | 0x2)
+                    0x01 | 0x02 | 0x04 | 0x100 | 0x200 | cindex.conf.lib.clang_defaultReparseOptions())
             else:
                 self.buffer_data[bufname].tu = self.idx.parse(
                     bufname,
                     self.buffer_data[bufname].compile_args,
                     self.unsaved,
-                    0x01 | 0x04 | 0x100 | 0x200 | 0x2)
+                    0x01 | 0x02 | 0x04 | 0x100 | 0x200 | cindex.conf.lib.clang_defaultEditingTranslationUnitOptions())
 
             return True
         except Exception as e:
@@ -440,7 +438,7 @@ if __name__ == "__main__":
     HOST, PORT = "localhost", 8787
     try:
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
-    except:
+    except BaseException:
         logging.error("failed to start clighter8 server")
         exit()
 

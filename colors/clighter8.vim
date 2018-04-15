@@ -7,7 +7,7 @@ endif
 let g:colors_name = expand('<sfile>:t:r')
 
 " default {
-hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 guibg=#202020 guifg=#DADAC8
+hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 guibg=#202020 guifg=#D8D8D8
 hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg guibg=#004080 guifg=fg
 hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg  guibg=#0073E6 guifg=fg
 hi SpellLocal term=NONE cterm=bold,undercurl ctermbg=NONE ctermfg=30 gui=undercurl guibg=bg guifg=fg guisp=DarkCyan
@@ -18,7 +18,7 @@ hi DiffAdd term=bold cterm=NONE ctermbg=26 ctermfg=fg  guibg=#005fd7 guifg=fg
 hi DiffChange term=bold cterm=NONE ctermbg=95 ctermfg=fg  guibg=#875f5f guifg=fg
 hi DiffDelete term=bold cterm=bold ctermbg=152 ctermfg=fg gui=bold guibg=#afd7d7 guifg=fg
 hi DiffText term=reverse cterm=bold ctermbg=1 ctermfg=fg gui=bold guibg=#800000 guifg=fg
-hi Cursor term=NONE cterm=NONE ctermbg=NONE ctermfg=NONE  guibg=bg 
+hi Cursor term=NONE cterm=NONE ctermbg=NONE ctermfg=130  guibg=bg guifg=#D8D8D8
 hi CursorColumn term=NONE cterm=NONE ctermbg=16 ctermfg=NONE  guibg=#1c1c1c guifg=fg
 hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE guibg=#000000 guifg=NONE
 hi CursorLineNr term=NONE cterm=NONE ctermbg=bg ctermfg=130 gui=NONE guibg=#000000 guifg=#CD9366
@@ -245,8 +245,9 @@ hi pythonSync term=NONE cterm=NONE ctermbg=bg ctermfg=fg  guibg=bg guifg=fg
 hi pythonSpaceError term=NONE cterm=NONE ctermbg=bg ctermfg=fg  guibg=bg guifg=fg
 " }
 
-hi link ValidatorErrorSign SyntasticErrorSign
-hi link ValidatorWarningSign SyntasticWarningSign
+" cpp {
+hi cppType term=NONE cterm=NONE ctermbg=None ctermfg=215 guifg=#ffb964
+" }
 
 
 " vim: tw=0 ts=4 sw=4 foldmarker={,} foldlevel=0 foldmethod=marker
